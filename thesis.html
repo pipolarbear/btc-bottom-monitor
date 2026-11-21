@@ -129,11 +129,11 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
     <div class="tscroll"><table class="t">
       <thead><tr><th>Sign</th><th class="r">Weight</th><th>Zero at</th><th>Full at</th></tr></thead>
       <tbody>
-        <tr><td>No new low: days since the lowest daily close of the bear market</td><td class="r">25</td><td>0 days</td><td>120 days</td></tr>
+        <tr><td>No new low: days since the lowest price of the bear market (intraday low)</td><td class="r">25</td><td>0 days</td><td>120 days</td></tr>
         <tr><td>Above recent buyers' cost: price ÷ short-term holder cost</td><td class="r">20</td><td>0.85×</td><td>1.05×</td></tr>
         <tr><td>Above the 200-day average (Mayer multiple)</td><td class="r">15</td><td>0.80×</td><td>1.10×</td></tr>
         <tr><td>Money coming back: ETF flows, Coinbase premium, stablecoins, USDT dominance</td><td class="r">15</td><td colspan="2">average of the four flow signs (live data only)</td></tr>
-        <tr><td>Bounce from the low: price ÷ lowest close</td><td class="r">10</td><td>1.0×</td><td>1.5×</td></tr>
+        <tr><td>Bounce from the low: price ÷ lowest price</td><td class="r">10</td><td>1.0×</td><td>1.5×</td></tr>
         <tr><td>Selling at a profit: SOPR, 7-day</td><td class="r">10</td><td>−0.005</td><td>+0.004</td></tr>
         <tr><td>Miners recovered: hash ribbons recovery after the low</td><td class="r">5</td><td>capitulating</td><td>recovered</td></tr>
       </tbody>
@@ -142,13 +142,13 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
     <div class="tscroll"><table class="t">
       <thead><tr><th>Band</th><th class="r">Weeks</th><th class="r">Low already passed</th></tr></thead>
       <tbody>
-        <tr><td><span class="sw" style="background:var(--b1)"></span> 0–24 Not yet</td><td class="r">153</td><td class="r">13%</td></tr>
-        <tr><td><span class="sw" style="background:var(--b2)"></span> 25–49 Early signs</td><td class="r">48</td><td class="r">38%</td></tr>
-        <tr><td><span class="sw" style="background:var(--b3)"></span> 50–74 Likely in</td><td class="r">27</td><td class="r">100%</td></tr>
-        <tr><td><span class="sw" style="background:var(--b5)"></span> 75+ Confirmed</td><td class="r">91</td><td class="r">100%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b1)"></span> 0–24 Not yet</td><td class="r">138</td><td class="r">12%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b2)"></span> 25–49 Early signs</td><td class="r">59</td><td class="r">31%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b3)"></span> 50–74 Likely in</td><td class="r">30</td><td class="r">93%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b5)"></span> 75+ Confirmed</td><td class="r">94</td><td class="r">100%</td></tr>
       </tbody>
     </table></div>
-    <p><b>How late it comes.</b> Weeks from each cycle top to one year after its low, in 2014–15, 2018 and 2022 (319 weeks, about half before the low). Bottom in? first reached 50 at 54, 93 and 68 days after the low, and 75 at 159, 114 and 68 days after. Expect it to confirm a low two to three months after the fact. The money-flow sign has no data before 2024, so the backtest leaves it out.</p>
+    <p><b>How late it comes.</b> Weeks from each cycle top to one year after its low, in 2014–15, 2018 and 2022 (321 weeks, about half before the low). Lows are the lowest intraday price (Bitstamp BTC/USD). Bottom in? first reached 50 at 54, 93 and 56 days after the low, and 75 at 152, 114 and 56 days after. In 2022 it reached 63 before the final low: the June low held for five months, then the FTX collapse took price lower in November. Expect it to confirm a low two to three months after the fact. The money-flow sign has no data before 2024, so the backtest leaves it out.</p>
   </section>
 
   <section class="card" aria-labelledby="h-clock">
@@ -157,19 +157,35 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
     <div class="tscroll"><table class="t">
       <thead><tr><th>Reading</th><th class="r">2015 low</th><th class="r">2018 low</th><th class="r">2022 low</th><th class="r">Trend</th></tr></thead>
       <tbody>
-        <tr><td>Days since the top</td><td class="r">406</td><td class="r">364</td><td class="r">366</td><td class="r">—</td></tr>
-        <tr><td>Days since the halving</td><td class="r">777</td><td class="r">889</td><td class="r">912</td><td class="r">—</td></tr>
-        <tr><td>Fall from the top</td><td class="r">−84.5%</td><td class="r">−83.8%</td><td class="r">−76.7%</td><td class="r">−72.8%</td></tr>
+        <tr><td>Days since the top</td><td class="r">406</td><td class="r">364</td><td class="r">378</td><td class="r">—</td></tr>
+        <tr><td>Days since the halving</td><td class="r">777</td><td class="r">889</td><td class="r">924</td><td class="r">—</td></tr>
+        <tr><td>Fall from the top</td><td class="r">−86.6%</td><td class="r">−84.1%</td><td class="r">−77.1%</td><td class="r">−73.1%</td></tr>
         <tr><td>MVRV</td><td class="r">0.56</td><td class="r">0.69</td><td class="r">0.75</td><td class="r">0.85</td></tr>
         <tr><td>Days below realized price in the bear market</td><td class="r">304</td><td class="r">134</td><td class="r">179</td><td class="r">—</td></tr>
       </tbody>
     </table></div>
-    <p class="note">Tops: 4 Dec 2013, 16 Dec 2017, 8 Nov 2021, 6 Oct 2025 (daily closes). Lows: 14 Jan 2015, 15 Dec 2018, 9 Nov 2022. Halvings: Nov 2012, Jul 2016, May 2020, Apr 2024. The "Versus past cycles" tab on the monitor shows the full paths.</p>
+    <p class="note">Tops: 4 Dec 2013, 16 Dec 2017, 8 Nov 2021, 6 Oct 2025 (highest daily close, Coin Metrics). Lows: 14 Jan 2015 ($152), 15 Dec 2018 ($3,122), 21 Nov 2022 ($15,479): the lowest intraday price on Bitstamp. MVRV and days below realized price use daily closes. Halvings: Nov 2012, Jul 2016, May 2020, Apr 2024. The "Versus past cycles" tab on the monitor shows the full paths.</p>
   </section>
 
   <section class="card" aria-labelledby="h-live">
-    <h2 id="h-live">The live scores</h2>
-    <p>Nine value signals use price directly: CVDD, MVRV, long-term holder cost, balanced price, short-term holder cost, the 200-week and 200-day averages, Puell and reserve risk. The page works these out again at the live price every 15 seconds. The other seven (loss-taking, addresses in loss, leverage, Pi Cycle, fear and greed, hash ribbons, time since peak) change once a day when the daily readings arrive. Bottom in? uses the live price for the low, the bounce, recent buyers' cost and the 200-day average.</p>
+    <h2 id="h-live">Live data: where each number comes from</h2>
+    <p>Each time the monitor opens, it pulls the data from the sources below and works out every score in your browser. It does not wait for a daily file. Nine value signals use price directly: CVDD, MVRV, long-term holder cost, balanced price, short-term holder cost, the 200-week and 200-day averages, Puell and reserve risk. Their lines move slowly, so the page divides each line into the live price every 15 seconds. The history chart and heat map use the close of each UTC day, worked out the same way.</p>
+    <div class="tscroll"><table class="t">
+      <thead><tr><th>Data</th><th>Source</th><th>How the page gets it</th><th>How fresh</th></tr></thead>
+      <tbody>
+        <tr><td>Price, daily highs and lows</td><td>Bybit BTC/USDT spot (Coinbase, Kraken or OKX if Bybit fails)</td><td>Pulled live</td><td>Every 15 seconds</td></tr>
+        <tr><td>MVRV and realized price, 200-week and 200-day averages, Pi Cycle, Puell, hash ribbons, time since peak</td><td>Coin Metrics community data</td><td>Pulled live</td><td>Daily close (UTC), about one day behind</td></tr>
+        <tr><td>Funding rate and open interest</td><td>Bybit BTCUSDT perpetual</td><td>Pulled live</td><td>Live</td></tr>
+        <tr><td>Fear &amp; Greed</td><td>alternative.me</td><td>Pulled live</td><td>Daily</td></tr>
+        <tr><td>Stablecoin supply</td><td>DefiLlama</td><td>Pulled live</td><td>Daily</td></tr>
+        <tr><td>Coinbase premium</td><td>Coinbase BTC/USD against Binance BTC/USDT</td><td>Pulled live</td><td>Live</td></tr>
+        <tr><td>Short- and long-term holder cost, CVDD, balanced price, addresses in loss, SOPR, reserve risk</td><td>LookIntoBitcoin</td><td>The site blocks direct access from a web page. The daily task reads it each morning (data.json); this cycle's history is in recent.json</td><td>One to two days behind</td></tr>
+        <tr><td>ETF net flow, 10 days</td><td>CoinGlass</td><td>Daily task</td><td>Daily</td></tr>
+        <tr><td>USDT dominance, 30 days</td><td>TradingView</td><td>Daily task</td><td>Daily</td></tr>
+        <tr><td>Past cycles (backtests and comparisons)</td><td>Coin Metrics, LookIntoBitcoin, alternative.me; intraday lows from Bitstamp</td><td>history.json (weekly)</td><td>Fixed</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">A line under the price shows when each source last updated. If the live sources cannot be reached, the page falls back to the daily task's readings and says so. Bottom in? uses the live price for the low, the bounce, recent buyers' cost and the 200-day average. The low is the lowest intraday price since the top, so a short drop below the old low counts as a new low.</p>
   </section>
 
   <section class="card" aria-labelledby="h-limits">
@@ -179,7 +195,7 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
       <li>The small-cycle levels come from a line through three points. The deep-value check was set after this cycle's false start. Both are fitted to the same history they are tested on.</li>
       <li>The leverage signal has no backtest. Its weight is a judgment. The money-flow sign in Bottom in? has no backtest either.</li>
       <li>ETFs and company treasuries now hold a large share of coins. Holder behaviour may change, so the deep on-chain readings of past lows may not come back.</li>
-      <li>Data providers can revise past values. Days with no daily reading are filled in later from source history where possible, and marked on the monitor.</li>
+      <li>Data providers can revise past values. LookIntoBitcoin lines arrive one to two days late, and its charts do not all update at the same time. Between updates the page divides the last line into the current price.</li>
       <li>The CBBI on the monitor is a separate index by Colin Talks Crypto. It is a cross-check and is not part of these scores.</li>
       <li>Information only. Not financial advice. Past lows do not promise future lows.</li>
     </ol>
