@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Weighting thesis | BTC Bottom Monitor</title>
-<meta name="description" content="Why each of the 16 signals in the BTC Bottom Monitor has its weight: what it measures, why it matters at a cycle low, and its backtest record.">
+<title>How the scores work | BTC Bottom Monitor</title>
+<meta name="description" content="How the BTC Bottom Monitor answers three questions: is BTC cheap, is the bottom in, and where are we in the cycle. Weights, small-cycle levels and backtest results.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..700&family=Space+Grotesk:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="skins.css?v=2">
+<link rel="stylesheet" href="skins.css?v=3">
 <script>try { var k = localStorage.getItem("bbm.skin") || "midnight"; if (k === "auto") k = matchMedia("(prefers-color-scheme: light)").matches ? "daylight" : "midnight"; document.documentElement.setAttribute("data-skin", k); document.documentElement.setAttribute("data-light", k === "daylight" || k === "paper" ? "1" : "0"); document.documentElement.setAttribute("data-cb", localStorage.getItem("bbm.cb") === "1" ? "1" : "0"); } catch (e) {}</script>
 <style>
 .wrap { max-width: 980px; }
@@ -39,18 +39,35 @@ table.t th { font-size: 12px; font-weight: 600; color: var(--muted); text-transf
 table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
 .tscroll { overflow-x: auto; }
 .back { font-size: 14px; }
+.qs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.qs > div { border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.qs b { font-size: 16px; }
+.qs span { font-size: 14px; color: var(--muted); }
+.seg { align-self: flex-start; }
+.note { font-size: 13.5px; color: var(--muted); }
+@media (max-width: 700px) { .qs { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <a class="back" href="./">← Back to the live monitor</a>
   <header style="display:flex;flex-direction:column;gap:8px">
-    <h1>Why each signal has its weight</h1>
-    <p class="lede">The bottom score blends 16 signals into one number from 0 to 100. This page explains the thesis behind it: what each signal measures, why it matters at a cycle low, how it did at past lows, and why it gets its weight.</p>
+    <h1>How the scores work</h1>
+    <p class="lede">The monitor answers three separate questions. Each has its own score, because the answers often differ. This page explains the method behind each one, with the backtest results.</p>
   </header>
 
+  <section class="card" aria-labelledby="h-q">
+    <h2 id="h-q">Three questions</h2>
+    <div class="qs">
+      <div><b>Value: is BTC cheap?</b><span>16 signals against the readings seen at past cycle lows. The main score.</span></div>
+      <div><b>Bottom in? Has the low passed?</b><span>7 signs that only show after a low. It comes late by design.</span></div>
+      <div><b>Cycle clock: where are we?</b><span>Time and depth now, against the 2015, 2018 and 2022 lows.</span></div>
+    </div>
+    <p><b>Why two scores?</b> Cheap is not the same as the low. In the weekly backtest, when the value score was 60–74 (Cheap), price was within 30% of that cycle's final low in only about a third to a half of the weeks. But BTC was higher one year later in 100% of those weeks. The value score is good at "is this a good price for a long hold?". It is weak at "is this the exact low?". Bottom in? fills that gap, but it only turns up weeks after the low.</p>
+  </section>
+
   <section class="card" aria-labelledby="h-thesis">
-    <h2 id="h-thesis">The thesis in five points</h2>
+    <h2 id="h-thesis">Value: the thesis in five points</h2>
     <ol class="pts">
       <li><b>A cycle low forms when sellers run out.</b> Coins move from weak hands to strong hands, mostly at a loss. So the score looks for three things: price below what holders paid (cost basis), people selling at a loss (capitulation), and enough time since the top.</li>
       <li><b>No single signal is reliable.</b> Every signal has false alarms. A weighted blend of different kinds of evidence gives fewer false alarms than any one signal.</li>
@@ -72,37 +89,98 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
   </section>
 
   <section class="card" aria-labelledby="h-glance">
-    <div class="card-h"><h2 id="h-glance">Weights at a glance</h2><span class="sub">total 100</span></div>
+    <div class="card-h"><h2 id="h-glance">Value weights at a glance</h2><span class="sub">total 100</span></div>
     <div id="groups"></div>
   </section>
 
+  <section class="card" aria-labelledby="h-small">
+    <h2 id="h-small">Small-cycle levels</h2>
+    <p>Each cycle low has been less deep than the one before. MVRV at the low went from 0.56 (2015) to 0.69 (2018) to 0.75 (2022). If the score only gives full marks at the old levels, it can read too low at a shallower low. So the monitor has two views, and you choose in the Value card:</p>
+    <ol class="pts">
+      <li><b>Classic.</b> Fixed full-score levels: the readings that all three past lows reached.</li>
+      <li><b>Small-cycle (the default).</b> For each signal, we take its most extreme reading within 60 days of each of the three lows. If the reading got less extreme at each low, we fit a straight line through the three lows. The full-score level then moves by one step of that line (the change per cycle). The 2022-cycle levels are the classic levels. The move is never more than half the gap to the zero level. In the backtest, each past cycle uses its own step of the line, so the history stays fair.</li>
+    </ol>
+    <div class="tscroll"><table class="t">
+      <thead><tr><th>Signal</th><th class="r">2015 low</th><th class="r">2018 low</th><th class="r">2022 low</th><th class="r">Per cycle</th><th class="r">Classic full</th><th class="r">Small-cycle full</th></tr></thead>
+      <tbody id="small"></tbody>
+    </table></div>
+    <p class="note">Not adjusted, because the lows did not get less extreme each time: CVDD (1.00, 1.01, 0.99), 200-week average (0.91, 1.00, 0.66), Pi Cycle (0.82, 0.81, 0.78), Puell (0.31, 0.30, 0.36) and reserve risk. SOPR and Fear &amp; Greed have data for two lows only. Time since peak, hash ribbons and leverage do not measure depth.</p>
+  </section>
+
   <section class="card" aria-labelledby="h-each">
-    <h2 id="h-each">Signal by signal</h2>
+    <h2 id="h-each">Value: signal by signal</h2>
     <div class="sigs" id="sigs"></div>
   </section>
 
   <section class="card" aria-labelledby="h-bands">
-    <h2 id="h-bands">What the score has meant</h2>
-    <p>The same weekly backtest, grouped by band. "Near the low" means price was within 30% of the cycle low.</p>
+    <div class="card-h" style="align-items:center"><h2 id="h-bands">What the value score has meant</h2>
+      <div class="seg" role="group" aria-label="Levels" id="bmode"><button type="button" data-m="adj" aria-pressed="true">Small-cycle</button><button type="button" data-m="classic" aria-pressed="false">Classic</button></div></div>
+    <p>Weekly backtest, mid-2013 to November 2025, grouped by band. "Near the low" means price was within 30% of that cycle's final low.</p>
     <div class="tscroll"><table class="t">
       <thead><tr><th>Band</th><th class="r">Share of weeks</th><th class="r">Near the low</th><th class="r">Median 1-year return</th><th class="r">Higher 1 year later</th></tr></thead>
       <tbody id="bands"></tbody>
     </table></div>
+    <p class="note">These numbers come from a weekly history rebuilt in November 2026 from Coin Metrics, LookIntoBitcoin and alternative.me data (the file history.json in the repository). They differ a little from the first version of this page. The per-signal records above are from the first backtest.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-bi">
+    <h2 id="h-bi">Bottom in? Has the low passed?</h2>
+    <p>A low can only be seen after it has passed. This score looks for seven signs that came after past lows, and stays low until they show.</p>
+    <div class="tscroll"><table class="t">
+      <thead><tr><th>Sign</th><th class="r">Weight</th><th>Zero at</th><th>Full at</th></tr></thead>
+      <tbody>
+        <tr><td>No new low: days since the lowest daily close of the bear market</td><td class="r">25</td><td>0 days</td><td>120 days</td></tr>
+        <tr><td>Above recent buyers' cost: price ÷ short-term holder cost</td><td class="r">20</td><td>0.85×</td><td>1.05×</td></tr>
+        <tr><td>Above the 200-day average (Mayer multiple)</td><td class="r">15</td><td>0.80×</td><td>1.10×</td></tr>
+        <tr><td>Money coming back: ETF flows, Coinbase premium, stablecoins, USDT dominance</td><td class="r">15</td><td colspan="2">average of the four flow signs (live data only)</td></tr>
+        <tr><td>Bounce from the low: price ÷ lowest close</td><td class="r">10</td><td>1.0×</td><td>1.5×</td></tr>
+        <tr><td>Selling at a profit: SOPR, 7-day</td><td class="r">10</td><td>−0.005</td><td>+0.004</td></tr>
+        <tr><td>Miners recovered: hash ribbons recovery after the low</td><td class="r">5</td><td>capitulating</td><td>recovered</td></tr>
+      </tbody>
+    </table></div>
+    <p><b>Deep-value check.</b> No past low came before the value score (small-cycle levels) had reached 75 in that bear market. Until it has, Bottom in? is held at 40% of its raw reading (value peak below 60) or 50% (value peak 60–74). Without this check, the September–October 2026 rally to $81,000 would have read as a likely low. Price then fell below the June low in November.</p>
+    <div class="tscroll"><table class="t">
+      <thead><tr><th>Band</th><th class="r">Weeks</th><th class="r">Low already passed</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sw" style="background:var(--b1)"></span> 0–24 Not yet</td><td class="r">153</td><td class="r">13%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b2)"></span> 25–49 Early signs</td><td class="r">48</td><td class="r">38%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b3)"></span> 50–74 Likely in</td><td class="r">27</td><td class="r">100%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b5)"></span> 75+ Confirmed</td><td class="r">91</td><td class="r">100%</td></tr>
+      </tbody>
+    </table></div>
+    <p><b>How late it comes.</b> Weeks from each cycle top to one year after its low, in 2014–15, 2018 and 2022 (319 weeks, about half before the low). Bottom in? first reached 50 at 54, 93 and 68 days after the low, and 75 at 159, 114 and 68 days after. Expect it to confirm a low two to three months after the fact. The money-flow sign has no data before 2024, so the backtest leaves it out.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-clock">
+    <h2 id="h-clock">Cycle clock</h2>
+    <p>Five readings that place this cycle against the last three lows. Time readings say when lows have come before. Depth readings say how deep they went. The trend values follow the small-cycle method above.</p>
+    <div class="tscroll"><table class="t">
+      <thead><tr><th>Reading</th><th class="r">2015 low</th><th class="r">2018 low</th><th class="r">2022 low</th><th class="r">Trend</th></tr></thead>
+      <tbody>
+        <tr><td>Days since the top</td><td class="r">406</td><td class="r">364</td><td class="r">366</td><td class="r">—</td></tr>
+        <tr><td>Days since the halving</td><td class="r">777</td><td class="r">889</td><td class="r">912</td><td class="r">—</td></tr>
+        <tr><td>Fall from the top</td><td class="r">−84.5%</td><td class="r">−83.8%</td><td class="r">−76.7%</td><td class="r">−72.8%</td></tr>
+        <tr><td>MVRV</td><td class="r">0.56</td><td class="r">0.69</td><td class="r">0.75</td><td class="r">0.85</td></tr>
+        <tr><td>Days below realized price in the bear market</td><td class="r">304</td><td class="r">134</td><td class="r">179</td><td class="r">—</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Tops: 4 Dec 2013, 16 Dec 2017, 8 Nov 2021, 6 Oct 2025 (daily closes). Lows: 14 Jan 2015, 15 Dec 2018, 9 Nov 2022. Halvings: Nov 2012, Jul 2016, May 2020, Apr 2024. The "Versus past cycles" tab on the monitor shows the full paths.</p>
   </section>
 
   <section class="card" aria-labelledby="h-live">
-    <h2 id="h-live">The live score</h2>
-    <p>Nine signals use price directly: CVDD, MVRV, long-term holder cost, balanced price, short-term holder cost, the 200-week and 200-day averages, Puell and reserve risk. The page works these out again at the live price every 15 seconds. The other seven (loss-taking, addresses in loss, leverage, Pi Cycle, fear and greed, hash ribbons, time since peak) change once a day when the daily readings arrive.</p>
+    <h2 id="h-live">The live scores</h2>
+    <p>Nine value signals use price directly: CVDD, MVRV, long-term holder cost, balanced price, short-term holder cost, the 200-week and 200-day averages, Puell and reserve risk. The page works these out again at the live price every 15 seconds. The other seven (loss-taking, addresses in loss, leverage, Pi Cycle, fear and greed, hash ribbons, time since peak) change once a day when the daily readings arrive. Bottom in? uses the live price for the low, the bounce, recent buyers' cost and the 200-day average.</p>
   </section>
 
   <section class="card" aria-labelledby="h-limits">
     <h2 id="h-limits">Limits</h2>
     <ol class="pts">
       <li>There are only three full cycle lows to test on (2015, 2018, 2022). Small samples can mislead.</li>
-      <li>The leverage signal has no backtest. Its weight is a judgment.</li>
+      <li>The small-cycle levels come from a line through three points. The deep-value check was set after this cycle's false start. Both are fitted to the same history they are tested on.</li>
+      <li>The leverage signal has no backtest. Its weight is a judgment. The money-flow sign in Bottom in? has no backtest either.</li>
       <li>ETFs and company treasuries now hold a large share of coins. Holder behaviour may change, so the deep on-chain readings of past lows may not come back.</li>
-      <li>Data providers can revise past values.</li>
-      <li>The CBBI on the monitor is a separate index by Colin Talks Crypto. It is a cross-check and is not part of this score.</li>
+      <li>Data providers can revise past values. Days with no daily reading are filled in later from source history where possible, and marked on the monitor.</li>
+      <li>The CBBI on the monitor is a separate index by Colin Talks Crypto. It is a cross-check and is not part of these scores.</li>
       <li>Information only. Not financial advice. Past lows do not promise future lows.</li>
     </ol>
   </section>
@@ -130,11 +208,14 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
     { n: "Trend and cycle", d: "Is price below its long-run trend, and has enough time passed?", s: [
       { k: "200-week average", w: 8, hits: "2 of 3", prec: 49, up: 100, full: "0.85×", what: "Price divided by the 200-week moving average, the long-run trend line.", why: "Price has rarely stayed below this line for long. Time below it has been among the best times to buy.", wt: "It fired at two of three lows with high precision (49%), and long-run trend is a different kind of evidence from cost basis." },
       { k: "Pi Cycle bottom", w: 6, hits: "3 of 3", prec: 42, up: 100, full: "0.95", what: "The 150-day exponential average against 0.745 × the 471-day average.", why: "A cross below has lined up with past lows within weeks.", wt: "Hit all three lows with good precision. It uses only price averages, so it shares the trend group's weight." },
-      { k: "Time since peak", w: 6, hits: "3 of 3", prec: 36, up: 96, full: "365–420 days", what: "Days since the cycle's all-time high.", why: "Past lows came 365–420 days after the top.", wt: "The only signal that does not use price, so it adds independent timing evidence." },
+      { k: "Time since peak", w: 6, hits: "3 of 3", prec: 36, up: 96, full: "365–420 days", what: "Days since the cycle's all-time high.", why: "Past lows came 364–406 days after the top.", wt: "The only signal that does not use price, so it adds independent timing evidence." },
       { k: "Mayer multiple", w: 3, hits: "3 of 3", prec: 39, up: 81, full: "0.60", what: "Price divided by the 200-day moving average.", why: "Deep readings mark oversold markets.", wt: "Good record, but it overlaps with the 200-week line, so its weight is low." }
     ] }
   ];
-  var B = [["0–19 Very weak", 70.1, 0, 47, 60, 0], ["20–39 Weak", 12.5, 0, 72, 75, 1], ["40–59 Building", 5.5, 3, 69, 83, 2], ["60–74 Strong", 6.2, 33, 75, 100, 3], ["75–89 Very strong", 5.4, 89, 107, 100, 4], ["90+ Capitulation", 0.3, 100, 128, 100, 5]];
+  var BN = ["0–19 Not cheap", "20–39 Fair value", "40–59 Getting cheap", "60–74 Cheap", "75–89 Very cheap", "90+ Extreme value"];
+  var BS = { adj: [[71.7, 0, 43, 59], [12.1, 0, 64, 77], [5.8, 5, 80, 97], [6.6, 47, 83, 100], [3.4, 100, 121, 100], [0.3, 100, 134, 100]], classic: [[69.7, 0, 44, 59], [12.4, 0, 74, 77], [6.1, 2, 65, 82], [6.0, 36, 68, 100], [5.1, 82, 105, 100], [0.6, 100, 134, 100]] };
+  var SC = [["MVRV", "0.56", "0.69", "0.75", "+0.095", "0.80", "0.90"], ["Long-term holder cost", "0.58×", "0.72×", "0.75×", "+0.083", "0.80×", "0.88×"], ["Balanced price", "0.75×", "0.90×", "0.99×", "+0.120", "1.00×", "1.12×"], ["Short-term holder cost", "0.52×", "0.63×", "0.78×", "+0.129", "0.75×", "0.88×"], ["Mayer multiple", "0.40", "0.51", "0.65", "+0.125", "0.60", "0.72"], ["Addresses in loss", "62%", "56%", "50%", "−5.9 pts", "55%", "49%"]];
+  var ADJ = { "MVRV": "0.90", "Long-term holder cost": "0.88×", "Balanced price": "1.12×", "Short-term holder cost": "0.88×", "Mayer multiple": "0.72", "Addresses in loss": "49%" };
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   var gh = "", sh = "";
   G.forEach(function (g) {
@@ -145,13 +226,20 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
     g.s.forEach(function (x) {
       sh += '<article class="sc"><div class="sc-h"><h3>' + esc(x.k) + '</h3><span class="wt">weight ' + x.w + '</span></div><span class="grpn">' + esc(g.n) + "</span>" +
         "<p>" + esc(x.what) + " " + esc(x.why) + "</p>" +
-        "<dl><dt>Full score at</dt><dd>" + esc(x.full) + "</dd><dt>Past lows hit</dt><dd>" + esc(x.hits) + "</dd><dt>Precision</dt><dd>" + (x.prec == null ? "not tested" : x.prec + "% (random day: 6%)") + "</dd><dt>Higher 1 year later</dt><dd>" + (x.up == null ? "not tested" : x.up + "% of signal days") + "</dd></dl>" +
+        "<dl><dt>Full score at</dt><dd>" + esc(x.full) + (ADJ[x.k] ? " (small-cycle: " + esc(ADJ[x.k]) + ")" : "") + "</dd><dt>Past lows hit</dt><dd>" + esc(x.hits) + "</dd><dt>Precision</dt><dd>" + (x.prec == null ? "not tested" : x.prec + "% (random day: 6%)") + "</dd><dt>Higher 1 year later</dt><dd>" + (x.up == null ? "not tested" : x.up + "% of signal days") + "</dd></dl>" +
         '<p class="why"><b>Why this weight:</b> ' + esc(x.wt) + "</p></article>";
     });
   });
   document.getElementById("groups").innerHTML = gh;
   document.getElementById("sigs").innerHTML = sh;
-  document.getElementById("bands").innerHTML = B.map(function (b) { return '<tr><td><span style="display:inline-flex;align-items:center;gap:8px"><span class="sw" style="background:var(--b' + b[5] + ')"></span>' + b[0] + '</span></td><td class="r">' + b[1] + '%</td><td class="r">' + b[2] + '%</td><td class="r">+' + b[3] + '%</td><td class="r">' + b[4] + "%</td></tr>"; }).join("");
+  function bands(m) {
+    document.getElementById("bands").innerHTML = BS[m].map(function (b, i) { return '<tr><td><span style="display:inline-flex;align-items:center;gap:8px"><span class="sw" style="background:var(--b' + i + ')"></span>' + BN[i] + '</span></td><td class="r">' + b[0] + '%</td><td class="r">' + b[1] + '%</td><td class="r">+' + b[2] + '%</td><td class="r">' + b[3] + "%</td></tr>"; }).join("");
+    Array.prototype.forEach.call(document.querySelectorAll("#bmode button"), function (x) { x.setAttribute("aria-pressed", x.getAttribute("data-m") === m ? "true" : "false"); });
+  }
+  var m0 = "adj"; try { if (localStorage.getItem("bbm.levels") === "classic") m0 = "classic"; } catch (e) {}
+  bands(m0);
+  document.getElementById("bmode").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) bands(b.getAttribute("data-m")); });
+  document.getElementById("small").innerHTML = SC.map(function (r) { return "<tr><td>" + esc(r[0]) + "</td>" + r.slice(1).map(function (v, i) { return '<td class="r"' + (i === 5 ? ' style="font-weight:700"' : "") + ">" + esc(v) + "</td>"; }).join("") + "</tr>"; }).join("");
 })();
 </script>
 </body>
