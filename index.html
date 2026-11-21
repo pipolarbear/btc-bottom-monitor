@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>BTC Bottom Monitor</title>
-<meta name="description" content="Live BTC Bottom Monitor: 16 weighted on-chain and market signals in one 0-100 score. Information only, not financial advice.">
+<meta name="description" content="Live BTC Bottom Monitor: is BTC cheap, is the bottom in, and where are we in the cycle. Information only, not financial advice.">
 <meta name="theme-color" content="#0D1117">
 <link rel="icon" id="favicon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..700&family=Space+Grotesk:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="skins.css?v=2">
-<link rel="stylesheet" href="app.css?v=2">
+<link rel="stylesheet" href="skins.css?v=3">
+<link rel="stylesheet" href="app.css?v=3">
 <script>try { var s = new URLSearchParams(location.search), k = s.get("skin") || localStorage.getItem("bbm.skin") || "midnight"; if (k === "auto") k = matchMedia("(prefers-color-scheme: light)").matches ? "daylight" : "midnight"; document.documentElement.setAttribute("data-skin", k); document.documentElement.setAttribute("data-light", k === "daylight" || k === "paper" ? "1" : "0"); document.documentElement.setAttribute("data-cb", (s.get("cb") || localStorage.getItem("bbm.cb")) === "1" ? "1" : "0"); } catch (e) {}</script>
 </head>
 <body>
@@ -21,7 +21,7 @@
   <div class="brand">
     <h1>BTC Bottom Monitor</h1>
     <span class="sub" id="hdr-sub">Loading readings…</span>
-    <span class="links k-hide" data-nocap><a href="thesis.html">Why each signal has its weight</a><a href="v1.html">Version 1</a></span>
+    <span class="links k-hide" data-nocap><a href="thesis.html">How the scores work</a><a href="v1.html">Version 1</a></span>
   </div>
   <div class="controls" data-nocap>
     <span class="pill k-hide" id="fresh"><span class="dot" id="fresh-dot" style="background:var(--muted)"></span><span id="fresh-t">Loading</span></span>
@@ -56,11 +56,20 @@
   <span class="live" id="live"><span class="dot" id="live-dot"></span><span id="live-t" class="tip" tabindex="0" data-tipk="live">Connecting…</span></span>
 </section>
 
+<section class="verdict" id="verdict" aria-live="polite" aria-label="Summary">
+  <div class="vd" id="vd-value"><span class="q">Is BTC cheap?</span><span class="a" id="vd-value-a">—</span></div>
+  <div class="vd" id="vd-bi"><span class="q">Is the bottom in?</span><span class="a" id="vd-bi-a">—</span></div>
+  <div class="vd" id="vd-clock"><span class="q">Cycle clock</span><span class="a" id="vd-clock-a">—</span></div>
+</section>
+
 <div class="row toprow">
   <section class="card score-card" aria-labelledby="score-h">
-    <div class="card-h"><h2 id="score-h"><span class="tip" tabindex="0" data-tipk="score">Bottom score</span></h2><span class="sub">16 signals, weighted, 0–100</span></div>
+    <div class="card-h" style="align-items:center">
+      <div class="hstack"><h2 id="score-h"><span class="tip" tabindex="0" data-tipk="score">Value</span></h2><span class="sub">Is BTC cheap? · 16 signals</span></div>
+      <div class="seg seg-sm" role="group" aria-label="Levels" id="lv" data-nocap><button type="button" data-l="adj" class="tip" data-tipk="lv-adj">Small-cycle</button><button type="button" data-l="classic" class="tip" data-tipk="lv-classic">Classic</button></div>
+    </div>
     <div class="gauge">
-      <svg viewBox="0 0 400 240" role="img" id="g-svg" aria-label="Bottom score">
+      <svg viewBox="0 0 400 240" role="img" id="g-svg" aria-label="Value score">
         <g id="g-bands"></g>
         <path id="g-track" fill="none" stroke="var(--surf2)" stroke-width="26" stroke-linecap="round" pathLength="100"/>
         <path id="g-prog" fill="none" stroke="var(--b3)" stroke-width="26" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100" stroke-dashoffset="100"/>
@@ -79,6 +88,23 @@
     <div class="next" id="next"></div>
   </section>
 
+  <section class="card bi-card" aria-labelledby="bi-h">
+    <div class="card-h"><div class="hstack"><h2 id="bi-h"><span class="tip" tabindex="0" data-tipk="bi">Bottom in?</span></h2><span class="sub">Has the low passed? · 7 signs</span></div></div>
+    <div class="gauge">
+      <svg viewBox="0 0 400 240" role="img" id="bi-svg" aria-label="Bottom in score">
+        <g id="bi-bands"></g>
+        <path id="bi-track" fill="none" stroke="var(--surf2)" stroke-width="26" stroke-linecap="round" pathLength="100"/>
+        <path id="bi-prog" fill="none" stroke="var(--b1)" stroke-width="26" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100" stroke-dashoffset="100"/>
+        <g class="g-mark" id="bi-live"><circle cx="54" cy="210" r="10" fill="var(--ink)" stroke="var(--surf)" stroke-width="3"/></g>
+        <g id="bi-ticks"></g>
+        <g id="bi-hits"></g>
+      </svg>
+      <div class="num"><b id="bi-num">—</b><span id="bi-band">&nbsp;</span></div>
+    </div>
+    <div class="bi-comp" id="bi-comp"><span class="sub">Loading…</span></div>
+    <div class="bi-gate" id="bi-gate"></div>
+  </section>
+
   <section class="card cbbi-card" aria-labelledby="cbbi-h">
     <div class="card-h"><h2 id="cbbi-h"><span class="tip" tabindex="0" data-tipk="cbbi">CBBI</span></h2><span class="sub">Colin's Bull Run Index</span></div>
     <div class="cbbi-dial">
@@ -90,64 +116,88 @@
       <div class="num"><b id="cbbi-num">—</b><span id="cbbi-zone">&nbsp;</span></div>
     </div>
     <div class="cbbi-comp" id="cbbi-comp"><span class="sub">Loading…</span></div>
-    <p class="sub" style="margin:0" id="cbbi-note">0 = cycle bottom zone, 100 = cycle top zone. A cross-check: not part of the bottom score. Source: <a href="https://colintalkscrypto.com/cbbi/" target="_blank" rel="noopener">colintalkscrypto.com</a></p>
-  </section>
-
-  <section class="card moved-card" aria-labelledby="moved-h">
-    <div class="card-h"><h2 id="moved-h"><span class="tip" tabindex="0" data-tipk="moved">What moved</span></h2><span class="sub">points of score</span></div>
-    <div class="mv" id="mv-live"></div>
-    <div class="mv" id="mv-day"></div>
-    <p class="muted" style="margin:0;font-size:13px">Price-based lines follow the live price. On-chain lines update once a day.</p>
+    <p class="sub" style="margin:0" id="cbbi-note">0 = cycle bottom zone, 100 = cycle top zone. A cross-check: not part of the scores here. Source: <a href="https://colintalkscrypto.com/cbbi/" target="_blank" rel="noopener">colintalkscrypto.com</a></p>
   </section>
 </div>
 
+<section class="card" aria-labelledby="clk-h">
+  <div class="card-h"><h2 id="clk-h"><span class="tip" tabindex="0" data-tipk="clocks">Cycle clock</span></h2><span class="sub">Now against the 2015, 2018 and 2022 lows</span></div>
+  <div class="clocks" id="clocks"></div>
+  <p class="sub" style="margin:0">Ticks mark the readings at the 2015, 2018 and 2022 lows. The green arc spans them. The diamond is where the trend of past lows points for this cycle. The orange dot is now.</p>
+</section>
+
 <section class="card" aria-labelledby="hist-h">
   <div class="card-h" style="align-items:center">
-    <h2 id="hist-h">Score history</h2>
+    <h2 id="hist-h">Value score history</h2>
     <div class="seg" role="group" aria-label="Time range" id="ranges">
       <button type="button" data-r="90">3M</button><button type="button" data-r="182">6M</button><button type="button" data-r="365">1Y</button><button type="button" data-r="0" aria-pressed="true">All</button>
     </div>
   </div>
   <div id="hist"><div id="tip"></div></div>
   <div class="hl">
-    <span><span style="width:22px;height:3px;border-radius:2px;background:var(--accent);display:inline-block"></span>Bottom score (weekly to 2 Nov 2026, then daily)</span>
+    <span><span style="width:22px;height:3px;border-radius:2px;background:var(--accent);display:inline-block"></span><span id="hl-score">Value score (weekly, then daily from 8 Nov 2026)</span></span>
     <span><span style="width:22px;height:0;border-top:2px dashed var(--muted);display:inline-block"></span>BTC price (right scale)</span>
-    <span><span class="sw" style="background:var(--b3);opacity:.55"></span>Shading: Strong, Very strong, Capitulation</span>
+    <span><span class="sw" style="background:var(--b3);opacity:.55"></span>Shading: Cheap, Very cheap, Extreme value</span>
   </div>
 </section>
 
 <section class="card" aria-labelledby="sig-h">
   <div class="card-h" style="align-items:center">
-    <h2 id="sig-h">Signals, last 14 days</h2>
-    <div class="seg" role="group" aria-label="View for every signal" id="sig-all" data-nocap>
-      <button type="button" data-v="heat">Heat map</button><button type="button" data-v="num">Numbers</button><button type="button" data-v="line">Line</button>
+    <h2 id="sig-h">Signals</h2>
+    <div class="seg" role="tablist" aria-label="Signals view" id="sig-tabs" data-nocap>
+      <button type="button" role="tab" data-t="d14" id="tab-btn-d14" aria-controls="tab-d14">Last 14 days</button><button type="button" role="tab" data-t="cyc" id="tab-btn-cyc" aria-controls="tab-cyc">Versus past cycles</button>
     </div>
   </div>
-  <p class="sub" style="margin:0">Each signal scored 0–100, heaviest weight first. Hover a name to see why it matters. The small button next to a name changes the view for that signal only.</p>
-  <div class="sig-scroll"><div class="sig" id="sig"></div></div>
-  <div class="bands" id="bands"></div>
-  <p class="sub" style="margin:0" id="sig-note"></p>
+
+  <div id="tab-d14" role="tabpanel" aria-labelledby="tab-btn-d14" class="tabp">
+    <div class="tab-top">
+      <p class="sub" style="margin:0">Each signal scored 0–100, heaviest weight first. Hover a name to see why it matters. The small button next to a name changes the view for that signal only.</p>
+      <div class="seg" role="group" aria-label="View for every signal" id="sig-all" data-nocap>
+        <button type="button" data-v="heat">Heat map</button><button type="button" data-v="num">Numbers</button><button type="button" data-v="line">Line</button>
+      </div>
+    </div>
+    <div class="sig-scroll"><div class="sig" id="sig"></div></div>
+    <div class="bands" id="bands"></div>
+    <p class="sub" style="margin:0" id="sig-note"></p>
+  </div>
+
+  <div id="tab-cyc" role="tabpanel" aria-labelledby="tab-btn-cyc" class="tabp" hidden>
+    <div class="tab-top">
+      <p class="sub" style="margin:0">This cycle against the last two, lined up by days since each cycle's top. The live point is now.</p>
+      <div class="cyc-ctl" data-nocap>
+        <div class="seg" role="group" aria-label="Measure" id="cyc-metric"><button type="button" data-m="fall">Fall from top</button><button type="button" data-m="value">Value</button><button type="button" data-m="bi">Bottom in</button></div>
+        <label class="chk"><input type="checkbox" id="cyc-2014"> Add 2014–15</label>
+      </div>
+    </div>
+    <div id="cyc-chart"><div id="cyc-tip"></div></div>
+    <div class="tscroll"><table class="t cyc-t" id="cyc-t"></table></div>
+    <p class="sub" style="margin:0" id="cyc-note"></p>
+  </div>
 </section>
 
 <div class="row k-hide">
+  <section class="card moved-card" aria-labelledby="moved-h">
+    <div class="card-h"><h2 id="moved-h"><span class="tip" tabindex="0" data-tipk="moved">What moved</span></h2><span class="sub">points of value score</span></div>
+    <div class="mv" id="mv-live"></div>
+    <div class="mv" id="mv-day"></div>
+    <p class="muted" style="margin:0;font-size:13px">Price-based lines follow the live price. On-chain lines update once a day.</p>
+  </section>
   <section class="card p2s-card" aria-labelledby="p2s-h">
-    <div class="card-h" style="align-items:center"><div style="display:flex;flex-direction:column;gap:2px"><h2 id="p2s-h">Price to score</h2><span class="sub">with the chance of each price</span></div>
+    <div class="card-h" style="align-items:center"><div style="display:flex;flex-direction:column;gap:2px"><h2 id="p2s-h">Price to value score</h2><span class="sub">with the chance of each price</span></div>
       <div class="seg" role="group" aria-label="Time window for the chance" id="win" data-nocap><button type="button" data-w="30" aria-pressed="true">30 days</button><button type="button" data-w="90">90 days</button></div></div>
     <div class="tscroll"><table class="t p2s"><thead id="p2s-head"><tr><th>BTC price</th><th class="r">Change</th><th class="r">Score</th><th>Band</th><th>Chance</th><th>Confidence</th></tr></thead><tbody id="p2s"></tbody></table></div>
     <div id="p2s-x"></div>
   </section>
-  <section class="card" aria-labelledby="conf-h">
-    <div class="card-h"><h2 id="conf-h"><span class="tip" tabindex="0" data-tipk="confirm">Confirmation</span></h2><span class="sub">recovery signs · <b class="mono" id="conf-v" style="color:var(--ink)">—</b></span></div>
-    <div id="conf" style="display:flex;flex-direction:column;gap:10px"></div>
-    <p class="muted" style="margin:0;font-size:13px">These signs turned up after past lows. They confirm a recovery. They do not mark the low.</p>
-  </section>
 </div>
 
 <details class="card how k-hide">
-  <summary>How the score works</summary>
-  <p>Each of 16 signals gets a score from 0 to 100. The score goes up as the signal gets closer to the level it reached at past cycle lows. The bottom score is the weighted average. If a reading is missing, its weight goes to the others.</p>
-  <p>Live score: nine price-based signals are worked out again at the live price each time the price updates. The other seven change once a day.</p>
-  <p><a href="thesis.html">Read why each signal has its weight, with the backtest results.</a></p>
+  <summary>How the scores work</summary>
+  <p><b>Value</b> answers one question: is BTC cheap against past cycle lows? Each of 16 signals gets a score from 0 to 100. The score goes up as the signal gets closer to the level it reached at past lows. The value score is the weighted average. If a reading is missing, its weight goes to the others.</p>
+  <p><b>Small-cycle levels.</b> Each past low was less deep than the one before. For six signals, the full-score level moves with that trend. Switch to Classic to see the score with the old, fixed levels.</p>
+  <p><b>Bottom in?</b> asks a different question: has the low already passed? It looks for signs that only come after a low: no new low for weeks, price back above recent buyers' cost and the 200-day average, selling at a profit again, miners and money coming back. It stays low until the value score has reached 75 at least once in this bear market, because no past low came before that.</p>
+  <p><b>Cycle clock</b> shows where this cycle is in time and depth, against the 2015, 2018 and 2022 lows.</p>
+  <p>Live: price-based signals are worked out again at the live price each time the price updates. The other signals change once a day.</p>
+  <p><a href="thesis.html">Read the full method, with the backtest results.</a></p>
   <p>Information only. Not financial advice. Past lows do not promise future lows.</p>
 </details>
 
@@ -157,6 +207,6 @@
 </footer>
 
 </div>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
