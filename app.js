@@ -91,8 +91,8 @@
   // Bottom in?: signs that only show after a low. Weighted average x deep-value gate.
   // Gate: highest small-cycle value score since this cycle's top: below 60 -> x0.4, 60-74 -> x0.5, 75+ -> x1.
   var BI = [
-    { k: "nolow", w: 25, name: "No new low", tip: "Days since the lowest daily close of this bear market. Zero on the day of a new low. Full score at 120 days." },
-    { k: "rise", w: 10, name: "Bounce from the low", tip: "Price against the lowest close of this bear market. Full score at 1.5× (50% above the low)." },
+    { k: "nolow", w: 25, name: "No new low", tip: "Days since the lowest price of this bear market (the intraday low on Bybit, BTC/USDT). Zero on the day of a new low. Full score at 120 days." },
+    { k: "rise", w: 10, name: "Bounce from the low", tip: "Price against the lowest price of this bear market (intraday). Full score at 1.5× (50% above the low)." },
     { k: "sth", w: 20, name: "Above recent buyers' cost", tip: "Price against the short-term holder cost (coins moved in the last 155 days). Zero at 0.85×, full at 1.05×: recent buyers back in profit." },
     { k: "mayer", w: 15, name: "Above the 200-day average", tip: "Price against its 200-day average. Zero at 0.80×, full at 1.10×." },
     { k: "sopr", w: 10, name: "Selling at a profit", tip: "SOPR, 7-day. Zero at −0.005, full at +0.004: coins that move are sold at a profit again." },
@@ -100,8 +100,8 @@
     { k: "flows", w: 15, name: "Money coming back", tip: "The four flow signs: ETF net flow, Coinbase premium, stablecoin supply and USDT dominance. Live data only, so it is not in the backtest." }
   ];
   var BIB = [
-    { lo: 0, hi: 24, name: "Not yet", lowIn: 13, weeks: 153, col: 1 }, { lo: 25, hi: 49, name: "Early signs", lowIn: 38, weeks: 48, col: 2 },
-    { lo: 50, hi: 74, name: "Likely in", lowIn: 100, weeks: 27, col: 3 }, { lo: 75, hi: 100, name: "Confirmed", lowIn: 100, weeks: 91, col: 5 }
+    { lo: 0, hi: 24, name: "Not yet", lowIn: 12, weeks: 138, col: 1 }, { lo: 25, hi: 49, name: "Early signs", lowIn: 31, weeks: 59, col: 2 },
+    { lo: 50, hi: 74, name: "Likely in", lowIn: 93, weeks: 30, col: 3 }, { lo: 75, hi: 100, name: "Confirmed", lowIn: 100, weeks: 94, col: 5 }
   ];
   function biIdx(s) { return s == null ? -1 : s < 25 ? 0 : s < 50 ? 1 : s < 75 ? 2 : 3; }
   function biName(s) { var i = biIdx(s); return i < 0 ? "—" : BIB[i].name; }
@@ -121,11 +121,11 @@
     BI.forEach(function (b) { var v = c[b.k]; if (v != null) { sw += b.w; ss += b.w * v; } });
     return { c: c, raw: sw ? ss / sw : null };
   }
-  // Cycle tops and final lows (Coin Metrics daily closes)
+  // Cycle tops (highest daily close, Coin Metrics) and final lows (lowest intraday price, Bitstamp BTC/USD)
   var CYCLES = [
-    { id: "c14", name: "2014–15", short: "’15", top: "2013-12-04", low: "2015-01-14", topP: 1134.9, lowP: 175.64 },
-    { id: "c18", name: "2017–18", short: "’18", top: "2017-12-16", low: "2018-12-15", topP: 19640.5, lowP: 3185.07 },
-    { id: "c22", name: "2021–22", short: "’22", top: "2021-11-08", low: "2022-11-09", topP: 67541.8, lowP: 15758.29 },
+    { id: "c14", name: "2014–15", short: "’15", top: "2013-12-04", low: "2015-01-14", topP: 1134.9, lowP: 152.40 },
+    { id: "c18", name: "2017–18", short: "’18", top: "2017-12-16", low: "2018-12-15", topP: 19640.5, lowP: 3122.28 },
+    { id: "c22", name: "2021–22", short: "’22", top: "2021-11-08", low: "2022-11-21", topP: 67541.8, lowP: 15479 },
     { id: "now", name: "Now", short: "Now", top: "2025-10-06", low: null, topP: 124824.45, lowP: null }
   ];
   var NOWC = CYCLES[3];
@@ -160,16 +160,18 @@
     clocks: "<span class='tt-h'>Cycle clock</span>Where this cycle is in time and depth, against the 2015, 2018 and 2022 lows. Time clocks say when a low has come before. Depth clocks say how deep past lows went.",
     "lv-adj": "<span class='tt-h'>Small-cycle levels</span>Each past low was less deep than the one before. For MVRV, long-term holder cost, balanced price, Mayer multiple, addresses in loss and short-term holder cost, the full-score level moves one step along the trend of the 2015, 2018 and 2022 lows. See the method page for the numbers.",
     "lv-classic": "<span class='tt-h'>Classic levels</span>Fixed full-score levels: the readings that all three past lows reached. Use this view to compare with older screenshots.",
-    moved: "<span class='tt-h'>What moved</span>The signals that changed the value score most, in points of the 0–100 score. The top part is the effect of the live price. The lower part is the change between the last two daily readings.",
-    gate: "<span class='tt-h'>Deep-value check</span>No past low came before the value score (small-cycle levels) had reached 75. Until it has done so in this bear market, Bottom in is held at 40% (value peak below 60) or 50% (value peak 60–74) of its raw reading. This stopped a false start in September–October 2026.",
+    moved: "<span class='tt-h'>What moved</span>The signals that changed the value score most, in points of the 0–100 score. The top part is the effect of the live price against the last daily close. The lower part is the change between the last two daily closes.",
+    gate: "<span class='tt-h'>Deep-value check</span>No past low came before the value score (small-cycle levels) had reached 75. Until it has done so in this bear market, Bottom in is held at 40% (value peak below 60) or 50% (value peak 60–74) of its raw reading. The peak counts daily closes and the live price, as in the backtest (weekly closes). This stopped a false start in September–October 2026.",
     chg24: "<span class='tt-h'>24-hour change</span>Change in price over the last 24 hours on the exchange shown.",
-    live: "<span class='tt-h'>Live price</span>The page asks Bybit for the price every 15 seconds (Coinbase, Kraken or OKX if Bybit fails). Price-based signals are worked out again each time.",
+    live: "<span class='tt-h'>Live data</span>Each time the page opens, it pulls the data from the sources and works out the scores in your browser: price every 15 seconds (Bybit; Coinbase, Kraken or OKX if Bybit fails), daily highs and lows, funding and open interest (Bybit), Coin Metrics, Fear & Greed, stablecoin supply and the Coinbase premium. LookIntoBitcoin, ETF flows and USDT dominance block direct access from a web page, so the daily task reads them each morning.",
+    src: "<span class='tt-h'>Data status</span>When each source last updated. Green: up to date. Amber: older than expected. Price-linked lines (realized price, holder costs, CVDD, balanced price, moving averages) are divided into the live price, so they follow every price move.",
     cbbi: "<span class='tt-h'>CBBI: Colin's Bitcoin Bull Run Index</span>A separate index by Colin Talks Crypto that blends nine cycle signals into one 0–100 number. Low numbers have come near cycle lows; 90+ near cycle tops. Shown here as a cross-check. It is not part of the scores on this page.",
-    "chip-live": "<span class='tt-h'>Live vs daily</span>How much the live price moves the value score compared with the last daily reading.",
-    "chip-prev": "<span class='tt-h'>Since the last reading</span>Change in the daily value score between the last two daily readings.",
-    "chip-7": "<span class='tt-h'>7 days</span>Change in the daily value score over the last 7 days.",
-    "chip-30": "<span class='tt-h'>30 days</span>Change in the daily value score over the last 30 days (weekly history before 8 Nov 2026).",
-    next: "<span class='tt-h'>Next band</span>The BTC price at which the live value score reaches the next band, if the on-chain lines stay as they are today. When price falls, loss-taking and fear usually rise too, so the real score is likely to get there sooner."
+    "chip-live": "<span class='tt-h'>Live vs last close</span>How much the live price moves the value score compared with the last daily close (UTC).",
+    "chip-prev": "<span class='tt-h'>Day before</span>Change in the value score between the last two daily closes.",
+    "chip-7": "<span class='tt-h'>7 days</span>Change in the value score at the daily close over the last 7 days.",
+    "chip-30": "<span class='tt-h'>30 days</span>Change in the value score at the daily close over the last 30 days.",
+    next: "<span class='tt-h'>Next band</span>The BTC price at which the live value score reaches the next band, if the on-chain lines stay as they are today. When price falls, loss-taking and fear usually rise too, so the real score is likely to get there sooner.",
+    hlow: "<span class='tt-h'>Value at the low</span>The shaded band reaches up to the value score at the lowest price of each day (each week before Sep 2025). It shows how cheap BTC got during the day, not only at the close."
   };
   var CBBI_TIPS = {
     PiCycle: "Pi Cycle Top: distance between the 111-day average and 2 × the 350-day average. Near 100 at past tops.",
@@ -307,15 +309,229 @@
   })();
 
   // ---------- data ----------
+  // The daily task's readings (data.json): used for the LookIntoBitcoin lines after recent.json, ETF flows and USDT dominance,
+  // and as a fallback when the live sources cannot be reached.
   function loadData() {
     return fetch("data.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("data " + r.status); return r.json(); }).then(function (d) {
       if (!d || !Array.isArray(d.days) || !d.days.length) throw new Error("empty");
       d.days.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
-      S.data = d; S.latest = d.days[d.days.length - 1]; S.prev = d.days.length > 1 ? d.days[d.days.length - 2] : null;
-      renderAll();
-    }).catch(function () { if (!S.data) { $("hdr-sub").textContent = "Could not load the daily readings. Retrying…"; } });
+      S.data = d; S.recs = d.days;
+      srcOk("task", d.days[d.days.length - 1].date);
+      rebuild();
+    }).catch(function () { srcFail("task"); if (!S.latest) { $("hdr-sub").textContent = "Could not load the daily readings. Retrying…"; } });
   }
   function J(u) { return fetch(u, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
+  function utcToday() { return new Date().toISOString().slice(0, 10); }
+  S.src = {};
+  function srcOk(k, asOf) { S.src[k] = { ok: true, asOf: asOf, at: Date.now() }; }
+  function srcFail(k) { if (!S.src[k] || !S.src[k].ok) S.src[k] = { ok: false, at: Date.now() }; }
+
+  // ---------- live sources, pulled each time the page opens ----------
+  // Coin Metrics community data: price (daily close, UTC), MVRV, miner income, hash rate.
+  function fetchCM() {
+    var url = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=PriceUSD,CapMVRVCur,IssTotUSD,HashRate&frequency=1d&start_time=2013-06-01&page_size=10000", rows = [];
+    function step(u) {
+      return J(u).then(function (j) { rows = rows.concat(j.data || []); return j.next_page_url ? step(j.next_page_url) : null; });
+    }
+    return step(url).then(function () {
+      rows = rows.filter(function (x) { return x.PriceUSD && x.CapMVRVCur; });
+      if (rows.length < 2000) throw new Error("short");
+      S.cm = rows.map(function (x) { return [x.time.slice(0, 10), +x.PriceUSD, +x.CapMVRVCur]; });
+      S.cmIdx = {}; S.cm.forEach(function (x, i) { S.cmIdx[x[0]] = i; });
+      S.cmX = { iss: rows.map(function (x) { return x.IssTotUSD == null ? null : +x.IssTotUSD; }), hr: rows.map(function (x) { return x.HashRate == null ? null : +x.HashRate; }) };
+      S.cycCache = {};
+      srcOk("cm", S.cm[S.cm.length - 1][0]);
+    }).catch(function () { srcFail("cm"); }).then(function () { rebuild(); renderP2S(); });
+  }
+  // Fear & Greed (alternative.me), full daily history
+  function fetchFng() {
+    return J("https://api.alternative.me/fng/?limit=0&format=json").then(function (j) {
+      var m = {}; (j.data || []).forEach(function (x) { m[new Date(+x.timestamp * 1000).toISOString().slice(0, 10)] = +x.value; });
+      var ks = Object.keys(m).sort(); if (!ks.length) throw new Error("empty");
+      S.fng = m; S.fngK = ks; srcOk("fng", ks[ks.length - 1]);
+    }).catch(function () { srcFail("fng"); }).then(rebuild);
+  }
+  function fg7(d) {
+    if (!S.fng) return null; var s = 0, n = 0;
+    for (var i = 0; i < 7; i++) { var v = S.fng[addDays(d, -i)]; if (v != null) { s += v; n++; } }
+    return n >= 4 ? s / n : null;
+  }
+  function fg7Latest() { if (!S.fngK) return null; var a = S.fngK.slice(-7).map(function (k) { return S.fng[k]; }); return a.reduce(function (x, y) { return x + y; }, 0) / a.length; }
+  // Funding rate and open interest (Bybit BTCUSDT perpetual), back to 100 days before the top
+  function fetchLev() {
+    var since = dnum(addDays(NOWC.top, -100)), fund = [], oi = [];
+    function fstep(end, n) {
+      return J("https://api.bybit.com/v5/market/funding/history?category=linear&symbol=BTCUSDT&limit=200" + (end ? "&endTime=" + end : "")).then(function (j) {
+        var l = (j.result && j.result.list) || []; if (!l.length) return;
+        l.forEach(function (x) { fund.push([+x.fundingRateTimestamp, +x.fundingRate]); });
+        var oldest = Math.min.apply(null, l.map(function (x) { return +x.fundingRateTimestamp; }));
+        if (oldest > since && n < 12) return fstep(oldest - 1, n + 1);
+      });
+    }
+    function ostep(cur, n) {
+      return J("https://api.bybit.com/v5/market/open-interest?category=linear&symbol=BTCUSDT&intervalTime=1d&limit=200" + (cur ? "&cursor=" + encodeURIComponent(cur) : "")).then(function (j) {
+        var l = (j.result && j.result.list) || []; if (!l.length) return;
+        l.forEach(function (x) { oi.push([+x.timestamp, +x.openInterest]); });
+        var oldest = Math.min.apply(null, l.map(function (x) { return +x.timestamp; }));
+        if (oldest > since && j.result.nextPageCursor && n < 6) return ostep(j.result.nextPageCursor, n + 1);
+      });
+    }
+    function uniq(a) { var s = {}; return a.filter(function (x) { if (s[x[0]]) return false; s[x[0]] = 1; return true; }).sort(function (x, y) { return x[0] - y[0]; }); }
+    return Promise.all([fstep(null, 0), ostep(null, 0)]).then(function () {
+      if (!fund.length && !oi.length) throw new Error("empty");
+      S.fund = uniq(fund); S.oi = uniq(oi); srcOk("lev", Date.now());
+    }).catch(function () { srcFail("lev"); }).then(rebuild);
+  }
+  // funding7d: average rate over the 7 days to `end`, as % a year; oiDrawdown: % below the 90-day high of daily open interest
+  function levAt(end) {
+    var res = { f: null, o: null }, f = S.fund, o = S.oi, i, s = 0, n = 0;
+    if (f) { for (i = f.length - 1; i >= 0; i--) { if (f[i][0] > end) continue; if (f[i][0] <= end - 7 * 864e5) break; s += f[i][1]; n++; } if (n >= 12) res.f = s / n * 3 * 365 * 100; }
+    if (o) { var b = []; for (i = o.length - 1; i >= 0 && b.length < 90; i--) if (o[i][0] <= end) b.push(o[i][1]); if (b.length >= 30) { var mx = Math.max.apply(null, b); res.o = (mx - b[0]) / mx * 100; } }
+    return res.f == null && res.o == null ? null : res;
+  }
+  // Stablecoin supply (DefiLlama)
+  function fetchStable() {
+    return J("https://stablecoins.llama.fi/stablecoincharts/all").then(function (a) {
+      var m = {}; a.forEach(function (r) { var v = r.totalCirculatingUSD && r.totalCirculatingUSD.peggedUSD; if (v) m[new Date(+r.date * 1000).toISOString().slice(0, 10)] = v; });
+      var ks = Object.keys(m).sort(); if (ks.length < 40) throw new Error("short");
+      S.stable = m; S.stableK = ks; srcOk("stable", ks[ks.length - 1]);
+    }).catch(function () { srcFail("stable"); }).then(rebuild);
+  }
+  function stable30() { if (!S.stableK) return null; var k = S.stableK, a = S.stable[k[k.length - 1]], b = S.stable[addDays(k[k.length - 1], -30)]; return a && b ? (a / b - 1) * 100 : null; }
+  // Coinbase premium: Coinbase BTC/USD against Binance BTC/USDT (Bybit if Binance fails), in %
+  function fetchPremium() {
+    var other = J("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT").then(function (j) { return +j.price; })
+      .catch(function () { return J("https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT").then(function (j) { return +j.result.list[0].lastPrice; }); });
+    return Promise.all([J("https://api.exchange.coinbase.com/products/BTC-USD/ticker").then(function (j) { return +j.price; }), other]).then(function (r) {
+      if (!(r[0] > 0 && r[1] > 0)) throw new Error("bad");
+      S.cbp = (r[0] / r[1] - 1) * 100; srcOk("cbp", Date.now());
+    }).catch(function () { srcFail("cbp"); }).then(rebuild);
+  }
+  // LookIntoBitcoin lines for this cycle (recent.json, built from the source charts), then the daily task's readings
+  function loadRecent() {
+    return J("recent.json?v=4").then(function (j) { S.recent = j; }).catch(function () { S.recent = null; }).then(rebuild);
+  }
+  function libMap() {
+    var m = {};
+    if (S.recent) S.recent.rows.forEach(function (r) { m[r[0]] = { sthP: r[1], lthP: r[2], cvddP: r[3], balP: r[4], loss: r[5], sopr: r[6], rr: r[7], pL: r[8] }; });
+    // a reading taken at about 07:00 Canberra time holds the LookIntoBitcoin values of two UTC days before
+    (S.recs || []).forEach(function (x) {
+      var k = addDays(x.date, -2), f = x.ref || {}, w = x.raw || {};
+      if (m[k] || !f.sthPrice) return;
+      m[k] = { sthP: f.sthPrice, lthP: f.lthPrice, cvddP: f.cvddPrice, balP: f.balancedPrice, loss: w.addrLoss, sopr: w.sopr7d, rr: w.reserveRisk, pL: w.sth ? w.sth * f.sthPrice : null };
+    });
+    return m;
+  }
+
+  // ---------- daily rows for this cycle, worked out in the browser from the sources ----------
+  // Same fields as history.json rows. Price-linked fields are ratios to the day's close. lo = the day's intraday low.
+  var PRICE_F = ["cvdd", "mvrv", "lth", "bal", "w200", "mayer", "sth", "puell", "rr"];
+  function buildRows() {
+    if (!S.cm || !S.cmX) return null;
+    var cm = S.cm, n = cm.length, P = cm.map(function (x) { return x[1]; }), iss = S.cmX.iss.slice(), hr = S.cmX.hr.slice(), i, j;
+    for (i = 1; i < n; i++) { if (iss[i] == null) iss[i] = iss[i - 1]; if (hr[i] == null) hr[i] = hr[i - 1]; }
+    function pref(a) { var s = [0]; for (var k = 0; k < a.length; k++) s.push(s[k] + (a[k] || 0)); return s; }
+    var sp = pref(P), si = pref(iss), sh = pref(hr);
+    function avg(s, k, w) { return k - w + 1 < 0 ? null : (s[k + 1] - s[k - w + 1]) / w; }
+    // 150-day EMA started on 1 Jan 2019 (as the daily task), all-time high close, hash ribbons
+    var ema = [], e = null, kf = 2 / 151, ath = 0, athD = null, cap = 0, lastRec = null, hc = [], rec = [], athA = [];
+    for (j = 0; j < n; j++) {
+      if (cm[j][0] >= "2019-01-01") { e = e == null ? P[j] : P[j] * kf + e * (1 - kf); } ema.push(e);
+      if (P[j] > ath) { ath = P[j]; athD = cm[j][0]; } athA.push([ath, athD]);
+      if (j >= 60) { var a30 = avg(sh, j, 30), a60 = avg(sh, j, 60); if (a30 < a60) cap++; else { if (cap >= 7) lastRec = cm[j][0]; cap = 0; } hc.push(a30 < a60 ? 1 : 0); } else hc.push(null);
+      rec.push(lastRec);
+    }
+    if (S.cmIdx[NOWC.top] == null) return null;
+    var lib = libMap(), today = utcToday(), rows = [], carry = {}, lowRun = null, lowD = null;
+    for (var d = addDays(NOWC.top, -45); d <= today; d = addDays(d, 1)) {
+      var L = lib[d]; if (L) for (var f in L) if (L[f] != null) carry[f] = { v: L[f], d: d };
+      if (d < NOWC.top) continue;
+      var ci = S.cmIdx[d], est = ci == null, jj = est ? n - 1 : ci, o = S.ohlc && S.ohlc[d], live = d === today;
+      var p = !est ? P[ci] : live ? (liveP() || (o && o.c)) : (o && o.c);
+      if (!p) continue;
+      var k = p / P[jj], s1400 = avg(sp, jj, 1400), s200 = avg(sp, jj, 200), s471 = avg(sp, jj, 471), i365 = avg(si, jj, 365);
+      var cv = function (x) { return carry[x] ? carry[x].v : null; };
+      var r = { d: d, p: p, dly: true, est: est, live: live, v: {}, vl: {} };
+      r.mvrv = cm[jj][2] * k;
+      r.w200 = s1400 ? p / s1400 : null; r.mayer = s200 ? p / s200 : null;
+      r.pi = ema[jj] && s471 ? ema[jj] / (0.745 * s471) : null;
+      r.puell = i365 ? iss[jj] / i365 * k : null;
+      r.hcap = hc[jj]; r.dsr = rec[jj] ? daysBetween(rec[jj], d) : null;
+      r.ath = athA[jj][0]; r.athD = athA[jj][1]; r.dsp = daysBetween(athA[jj][1], d);
+      var sthP = cv("sthP"), lthP = cv("lthP"), cvddP = cv("cvddP"), balP = cv("balP"), rr = cv("rr"), pL = cv("pL");
+      r.sth = sthP ? p / sthP : null; r.lth = lthP ? p / lthP : null; r.cvdd = cvddP ? p / cvddP : null; r.bal = balP ? p / balP : null;
+      r.loss = cv("loss"); r.sopr = cv("sopr"); r.rr = rr != null && pL ? rr * p / pL : null; r.sthP = sthP;
+      r.libD = carry.sthP ? carry.sthP.d : null;
+      r.fg = fg7(d);
+      var lv = levAt(live ? Date.now() : dnum(addDays(d, 1))); r.fund = lv ? lv.f : null; r.oidd = lv ? lv.o : null;
+      r.lo = o && o.l ? Math.min(o.l, p) : p;
+      if (lowRun == null || r.lo < lowRun) { lowRun = r.lo; lowD = d; }
+      r.low = lowRun; r.dsl = daysBetween(lowD, d);
+      rows.push(r);
+    }
+    return rows.length ? rows : null;
+  }
+  // move the live row (today, UTC) to the live price
+  function updLive(P) {
+    var dr = S.dr; if (!dr || !P) return;
+    var r = dr[dr.length - 1]; if (!r.live) return;
+    var k = P / r.p; PRICE_F.forEach(function (f) { if (r[f] != null) r[f] *= k; });
+    r.p = P; if (P < r.lo) r.lo = P;
+    var pv = dr[dr.length - 2];
+    if (pv && pv.low <= r.lo) { r.low = pv.low; r.dsl = pv.dsl + 1; } else { r.low = r.lo; r.dsl = 0; }
+    r.v = {}; r.vl = {};
+    var lv = levAt(Date.now()); if (lv) { r.fund = lv.f; r.oidd = lv.o; }
+  }
+  function rowDoc(o) {
+    return { date: o.d, price: o.p, raw: rowRaw(o), row: o,
+      ref: { realizedPrice: o.mvrv ? o.p / o.mvrv : null, lthPrice: o.lth ? o.p / o.lth : null, cvddPrice: o.cvdd ? o.p / o.cvdd : null, balancedPrice: o.bal ? o.p / o.bal : null, sthPrice: o.sth ? o.p / o.sth : null, sma1400: o.w200 ? o.p / o.w200 : null, sma200: o.mayer ? o.p / o.mayer : null } };
+  }
+  // a daily-task reading with its price-linked signals moved to the price it recorded
+  function recDoc(x) { return { date: x.date, price: x.price, raw: liveRaw(x, x.price), ref: x.ref || {}, confirm: x.confirm || {}, rec: x }; }
+  function lastRec() { return S.recs && S.recs.length ? S.recs[S.recs.length - 1] : null; }
+  function confirmNow() {
+    var rc = (lastRec() || {}).confirm || {}, s30 = stable30();
+    return { etf10d: rc.etf10d, usdtd30d: rc.usdtd30d, cbPremium: S.cbp != null ? S.cbp : rc.cbPremium, stable30d: s30 != null ? s30 : rc.stable30d };
+  }
+  function setLatest() {
+    var dr = S.dr;
+    if (dr && dr.length > 1) {
+      var bi = dr[dr.length - 1].live ? dr.length - 2 : dr.length - 1, base = dr[bi];
+      var doc = rowDoc(base), r = doc.raw;
+      var fgl = fg7Latest(); if (fgl != null) r.fg7d = fgl;
+      var lv = levAt(Date.now()); if (lv) { r.funding7d = lv.f; r.oiDrawdown = lv.o; }
+      r.daysSincePeak = daysBetween(base.athD, todayCbr());
+      doc.date = todayCbr(); doc.closeDate = base.d; doc.confirm = confirmNow(); doc.live = true;
+      S.latest = doc; S.prev = bi > 0 ? rowDoc(dr[bi - 1]) : null; S.base = base; S.mode = "live";
+    } else if (S.recs && S.recs.length) {
+      var rs = S.recs; S.latest = recDoc(rs[rs.length - 1]); S.prev = rs.length > 1 ? recDoc(rs[rs.length - 2]) : null; S.base = null; S.mode = "daily";
+      S.latest.confirm = confirmNow();
+    }
+  }
+  function mergeHist() {
+    if (!S.histW) return;
+    var rows = S.histW.filter(function (o) { return !(S.dr && o.d >= NOWC.top); });
+    if (S.dr) rows = rows.concat(S.dr);
+    S.hist = { rows: rows };
+    // Bottom in for each cycle window (top to top + 900 days), with the running value peak as the gate
+    CYCLES.forEach(function (c) {
+      var end = addDays(c.top, 900), vm = null;
+      rows.forEach(function (o) {
+        if (o.d < c.top || o.d > end) return;
+        var v = histVal(o, "adj"); if (v != null) vm = vm == null ? v : Math.max(vm, v);
+        var bc = biComps({ p: o.p, low: o.low, dsl: o.dsl, sth: o.sth, mayer: o.mayer, sopr: o.sopr, hcap: o.hcap === 1, recAfterLow: o.hcap === 1 ? null : o.dsr == null ? null : o.dsr <= o.dsl + 30, flows: null });
+        o.bi = bc.raw == null ? null : bc.raw * gateOf(vm); o.vmax = vm;
+      });
+    });
+  }
+  var rbT = null;
+  function rebuild() { clearTimeout(rbT); rbT = setTimeout(rebuildNow, 60); }
+  function rebuildNow() {
+    try { S.dr = buildRows(); } catch (e) { S.dr = null; if (window.console) console.error(e); }
+    if (S.dr) updLive(liveP());
+    mergeHist(); setLatest();
+    if (S.latest) renderAll();
+  }
   var FEEDS = [
     { n: "Bybit", f: function () { return J("https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT").then(function (j) { var t = j.result.list[0]; return { p: +t.lastPrice, chg: +t.price24hPcnt * 100, hi: +t.highPrice24h, lo: +t.lowPrice24h, pair: "BTC / USDT" }; }); } },
     { n: "Coinbase", f: function () { return J("https://api.exchange.coinbase.com/products/BTC-USD/stats").then(function (t) { return { p: +t.last, chg: (t.last / t.open - 1) * 100, hi: +t.high, lo: +t.low, pair: "BTC / USD" }; }); } },
@@ -334,7 +550,7 @@
       }).catch(function () {
         tries++; feedIdx = (feedIdx + 1) % FEEDS.length;
         if (tries < FEEDS.length) return attempt();
-        renderLiveAge();
+        srcFail("price"); renderLiveAge();
       });
     }
     return attempt();
@@ -346,12 +562,17 @@
       return J("https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=3600").then(function (a) { S.hourly = a.slice(0, 25).map(function (k) { return +k[4]; }).reverse(); });
     }).catch(function () {}).then(renderSpark);
   }
+  // Daily candles (UTC days): close and intraday low. Bybit BTC/USDT spot, Coinbase BTC/USD if Bybit fails.
   function fetchDaily() {
     return J("https://api.bybit.com/v5/market/kline?category=spot&symbol=BTCUSDT&interval=D&limit=1000").then(function (j) {
-      var m = {}; j.result.list.forEach(function (k) { m[new Date(+k[0]).toISOString().slice(0, 10)] = +k[4]; }); S.daily = m;
+      var m = {}, o = {}; j.result.list.forEach(function (k) { var d = new Date(+k[0]).toISOString().slice(0, 10); m[d] = +k[4]; o[d] = { h: +k[2], l: +k[3], c: +k[4] }; });
+      S.daily = m; S.ohlc = o; S.ohlcSrc = "Bybit"; srcOk("ohlc", Date.now());
     }).catch(function () {
-      return J("https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=86400").then(function (a) { var m = {}; a.forEach(function (k) { m[new Date(k[0] * 1000).toISOString().slice(0, 10)] = +k[4]; }); S.daily = m; });
-    }).catch(function () {}).then(function () { if (S.latest) { renderHistory(); renderP2S(); } });
+      return J("https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=86400").then(function (a) {
+        var m = {}, o = {}; a.forEach(function (k) { var d = new Date(k[0] * 1000).toISOString().slice(0, 10); m[d] = +k[4]; o[d] = { h: +k[2], l: +k[1], c: +k[4] }; });
+        S.daily = m; S.ohlc = o; S.ohlcSrc = "Coinbase"; srcOk("ohlc", Date.now());
+      });
+    }).catch(function () { srcFail("ohlc"); }).then(rebuild);
   }
   function fetchCbbi() {
     return J("https://colintalkscrypto.com/cbbi/data/latest.json").then(function (j) {
@@ -369,18 +590,40 @@
   // ---------- render ----------
   function liveP() { return S.live && Date.now() - S.liveAt < 5 * 60e3 ? S.live.p : null; }
   function scoreAt(P) { return parts(S.latest, liveRaw(S.latest, P)).total; }
+  // value score parts at the last daily close (live mode) or the last daily-task reading
+  function closeParts() { return S.mode === "live" && S.base ? histParts(S.base) : parts(S.latest); }
 
   function renderAll() {
     if (!S.latest) return;
     renderHeader(); renderLive(); renderSpark(); renderHistory(); renderSignals(); renderP2S(); renderTabs();
   }
+  // data status: when each source last updated
+  var SRC = [
+    { k: "price", n: "Price", live: true }, { k: "ohlc", n: "Daily highs/lows", live: true }, { k: "cm", n: "Coin Metrics", max: 2 },
+    { k: "lib", n: "LookIntoBitcoin", max: 3 }, { k: "fng", n: "Fear & Greed", max: 2 }, { k: "lev", n: "Funding & OI", live: true },
+    { k: "stable", n: "Stablecoins", max: 2 }, { k: "cbp", n: "Coinbase premium", live: true }, { k: "task", n: "ETF & USDT.D (daily task)", max: 2 }
+  ];
+  function srcState(s) {
+    var o = s.k === "price" ? (S.lastOk ? { ok: Date.now() - S.lastOk < 120e3, asOf: S.lastOk } : S.src.price) : s.k === "lib" ? libState() : S.src[s.k];
+    if (!o) return { cls: "wait", txt: "loading" };
+    if (!o.ok) return { cls: "bad", txt: "not reached" };
+    if (s.live || typeof o.asOf === "number") return { cls: "ok", txt: "live" };
+    var age = daysBetween(o.asOf, utcToday());
+    return { cls: age <= (s.max || 2) ? "ok" : "old", txt: fd(o.asOf) };
+  }
+  function libState() { var b = S.base; if (b && b.libD) return { ok: true, asOf: b.libD }; var r = lastRec(); return r ? { ok: true, asOf: addDays(r.date, -2) } : null; }
   function renderHeader() {
-    var d = S.latest;
-    $("hdr-sub").textContent = "Public view · indicators only · daily readings from " + fd(d.date) + (d.asOf ? ", " + d.asOf : "");
-    var age = daysBetween(d.date, todayCbr());
+    $("hdr-sub").textContent = "Public view · indicators only · " + (S.mode === "live" ? "live data, worked out in your browser" : "daily readings from " + fd(S.latest.date) + (S.latest.rec && S.latest.rec.asOf ? ", " + S.latest.rec.asOf : ""));
+    var bad = 0, old = 0, h = "";
+    SRC.forEach(function (s) {
+      var st = srcState(s); if (st.cls === "bad") bad++; if (st.cls === "old") old++;
+      h += '<span class="src ' + st.cls + '"><i></i>' + esc(s.n) + ' <b>' + esc(st.txt) + "</b></span>";
+    });
+    $("src-line").innerHTML = '<span class="tip src-h" tabindex="0" data-tipk="src">Data</span>' + h;
     var dot = $("fresh-dot"), t = $("fresh-t");
-    if (age <= 1) { dot.style.background = "var(--up)"; t.textContent = "Daily data up to date"; }
-    else { dot.style.background = "var(--down)"; t.textContent = "Daily data " + age + " days old"; }
+    if (S.mode !== "live") { dot.style.background = "var(--down)"; t.textContent = "Live sources not reached · daily readings"; }
+    else if (bad || old) { dot.style.background = "var(--b2)"; t.textContent = "Live data · " + (bad + old) + " source" + (bad + old > 1 ? "s" : "") + " late"; }
+    else { dot.style.background = "var(--up)"; t.textContent = "Live data up to date"; }
   }
   var shownScore = null;
   function animateNum(el, from, to) {
@@ -392,18 +635,21 @@
   function renderLive() {
     renderPriceBar();
     if (!S.latest) return;
+    if (S.dr) updLive(liveP());
+    renderHeader();
     var d = S.latest, P = liveP();
-    var daily = parts(d).total, liveS = P ? scoreAt(P) : daily, isLive = !!P;
+    var daily = closeParts().total, liveS = P ? scoreAt(P) : daily, isLive = !!P;
     var v = Math.max(0, Math.min(100, liveS));
     $("g-prog").setAttribute("stroke-dashoffset", (100 - v).toFixed(2));
     $("g-prog").setAttribute("stroke", "var(--b" + Math.max(0, bandIdx(liveS)) + ")");
     $("g-live").style.transform = "rotate(" + (v * 1.8).toFixed(2) + "deg)";
     $("g-daily").style.transform = "rotate(" + (Math.max(0, Math.min(100, daily)) * 1.8).toFixed(2) + "deg)";
     animateNum($("g-num"), shownScore, liveS); shownScore = liveS;
-    $("g-band").textContent = bandName(liveS) + (isLive ? " · live" : " · daily reading");
-    $("g-svg").setAttribute("aria-label", "Live score " + Math.round(liveS) + " of 100, " + bandName(liveS) + ". Daily reading " + Math.round(daily) + ", " + bandName(daily) + ".");
+    var dl = S.mode === "live" ? "Close " + fd(d.closeDate) : "Daily reading";
+    $("g-band").textContent = bandName(liveS) + (isLive ? " · live" : " · " + dl.toLowerCase());
+    $("g-svg").setAttribute("aria-label", "Live score " + Math.round(liveS) + " of 100, " + bandName(liveS) + ". " + dl + " " + Math.round(daily) + ", " + bandName(daily) + ".");
     $("lg-live").textContent = isLive ? "Live " + Math.round(liveS) + " · price now" : "Live price not available";
-    $("lg-daily").textContent = "Daily reading " + Math.round(daily) + " · " + bandName(daily);
+    $("lg-daily").textContent = dl + " " + Math.round(daily) + " · " + bandName(daily);
     renderChips(liveS, daily, isLive);
     renderNext(liveS, P || d.price);
     renderMoved(P);
@@ -444,21 +690,21 @@
     el.setAttribute("stroke", a[a.length - 1] >= a[0] ? "var(--up)" : "var(--down)");
     $("spark-svg").setAttribute("aria-label", "Price over the last 24 hours, from " + usd(a[0]) + " to " + usd(a[a.length - 1]));
   }
-  function docOnOrBefore(date) { var ds = S.data.days, best = null; for (var i = 0; i < ds.length; i++) if (ds[i].date <= date) best = ds[i]; return best; }
+  // value score at the daily close on or before a date (daily rows this cycle, weekly before; daily-task readings as a fallback)
   function scoreOnOrBefore(date) {
-    var d = docOnOrBefore(date);
-    if (d && daysBetween(d.date, date) <= 3) return { s: parts(d).total, date: d.date };
-    var w = weeklyScores(), best = null;
-    for (var i = 0; i < w.length; i++) if (w[i][0] <= date && w[i][1] != null) best = w[i];
-    return best ? { s: best[1], date: best[0] } : null;
+    var best = null;
+    if (S.hist) S.hist.rows.forEach(function (o) { if (!o.live && o.d <= date) best = o; });
+    if (best && daysBetween(best.d, date) <= 7) { var s = histVal(best); if (s != null) return { s: s, date: best.d }; }
+    var rb = null; (S.recs || []).forEach(function (x) { if (x.date <= date) rb = x; });
+    return rb && daysBetween(rb.date, date) <= 3 ? { s: parts(recDoc(rb)).total, date: rb.date } : null;
   }
   function chip(k, v, tk) { return '<span class="chip tip" tabindex="0" data-tipk="' + tk + '"><span class="k">' + esc(k) + '</span><span class="v" style="color:' + (v >= 0 ? "var(--up)" : "var(--down)") + '">' + sgn(v) + "</span></span>"; }
   function renderChips(liveS, daily, isLive) {
-    var h = "", d = S.latest;
-    if (isLive) h += chip("Live vs daily", Math.round(liveS) - Math.round(daily), "chip-live");
+    var h = "", d = S.latest, ref = S.mode === "live" ? d.closeDate : d.date;
+    if (isLive) h += chip(S.mode === "live" ? "Live vs close" : "Live vs daily", Math.round(liveS) - Math.round(daily), "chip-live");
     if (S.prev) h += chip("Since " + fd(S.prev.date), Math.round(daily) - Math.round(parts(S.prev).total), "chip-prev");
-    var w7 = scoreOnOrBefore(addDays(d.date, -7)); if (w7) h += chip("7 days", Math.round(daily) - Math.round(w7.s), "chip-7");
-    var w30 = scoreOnOrBefore(addDays(d.date, -30)); if (w30) h += chip("30 days", Math.round(daily) - Math.round(w30.s), "chip-30");
+    var w7 = scoreOnOrBefore(addDays(ref, -7)); if (w7) h += chip("7 days", Math.round(daily) - Math.round(w7.s), "chip-7");
+    var w30 = scoreOnOrBefore(addDays(ref, -30)); if (w30) h += chip("30 days", Math.round(daily) - Math.round(w30.s), "chip-30");
     $("chips").innerHTML = h;
   }
   function findPrice(P0, target, dir) {
@@ -493,15 +739,15 @@
   }
   function mvHead(label, v) { return '<div class="mv-h"><span class="eyebrow">' + esc(label) + '</span><span class="mono" style="font-weight:600;color:' + (v >= 0 ? "var(--up)" : "var(--down)") + '">' + sgn(v) + "</span></div>"; }
   function renderMoved(P) {
-    var d = S.latest, pd = parts(d);
+    var d = S.latest, pd = closeParts();
     if (P) {
       var pl = parts(d, liveRaw(d, P));
-      $("mv-live").innerHTML = mvHead("Live price vs daily reading", Math.round(pl.total) - Math.round(pd.total)) + moveRows(pd, pl, pl.sw);
+      $("mv-live").innerHTML = mvHead(S.mode === "live" ? "Live price vs close " + fd(d.closeDate) : "Live price vs daily reading", Math.round(pl.total) - Math.round(pd.total)) + moveRows(pd, pl, pl.sw);
       $("mv-live").style.display = "";
     } else $("mv-live").style.display = "none";
     if (S.prev) {
       var pp = parts(S.prev);
-      $("mv-day").innerHTML = mvHead("Since " + fd(S.prev.date) + " (" + Math.round(pp.total) + " to " + Math.round(pd.total) + ")", Math.round(pd.total) - Math.round(pp.total)) + moveRows(pp, pd, pd.sw);
+      $("mv-day").innerHTML = mvHead((S.mode === "live" ? "Close " + fd(S.prev.date) + " to " + fd(d.closeDate) : "Since " + fd(S.prev.date)) + " (" + Math.round(pp.total) + " to " + Math.round(pd.total) + ")", Math.round(pd.total) - Math.round(pp.total)) + moveRows(pp, pd, pd.sw);
     } else $("mv-day").innerHTML = "";
   }
   var lastIcon = "";
@@ -539,14 +785,18 @@
   }
 
   // history
-  function weeklyScores() {
-    if (S.hist) return S.hist.rows.filter(function (o) { return o.d >= "2025-09-29"; }).map(function (o) { return [o.d, histVal(o)]; });
-    return S.lv === "classic" ? (S.data.weekly || []) : [];
-  }
+  // value score history: weekly rows from Sep 2025, daily rows (UTC days) from the cycle top; sl = score at the day's (week's) low
+  var HIST_FROM = "2025-09-01";
   function series() {
-    var ds = S.data.days, first = ds[0].date, out = [];
-    weeklyScores().forEach(function (w) { if (w[0] < first && w[1] != null) out.push({ d: w[0], s: w[1], wk: true }); });
-    ds.forEach(function (d) { var s = parts(d).total; if (s != null) out.push({ d: d.date, s: s }); });
+    var out = [];
+    if (S.hist) S.hist.rows.forEach(function (o) {
+      if (o.d < HIST_FROM) return;
+      var s = histVal(o); if (s == null) return;
+      var sl = o.lo && o.lo < o.p ? histValAt(o, o.lo) : s;
+      out.push({ d: o.d, s: s, sl: sl == null ? s : Math.max(s, sl), p: o.p, lo: o.lo, wk: !o.dly, live: !!o.live, est: !!o.est });
+    });
+    var lastD = out.length ? out[out.length - 1].d : "";
+    if (!S.dr) (S.recs || []).forEach(function (x) { if (x.date <= lastD) return; var s = parts(recDoc(x)).total; if (s != null) out.push({ d: x.date, s: s, sl: s, p: x.price, rec: true }); });
     return out;
   }
   function niceStep(span) { var c = [1000, 2000, 5000, 10000, 20000, 25000, 50000]; for (var i = 0; i < c.length; i++) if (span / c[i] <= 5) return c[i]; return 100000; }
@@ -555,14 +805,14 @@
     if (!S.latest) return;
     var box = $("hist"), W = Math.max(300, box.clientWidth || 800), H = W >= 900 ? 320 : W >= 600 ? 270 : 230;
     var ml = 34, mr = 60, mt = 12, mb = 26, iw = W - ml - mr, ih = H - mt - mb;
-    var all = series(), today = todayCbr(), end = today > S.latest.date ? today : S.latest.date;
+    var all = series(); if (!all.length) return;
+    var end = all[all.length - 1].d, today = utcToday(); if (today > end) end = today;
     var start = S.range ? addDays(end, -S.range) : all[0].d;
     var pts = all.filter(function (p) { return p.d >= start; });
     var t0 = dnum(start), t1 = dnum(end);
     function X(d) { return ml + (dnum(d) - t0) / (t1 - t0 || 1) * iw; }
-    function Y(s) { return mt + (1 - s / 100) * ih; }
-    var prices = [];
-    if (S.daily) Object.keys(S.daily).sort().forEach(function (k) { if (k >= start && k <= end) prices.push([k, S.daily[k]]); });
+    function Y(s) { return mt + (1 - Math.max(0, Math.min(100, s)) / 100) * ih; }
+    var prices = pts.filter(function (q) { return q.p; }).map(function (q) { return [q.d, q.p]; });
     var pmin = 0, pmax = 1, step = 10000;
     if (prices.length > 1) {
       var vs = prices.map(function (p) { return p[1]; }); pmin = Math.min.apply(null, vs); pmax = Math.max.apply(null, vs);
@@ -583,9 +833,22 @@
       if (mi % stepM === 0) { var x = X(m); if (x - lastX > 44) { g += '<text x="' + x.toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle">' + MON[mi] + (mi === 0 || lastX < 0 ? " " + m.slice(2, 4) : "") + "</text>"; lastX = x; } }
       m = addMonths(m, 1);
     }
-    if (pts.length > 1) g += '<polyline fill="none" stroke="var(--accent)" stroke-width="2.75" stroke-linejoin="round" stroke-linecap="round" points="' + pts.map(function (q) { return X(q.d).toFixed(1) + "," + Y(q.s).toFixed(1); }).join(" ") + '"/>';
+    if (pts.length > 1) {
+      // band from the score at the close up to the score at the day's low
+      var up = pts.map(function (q) { return X(q.d).toFixed(1) + "," + Y(q.sl).toFixed(1); }), dn = pts.slice().reverse().map(function (q) { return X(q.d).toFixed(1) + "," + Y(q.s).toFixed(1); });
+      g += '<polygon points="' + up.concat(dn).join(" ") + '" fill="var(--accent)" opacity=".22"/>';
+      g += '<polyline fill="none" stroke="var(--accent)" stroke-width="1" opacity=".6" stroke-linejoin="round" points="' + up.join(" ") + '"/>';
+      g += '<polyline fill="none" stroke="var(--accent)" stroke-width="2.75" stroke-linejoin="round" stroke-linecap="round" points="' + pts.map(function (q) { return X(q.d).toFixed(1) + "," + Y(q.s).toFixed(1); }).join(" ") + '"/>';
+      // mark the deepest value of this bear market: the highest score at a daily low since the top
+      var pk = null; pts.forEach(function (q) { if (q.d >= NOWC.top && (!pk || q.sl > pk.sl)) pk = q; });
+      if (pk && pk.sl - pk.s >= 1) {
+        var px0 = X(pk.d), py0 = Y(pk.sl), lab = Math.round(pk.sl) + " at " + usd(pk.lo) + " (" + fd(pk.d) + ")", anc = px0 > ml + iw * 0.6 ? "end" : "start";
+        g += '<circle cx="' + px0.toFixed(1) + '" cy="' + py0.toFixed(1) + '" r="4.5" fill="var(--surf)" stroke="var(--accent)" stroke-width="2"/>';
+        g += '<text x="' + (px0 + (anc === "end" ? -8 : 8)).toFixed(1) + '" y="' + Math.max(mt + 10, py0 - 8).toFixed(1) + '" text-anchor="' + anc + '" style="fill:var(--accent);font-weight:600">Low of day: ' + esc(lab) + "</text>";
+      }
+    }
     var P = liveP();
-    if (P) { var ls = scoreAt(P); g += '<circle cx="' + X(end).toFixed(1) + '" cy="' + Y(ls).toFixed(1) + '" r="6" fill="var(--ink)" stroke="var(--surf)" stroke-width="3"/><text x="' + (X(end) - 10).toFixed(1) + '" y="' + (Y(ls) - 14).toFixed(1) + '" text-anchor="end" style="fill:var(--ink);font-weight:600">' + Math.round(ls) + " live</text>"; }
+    if (P) { var ls = scoreAt(P); g += '<circle cx="' + X(end).toFixed(1) + '" cy="' + Y(ls).toFixed(1) + '" r="6" fill="var(--ink)" stroke="var(--surf)" stroke-width="3"/><text x="' + (X(end) - 10).toFixed(1) + '" y="' + (Y(ls) + 22).toFixed(1) + '" text-anchor="end" style="fill:var(--ink);font-weight:600">' + Math.round(ls) + " live</text>"; }
     g += '<line id="xh" x1="0" x2="0" y1="' + mt + '" y2="' + (mt + ih) + '" stroke="var(--muted)" stroke-dasharray="3 3" style="display:none"/><circle id="xd" r="5" fill="var(--accent)" stroke="var(--surf)" stroke-width="2" style="display:none"/></svg>';
     var tip = $("tip"); box.innerHTML = g; box.appendChild(tip);
     S.hgeo = { X: X, Y: Y, pts: pts, ml: ml, iw: iw, W: W };
@@ -599,10 +862,10 @@
     if (!best) return;
     var px = G.X(best.d), py = G.Y(best.s), xh = document.getElementById("xh"), xd = document.getElementById("xd");
     xh.setAttribute("x1", px); xh.setAttribute("x2", px); xh.style.display = ""; xd.setAttribute("cx", px); xd.setAttribute("cy", py); xd.style.display = "";
-    var price = S.daily ? S.daily[best.d] : null;
-    if (!price && S.daily) { for (var i = 1; i < 4 && !price; i++) price = S.daily[addDays(best.d, i)] || S.daily[addDays(best.d, -i)]; }
-    var tip = $("tip");
-    tip.innerHTML = '<span class="muted">' + (best.wk ? "Week of " : "") + fdy(best.d) + "</span><span>Value <b class=\"mono\">" + Math.round(best.s) + "</b> · " + bandName(best.s) + "</span>" + (price ? '<span>BTC <b class="mono">' + usd(price) + "</b></span>" : "");
+    var tip = $("tip"), lowTxt = best.lo && best.lo < best.p && best.sl - best.s >= 0.5;
+    tip.innerHTML = '<span class="muted">' + (best.wk ? "Week to " : "") + fdy(best.d) + (best.live ? " · today so far" : best.wk ? "" : " (UTC)") + "</span>" +
+      "<span>" + (best.live ? "Live" : "Close") + ' <b class="mono">' + Math.round(best.s) + "</b> · " + bandName(best.s) + (best.p ? ' · <span class="mono">' + usd(best.p) + "</span>" : "") + "</span>" +
+      (lowTxt ? "<span>At the " + (best.wk ? "week's" : "day's") + ' low <b class="mono">' + Math.round(best.sl) + "</b> · " + bandName(best.sl) + ' · <span class="mono">' + usd(best.lo) + "</span></span>" : "");
     tip.style.display = "flex";
     var tw = tip.offsetWidth, left = px + 12; if (left + tw > G.W) left = px - tw - 12;
     tip.style.left = Math.max(0, left) + "px"; tip.style.top = "8px";
@@ -619,13 +882,20 @@
   S.sigAll = sget("bbm.sigview") || "heat"; if (VIEWS.indexOf(S.sigAll) < 0) S.sigAll = "heat";
   try { S.sigRows = JSON.parse(sget("bbm.sigrows") || "{}") || {}; } catch (e) { S.sigRows = {}; }
   function viewOf(k) { return S.sigRows[k] || S.sigAll; }
+  // 14 daily closes (UTC days) and the live column. Readings shown are live.
   function sigRowsData() {
-    var d = S.latest, end = d.date, cols = [];
-    for (var i = 13; i >= 0; i--) cols.push(addDays(end, -i));
-    var byDate = {}; S.data.days.forEach(function (x) { byDate[x.date] = x; });
-    var pc = cols.map(function (c) { return byDate[c] ? parts(byDate[c]) : null; });
-    var rows = [{ k: "tot", name: "Value score", w: "", read: String(Math.round(parts(d).total)), vals: pc.map(function (p) { return p ? p.total : null; }), tot: true }];
-    IND.forEach(function (ind) { rows.push({ k: ind.k, name: ind.name, w: String(ind.w), read: ind.read(d.raw || {}), vals: pc.map(function (p) { return p ? p.p[ind.k] : null; }) }); });
+    var d = S.latest, cols = [], pc, byDate = {}, P = liveP(), lraw = P ? liveRaw(d, P) : (S.mode === "live" && S.base ? rowRaw(S.base) : d.raw || {});
+    if (S.mode === "live" && S.dr) {
+      var end = S.base.d; S.dr.forEach(function (o) { if (!o.live) byDate[o.d] = o; });
+      for (var i = 13; i >= 0; i--) cols.push(addDays(end, -i));
+      pc = cols.map(function (c) { return byDate[c] ? histParts(byDate[c]) : null; });
+    } else {
+      var e2 = d.date; (S.recs || []).forEach(function (x) { byDate[x.date] = x; });
+      for (var k = 13; k >= 0; k--) cols.push(addDays(e2, -k));
+      pc = cols.map(function (c) { return byDate[c] ? parts(recDoc(byDate[c])) : null; });
+    }
+    var rows = [{ k: "tot", name: "Value score", w: "", read: String(Math.round(P ? scoreAt(P) : closeParts().total)), vals: pc.map(function (p) { return p ? p.total : null; }), tot: true }];
+    IND.forEach(function (ind) { rows.push({ k: ind.k, name: ind.name, w: String(ind.w), read: ind.read(lraw), vals: pc.map(function (p) { return p ? p.p[ind.k] : null; }) }); });
     return { cols: cols, rows: rows, miss: cols.filter(function (c) { return !byDate[c]; }) };
   }
   function fillGaps(vals) {
@@ -681,7 +951,7 @@
   }
   function renderSignals() {
     if (!S.latest) return;
-    var D = sigRowsData(), lv = liveVals(liveP()), end = S.latest.date;
+    var D = sigRowsData(), lv = liveVals(liveP()), end = D.cols[13];
     S.sigD = D;
     var h = '<div class="h l">Signal · ' + MON[+end.slice(5, 7) - 1] + '</div><div class="h">wt</div><div class="h" style="text-align:right">reading</div>';
     D.cols.forEach(function (c, i) { h += '<div class="h' + (i === 13 ? " now" : "") + '">' + (+c.slice(8, 10)) + "</div>"; });
@@ -696,8 +966,12 @@
     });
     $("sig").innerHTML = h;
     Array.prototype.forEach.call(document.querySelectorAll("#sig-all button"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-v") === S.sigAll ? "true" : "false"); });
-    var filled = S.data.days.filter(function (x) { return x.filled && D.cols.indexOf(x.date) >= 0; }).map(function (x) { return fd(x.date); });
-    $("sig-note").textContent = (D.miss.length ? "No reading on " + D.miss.map(fd).join(", ") + ": the heat map and line blend across the gap. " : "") + (filled.length ? "Readings for " + filled.join(" and ") + " were filled in later from source history (no ETF, Coinbase premium or USDT dominance for those days). " : "") + "Live column: price-based signals worked out again at the live price. Scores use " + (S.lv === "adj" ? "small-cycle" : "classic") + " levels.";
+    var libD = S.base && S.base.libD, note = "";
+    if (S.mode === "live") {
+      note = "Each column is the daily close (UTC), worked out from the sources in your browser. The reading column and the Live column use the live price. ";
+      if (libD && libD < S.base.d) note += "LookIntoBitcoin lines (holder costs, CVDD, balanced price, addresses in loss, SOPR, reserve risk) are to " + fd(libD) + "; later columns divide them into each day's price. ";
+    } else note = "Live sources not reached: columns are the daily task's readings, with price-linked signals moved to the price each reading recorded. ";
+    $("sig-note").textContent = (D.miss.length ? "No reading on " + D.miss.map(fd).join(", ") + ": the heat map and line blend across the gap. " : "") + note + "Scores use " + (S.lv === "adj" ? "small-cycle" : "classic") + " levels.";
     $("bands").innerHTML = BANDS.map(function (b, i) { return '<span class="tip" tabindex="0" data-tipk="band-' + i + '"><span class="sw" style="background:var(--b' + i + ')"></span>' + (i === 5 ? "90+" : b.lo + "–" + b.hi) + " " + b.name + "</span>"; }).join("");
     var sc = document.querySelector(".sig-scroll"); if (sc && window.innerWidth < 700) sc.scrollLeft = sc.scrollWidth;
   }
@@ -747,18 +1021,6 @@
   var CYC = [["2013-12-04", "2015-01-14", "2014–15"], ["2017-12-17", "2018-12-15", "2018"], ["2021-11-10", "2022-11-21", "2022"]];
   var OFFS = [-30, -20, -15, -10, -5, 0, 5, 10];
   S.win = +(sget("bbm.win") || 30); if (S.win !== 30 && S.win !== 90) S.win = 30;
-  function fetchCM() {
-    var url = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=PriceUSD,CapMVRVCur&frequency=1d&start_time=2013-06-01&page_size=10000", rows = [];
-    function step(u) {
-      return J(u).then(function (j) { rows = rows.concat(j.data || []); return j.next_page_url ? step(j.next_page_url) : null; });
-    }
-    return step(url).then(function () {
-      S.cm = rows.filter(function (x) { return x.PriceUSD && x.CapMVRVCur; }).map(function (x) { return [x.time.slice(0, 10), +x.PriceUSD, +x.CapMVRVCur]; });
-      S.cmIdx = {}; S.cm.forEach(function (x, i) { S.cmIdx[x[0]] = i; });
-      S.cycCache = {};
-      renderP2S(); if (S.latest) { renderBI(); renderClocks(); renderVerdict(); if (S.tab === "cyc") renderCyc(); }
-    }).catch(function () { S.cm = S.cm || null; renderP2S(); });
-  }
   function normCdf(x) { var t = 1 / (1 + 0.2316419 * Math.abs(x)), d = 0.3989423 * Math.exp(-x * x / 2), p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return x > 0 ? 1 - p : p; }
   function volSigma() {
     var c = [];
@@ -862,30 +1124,26 @@
   }
   // ---------- weekly history since 2013 (history.json) ----------
   function loadHist() {
-    return J("history.json?v=3").then(function (h) {
+    return J("history.json?v=4").then(function (h) {
       var cols = h.cols, rows = h.rows.map(function (a) { var o = {}; cols.forEach(function (c, i) { o[c] = a[i]; }); return o; });
-      rows.forEach(function (o) { o.v = {}; });
-      S.hist = { rows: rows, idx: {} };
-      rows.forEach(function (o, i) { S.hist.idx[o.d] = i; });
-      // Bottom in for each past cycle window (top to top + 900 days), with the running value peak as the gate
-      CYCLES.forEach(function (c) {
-        var end = addDays(c.top, 900), vm = null;
-        rows.forEach(function (o) {
-          if (o.d < c.top || o.d > end) return;
-          var v = histVal(o, "adj"); if (v != null) vm = vm == null ? v : Math.max(vm, v);
-          var bc = biComps({ p: o.p, low: o.low, dsl: o.dsl, sth: o.sth, mayer: o.mayer, sopr: o.sopr, hcap: o.hcap === 1, recAfterLow: o.hcap === 1 ? null : o.dsr == null ? null : o.dsr <= o.dsl + 30, flows: null });
-          o.bi = bc.raw == null ? null : bc.raw * gateOf(vm); o.vmax = vm;
-        });
-      });
-      if (S.latest) { renderAll(); }
-    }).catch(function () { S.hist = null; });
+      rows.forEach(function (o) { o.v = {}; o.vl = {}; });
+      S.histW = rows;
+    }).catch(function () { S.histW = null; }).then(rebuild);
   }
   function rowRaw(o) {
     return { cvdd: o.cvdd, mvrv: o.mvrv, lth: o.lth, balanced: o.bal, w200: o.w200, pi: o.pi, daysSincePeak: o.dsp, mayer: o.mayer, sopr7d: o.sopr, addrLoss: o.loss, puell: o.puell, sth: o.sth, fg7d: o.fg,
-      hashCapitulating: o.hcap == null ? null : o.hcap === 1, hashLastRecovery: o.dsr == null ? null : addDays(o.d, -o.dsr), reserveRisk: o.rr };
+      hashCapitulating: o.hcap == null ? null : o.hcap === 1, hashLastRecovery: o.dsr == null ? null : addDays(o.d, -o.dsr), reserveRisk: o.rr, funding7d: o.fund, oiDrawdown: o.oidd };
   }
+  // the row's signals at another price: price-linked ratios scale with the price
+  var RAW_PF = ["cvdd", "mvrv", "lth", "balanced", "w200", "mayer", "sth", "puell", "reserveRisk"];
+  function rowRawAt(o, P) { var r = rowRaw(o), k = P / o.p; RAW_PF.forEach(function (f) { if (r[f] != null) r[f] *= k; }); return r; }
   function histParts(o, mode) { return parts({ date: o.d, raw: rowRaw(o) }, null, mode || S.lv); }
-  function histVal(o, mode) { mode = mode || S.lv; if (!(mode in o.v)) o.v[mode] = histParts(o, mode).total; return o.v[mode]; }
+  function histVal(o, mode) { mode = mode || S.lv; if (!o.v) o.v = {}; if (!(mode in o.v)) o.v[mode] = histParts(o, mode).total; return o.v[mode]; }
+  function histValAt(o, P, mode) {
+    mode = mode || S.lv; if (!o.vl) o.vl = {};
+    var key = mode + P; if (!(key in o.vl)) o.vl[key] = parts({ date: o.d, raw: rowRawAt(o, P) }, null, mode).total;
+    return o.vl[key];
+  }
   function histLowRow(date) {
     if (!S.hist) return null; var best = null;
     S.hist.rows.forEach(function (o) { if (Math.abs(daysBetween(o.d, date)) <= 10 && (!best || o.p < best.p)) best = o; });
@@ -898,28 +1156,37 @@
   }
 
   // ---------- Bottom in? (live) ----------
+  // value peak since the top: daily closes (weekly before daily rows) and the live price; also the peak at a daily low
   function vmaxNow() {
     var m = null;
     function up(v) { if (v != null && (m == null || v > m)) m = v; }
-    if (S.hist) S.hist.rows.forEach(function (o) { if (o.d >= NOWC.top) up(histVal(o, "adj")); });
-    if (S.data) S.data.days.forEach(function (d) { if (d.date >= NOWC.top) up(parts(d, null, "adj").total); });
-    var P = liveP(); if (P && S.latest) up(parts(S.latest, liveRaw(S.latest, P), "adj").total);
+    if (S.hist) S.hist.rows.forEach(function (o) { if (o.d >= NOWC.top && !o.live) up(histVal(o, "adj")); });
+    if (!S.dr && S.recs) S.recs.forEach(function (x) { if (x.date >= NOWC.top) up(parts(recDoc(x), null, "adj").total); });
+    var P = liveP(); if (S.latest) up(parts(S.latest, liveRaw(S.latest, P || S.latest.price), "adj").total);
     return m;
   }
+  function vmaxLowNow() {
+    var b = null; if (!S.dr) return null;
+    S.dr.forEach(function (o) { if (o.lo && o.lo < o.p) { var v = histValAt(o, o.lo, "adj"); if (v != null && (!b || v > b.v)) b = { v: v, d: o.d, p: o.lo }; } });
+    return b;
+  }
+  // lowest price since the top: intraday lows of the daily candles and the live price
   function cycleLowNow(P) {
     var lo = null, ld = null;
-    if (S.cm) { var i0 = S.cmIdx[NOWC.top]; if (i0 != null) for (var i = i0; i < S.cm.length; i++) if (lo == null || S.cm[i][1] < lo) { lo = S.cm[i][1]; ld = S.cm[i][0]; } }
-    if (lo == null && S.hist) S.hist.rows.forEach(function (o) { if (o.d >= NOWC.top && (lo == null || o.low < lo)) { lo = o.low; ld = addDays(o.d, -o.dsl); } });
-    if (P && (lo == null || P < lo)) { lo = P; ld = todayCbr(); }
+    if (S.dr) { var r = S.dr[S.dr.length - 1]; lo = r.low; ld = addDays(r.d, -r.dsl); }
+    else if (S.ohlc) Object.keys(S.ohlc).sort().forEach(function (d) { if (d >= NOWC.top && (lo == null || S.ohlc[d].l < lo)) { lo = S.ohlc[d].l; ld = d; } });
+    else if (S.hist) S.hist.rows.forEach(function (o) { if (o.d >= NOWC.top && o.low != null && (lo == null || o.low < lo)) { lo = o.low; ld = addDays(o.d, -o.dsl); } });
+    if (!S.dr) (S.recs || []).forEach(function (x) { if (x.price && (lo == null || x.price < lo)) { lo = x.price; ld = x.date; } });
+    if (P && (lo == null || P < lo)) { lo = P; ld = utcToday(); }
     return { lo: lo, ld: ld };
   }
   function biLive() {
     var d = S.latest; if (!d) return null;
-    var P = liveP() || d.price, raw = liveRaw(d, P), r = d.raw || {}, cl = cycleLowNow(P), today = todayCbr();
+    var P = liveP() || d.price, raw = liveRaw(d, P), r = d.raw || {}, cl = cycleLowNow(P), today = utcToday();
     var rec = r.hashLastRecovery && cl.ld ? r.hashLastRecovery >= addDays(cl.ld, -30) : null;
     var x = { p: P, low: cl.lo, dsl: cl.ld ? Math.max(0, daysBetween(cl.ld, today)) : null, sth: raw.sth, mayer: raw.mayer, sopr: r.sopr7d, hcap: r.hashCapitulating === true, recAfterLow: rec, flows: confScore(d.confirm) };
     var bc = biComps(x), vmax = vmaxNow(), g = gateOf(vmax);
-    return { s: bc.raw == null ? null : bc.raw * g, raw: bc.raw, c: bc.c, x: x, vmax: vmax, gate: g, ld: cl.ld };
+    return { s: bc.raw == null ? null : bc.raw * g, raw: bc.raw, c: bc.c, x: x, vmax: vmax, vlow: vmaxLowNow(), gate: g, ld: cl.ld };
   }
   var shownBI = null;
   function renderBI() {
@@ -932,7 +1199,7 @@
     $("bi-band").textContent = biName(v) + (liveP() ? " · live" : "");
     $("bi-svg").setAttribute("aria-label", "Bottom in score " + Math.round(v) + " of 100, " + biName(v) + ".");
     var x = b.x, rd = {
-      nolow: x.dsl == null ? "—" : x.dsl === 0 ? "new low today" : x.dsl + " d since " + fd(b.ld),
+      nolow: x.dsl == null ? "—" : (x.dsl === 0 ? "new low " : x.dsl + " d since ") + usd(x.low) + " " + fd(b.ld),
       rise: x.low ? (x.p / x.low).toFixed(2) + "× low" : "—",
       sth: x.sth == null ? "—" : x.sth.toFixed(2) + "×",
       mayer: x.mayer == null ? "—" : x.mayer.toFixed(2) + "×",
@@ -947,23 +1214,24 @@
     var c = (S.latest && S.latest.confirm) || {};
     h += '<div class="sub bi-flows">Flows: ' + CONF.map(function (k) { return '<span class="tip" tabindex="0" data-tipk="conf-' + k.k + '">' + esc(k.name.replace(/, 30 days|, 10 days/, "")) + "</span> " + '<b class="mono">' + esc(k.read(c)) + "</b>"; }).join(" · ") + "</div>";
     $("bi-comp").innerHTML = h;
-    var g = b.gate, vm = b.vmax;
-    $("bi-gate").innerHTML = '<span class="tip" tabindex="0" data-tipk="gate">Deep-value check</span>: ' + (g >= 1 ? "passed. The value score reached " + Math.round(vm) + " in this bear market." : "value peak this bear market " + (vm == null ? "—" : Math.round(vm)) + " (" + bandName(vm) + "), below 75. Raw reading " + Math.round(b.raw) + ", held at " + Math.round(g * 100) + "%.");
+    var g = b.gate, vm = b.vmax, vl = b.vlow;
+    var lowTxt = vl && vl.v > (vm || 0) + 0.5 ? " At the " + fd(vl.d) + " low (" + usd(vl.p) + ") it reached " + Math.round(vl.v) + "." : "";
+    $("bi-gate").innerHTML = '<span class="tip" tabindex="0" data-tipk="gate">Deep-value check</span>: ' + (g >= 1 ? "passed. The value score reached " + Math.round(vm) + " in this bear market." : "value peak this bear market " + (vm == null ? "—" : Math.round(vm)) + " at a daily close (" + bandName(vm) + "), below 75." + esc(lowTxt) + " Raw reading " + Math.round(b.raw) + ", held at " + Math.round(g * 100) + "%.");
   }
   CONF.forEach(function (c) { TIPS["conf-" + c.k] = "<span class='tt-h'>" + esc(c.name) + "</span>" + esc(c.tip); });
 
   // ---------- cycle clock ----------
   var CLK = {
-    dTop: { label: "Days since the top", past: [406, 364, 366], min: 0, max: 600, fmt: function (v) { return Math.round(v) + " d"; } },
-    dHalv: { label: "Days since the halving", past: [777, 889, 912], min: 0, max: 1460, fmt: function (v) { return Math.round(v) + " d"; } },
-    fall: { label: "Fall from the top", past: [-84.5, -83.8, -76.7], trend: -72.8, min: 0, max: -90, fmt: function (v) { return "−" + Math.abs(v).toFixed(1) + "%"; } },
+    dTop: { label: "Days since the top", past: [406, 364, 378], min: 0, max: 600, fmt: function (v) { return Math.round(v) + " d"; } },
+    dHalv: { label: "Days since the halving", past: [777, 889, 924], min: 0, max: 1460, fmt: function (v) { return Math.round(v) + " d"; } },
+    fall: { label: "Fall from the top", past: [-86.6, -84.1, -77.1], trend: -73.1, min: 0, max: -90, fmt: function (v) { return "−" + Math.abs(v).toFixed(1) + "%"; } },
     mvrv: { label: "MVRV", past: [0.56, 0.69, 0.75], trend: 0.85, min: 2.0, max: 0.5, fmt: function (v) { return v.toFixed(2); } },
     below: { label: "Days below realized price", past: [304, 134, 179], min: 0, max: 365, fmt: function (v) { return Math.round(v) + " d"; } }
   };
   var CLK_ORDER = ["dTop", "dHalv", "fall", "mvrv", "below"];
-  TIPS["clk-dTop"] = "<span class='tt-h'>Days since the top</span>Days since the all-time high close (6 Oct 2025). Past lows came 406 (2015), 364 (2018) and 366 (2022) days after the top.";
-  TIPS["clk-dHalv"] = "<span class='tt-h'>Days since the halving</span>Days since the April 2024 halving. Past lows came 777 (2015), 889 (2018) and 912 (2022) days after the halving before them. The gap has grown each cycle.";
-  TIPS["clk-fall"] = "<span class='tt-h'>Fall from the top</span>Live price against the all-time high close ($124,824). Past lows: −84.5% (2015), −83.8% (2018), −76.7% (2022). The trend of past lows points to about −73% this cycle (about $34k). Treat the trend as a rough guide: three points only.";
+  TIPS["clk-dTop"] = "<span class='tt-h'>Days since the top</span>Days since the all-time high close (6 Oct 2025). Past lows (lowest intraday price) came 406 (2015), 364 (2018) and 378 (2022) days after the top.";
+  TIPS["clk-dHalv"] = "<span class='tt-h'>Days since the halving</span>Days since the April 2024 halving. Past lows came 777 (2015), 889 (2018) and 924 (2022) days after the halving before them. The gap has grown each cycle.";
+  TIPS["clk-fall"] = "<span class='tt-h'>Fall from the top</span>Live price against the all-time high close ($124,824). Past lows (lowest intraday price): −86.6% (2015), −84.1% (2018), −77.1% (2022). The trend of past lows points to about −73% this cycle (about $34k). Treat the trend as a rough guide: three points only. The caption shows the deepest fall so far this cycle.";
   TIPS["clk-mvrv"] = "<span class='tt-h'>MVRV</span>Live price against the realized price (what all holders paid on average). Past lows: 0.56 (2015), 0.69 (2018), 0.75 (2022). The trend of past lows points to about 0.85 this cycle.";
   TIPS["clk-below"] = "<span class='tt-h'>Days below realized price</span>Days in this bear market with price below the realized price (MVRV under 1). Past bear markets: 304 (2015), 134 (2018) and 179 (2022) days. No past low came without a long stay below it.";
   function clockNow() {
@@ -988,8 +1256,9 @@
     return "";
   }
   function clockPast(k) {
-    var c = CLK[k], yr = ["’15", "’18", "’22"];
-    return c.past.map(function (pv, i) { return yr[i] + " " + c.fmt(pv).replace(" d", ""); }).join(" · ") + (k === "dTop" || k === "dHalv" || k === "below" ? " d" : "") + (c.trend != null ? " · trend " + c.fmt(c.trend) : "");
+    var c = CLK[k], yr = ["’15", "’18", "’22"], pre = "";
+    if (k === "fall") { var cl = cycleLowNow(liveP()); if (cl.lo) pre = "Low so far −" + Math.abs((cl.lo / NOWC.topP - 1) * 100).toFixed(1) + "% (" + fd(cl.ld) + ") · "; }
+    return pre + c.past.map(function (pv, i) { return yr[i] + " " + c.fmt(pv).replace(" d", ""); }).join(" · ") + (k === "dTop" || k === "dHalv" || k === "below" ? " d" : "") + (c.trend != null ? " · trend " + c.fmt(c.trend) : "");
   }
   function clockSvg(k, v) {
     var c = CLK[k], cx = 100, cy = 100, r = 74;
@@ -1061,7 +1330,7 @@
   function cycSeries(c, m) {
     var out = [], end = addDays(c.top, 820);
     if (!S.hist) return out;
-    S.hist.rows.forEach(function (o) { if (o.d >= c.top && o.d <= end) { var v = cycVal(o, c, m); if (v != null) out.push({ x: daysBetween(c.top, o.d), y: v, d: o.d }); } });
+    S.hist.rows.forEach(function (o) { if (o.d >= c.top && o.d <= end && !o.live) { var v = cycVal(o, c, m); if (v != null) out.push({ x: daysBetween(c.top, o.d), y: v, d: o.d }); } });
     if (c.id === "now") { var lv = cycLive(m); if (lv != null) out.push({ x: daysBetween(c.top, todayCbr()), y: lv, d: todayCbr(), live: true }); }
     return out;
   }
@@ -1189,7 +1458,7 @@
   });
   function applyLv() {
     Array.prototype.forEach.call(document.querySelectorAll("#lv button"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-l") === S.lv ? "true" : "false"); });
-    $("hl-score").textContent = "Value score, " + (S.lv === "adj" ? "small-cycle" : "classic") + " levels (weekly, then daily from 8 Nov 2026)";
+    $("hl-score").textContent = "Value score at the close, " + (S.lv === "adj" ? "small-cycle" : "classic") + " levels (daily from the Oct 2025 top, weekly before)";
   }
   $("lv").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
@@ -1231,21 +1500,21 @@
     }).catch(function () { t.textContent = "Save failed: use a screenshot"; }).then(function () { setTimeout(function () { t.textContent = "Save image"; }, 2500); });
   });
   var rz; window.addEventListener("resize", function () { clearTimeout(rz); rz = setTimeout(function () { renderHistory(); if (S.tab === "cyc" && S.hist) renderCycChart(); }, 150); });
-  document.addEventListener("visibilitychange", function () { if (!document.hidden) { fetchPrice(); if (Date.now() - (S.dataAt || 0) > 5 * 60e3) { S.dataAt = Date.now(); loadData(); } } });
+  function refreshAll() { S.dataAt = Date.now(); loadData(); fetchDaily(); fetchPremium(); fetchFng(); fetchStable(); fetchLev(); fetchCM(); }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { fetchPrice(); if (Date.now() - (S.dataAt || 0) > 5 * 60e3) refreshAll(); } });
 
   // ---------- start ----------
   applySkin();
+  // pull every source now; the page works out all scores from them in the browser
   S.dataAt = Date.now();
-  loadData().then(function () { fetchPrice(); fetchHourly(); fetchDaily(); });
-  fetchCbbi();
-  fetchCM();
-  loadHist();
-  if (qs.get("debug") === "1") window.__bbm = { S: S, histVal: histVal, parts: parts, biLive: biLive, clockNow: clockNow, histNear: histNear };
+  fetchPrice(); fetchHourly(); fetchDaily(); loadData(); loadHist(); loadRecent();
+  fetchCM(); fetchFng(); fetchLev(); fetchStable(); fetchPremium(); fetchCbbi();
+  if (qs.get("debug") === "1") window.__bbm = { S: S, histVal: histVal, histValAt: histValAt, parts: parts, liveRaw: liveRaw, biLive: biLive, clockNow: clockNow, histNear: histNear, scoreAt: scoreAt, closeParts: closeParts, levAt: levAt, fg7: fg7, stable30: stable30 };
   setInterval(function () { if (!document.hidden) fetchPrice(); }, 15000);
   setInterval(renderLiveAge, 1000);
-  setInterval(function () { if (!document.hidden) { fetchHourly(); if (S.latest) renderHistory(); } }, 5 * 60e3);
-  setInterval(function () { S.dataAt = Date.now(); loadData(); }, 10 * 60e3);
-  setInterval(fetchDaily, 60 * 60e3);
+  setInterval(function () { if (!document.hidden) { fetchHourly(); fetchPremium(); if (S.latest) renderHistory(); } }, 5 * 60e3);
+  setInterval(function () { if (!document.hidden) { S.dataAt = Date.now(); loadData(); fetchDaily(); } }, 10 * 60e3);
+  setInterval(function () { if (!document.hidden) fetchLev(); }, 30 * 60e3);
+  setInterval(function () { if (!document.hidden) { fetchCM(); fetchFng(); fetchStable(); } }, 60 * 60e3);
   setInterval(fetchCbbi, 6 * 60 * 60e3);
-  setInterval(fetchCM, 6 * 60 * 60e3);
 })();
