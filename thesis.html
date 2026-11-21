@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en" data-skin="midnight" data-cb="0" data-light="0">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Weighting thesis | BTC Bottom Monitor</title>
+<meta name="description" content="Why each of the 16 signals in the BTC Bottom Monitor has its weight: what it measures, why it matters at a cycle low, and its backtest record.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="skins.css?v=2">
+<script>try { var k = localStorage.getItem("bbm.skin") || "midnight"; if (k === "auto") k = matchMedia("(prefers-color-scheme: light)").matches ? "daylight" : "midnight"; document.documentElement.setAttribute("data-skin", k); document.documentElement.setAttribute("data-light", k === "daylight" || k === "paper" ? "1" : "0"); document.documentElement.setAttribute("data-cb", localStorage.getItem("bbm.cb") === "1" ? "1" : "0"); } catch (e) {}</script>
+<style>
+.wrap { max-width: 980px; }
+.lede { font-size: 17px; line-height: 1.55; max-width: 70ch; margin: 0; }
+.card p, .card li { max-width: 75ch; }
+.card p { margin: 0; }
+ol.pts { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; }
+.grp { display: flex; flex-direction: column; gap: 10px; }
+.grp + .grp { border-top: 1px solid var(--line); padding-top: 14px; }
+.grp-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.wrow { display: grid; grid-template-columns: minmax(140px, 220px) minmax(0, 1fr) 36px; gap: 12px; align-items: center; font-size: 14px; }
+.wbar { height: 12px; border-radius: 999px; background: var(--surf2); position: relative; overflow: hidden; }
+.wbar > i { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--accent); }
+.wrow .v { font-family: var(--mono); text-align: right; }
+.sigs { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.sc { border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: flex; flex-direction: column; gap: 8px; background: var(--surf); }
+.sc-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.sc .wt { font-family: var(--mono); font-weight: 600; font-size: 13px; padding: 2px 8px; border-radius: 999px; background: var(--surf2); white-space: nowrap; }
+.sc .grpn { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.sc dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 13px; }
+.sc dt { color: var(--muted); }
+.sc dd { margin: 0; }
+.sc p { font-size: 14px; }
+.sc .why { border-top: 1px dashed var(--line); padding-top: 8px; }
+table.t { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.t th, table.t td { padding: 8px 6px; border-bottom: 1px dashed var(--line); text-align: left; }
+table.t th { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--line); }
+table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
+.tscroll { overflow-x: auto; }
+.back { font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="./">← Back to the live monitor</a>
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>Why each signal has its weight</h1>
+    <p class="lede">The bottom score blends 16 signals into one number from 0 to 100. This page explains the thesis behind it: what each signal measures, why it matters at a cycle low, how it did at past lows, and why it gets its weight.</p>
+  </header>
+
+  <section class="card" aria-labelledby="h-thesis">
+    <h2 id="h-thesis">The thesis in five points</h2>
+    <ol class="pts">
+      <li><b>A cycle low forms when sellers run out.</b> Coins move from weak hands to strong hands, mostly at a loss. So the score looks for three things: price below what holders paid (cost basis), people selling at a loss (capitulation), and enough time since the top.</li>
+      <li><b>No single signal is reliable.</b> Every signal has false alarms. A weighted blend of different kinds of evidence gives fewer false alarms than any one signal.</li>
+      <li><b>Weights reward a good record.</b> A signal gets more weight if it fired at past lows and rarely fired at other times.</li>
+      <li><b>Signals that measure the same thing share weight.</b> MVRV, long-term holder cost and balanced price all come from realized-cost data, so together they do not get triple weight.</li>
+      <li><b>Each signal scores on a straight line.</b> 0 is "no signal". 100 is the reading seen at past lows. Past 100 it stays at 100, so one extreme reading cannot push the score alone.</li>
+    </ol>
+  </section>
+
+  <section class="card" aria-labelledby="h-tests">
+    <h2 id="h-tests">How each weight was set</h2>
+    <p>Each signal went through a weekly backtest from mid-2013 to November 2025, with three tests and one judgment:</p>
+    <ol class="pts">
+      <li><b>Hit.</b> Did the signal score 70 or more within 90 days of the 2015, 2018 and 2022 cycle lows?</li>
+      <li><b>Precision.</b> Of all the days it scored 70 or more, what share were within 30% of a two-year low? A day picked at random scores 6%, so 30% is five times better than chance.</li>
+      <li><b>Overlap.</b> Does it measure the same thing as a signal already in the score? If yes, the two share weight.</li>
+      <li><b>Judgment.</b> Where there is no data to test (leverage data starts in 2023), the weight comes from judgment and stays small.</li>
+    </ol>
+  </section>
+
+  <section class="card" aria-labelledby="h-glance">
+    <div class="card-h"><h2 id="h-glance">Weights at a glance</h2><span class="sub">total 100</span></div>
+    <div id="groups"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-each">
+    <h2 id="h-each">Signal by signal</h2>
+    <div class="sigs" id="sigs"></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-bands">
+    <h2 id="h-bands">What the score has meant</h2>
+    <p>The same weekly backtest, grouped by band. "Near the low" means price was within 30% of the cycle low.</p>
+    <div class="tscroll"><table class="t">
+      <thead><tr><th>Band</th><th class="r">Share of weeks</th><th class="r">Near the low</th><th class="r">Median 1-year return</th><th class="r">Higher 1 year later</th></tr></thead>
+      <tbody id="bands"></tbody>
+    </table></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-live">
+    <h2 id="h-live">The live score</h2>
+    <p>Nine signals use price directly: CVDD, MVRV, long-term holder cost, balanced price, short-term holder cost, the 200-week and 200-day averages, Puell and reserve risk. The page works these out again at the live price every 15 seconds. The other seven (loss-taking, addresses in loss, leverage, Pi Cycle, fear and greed, hash ribbons, time since peak) change once a day when the daily readings arrive.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-limits">
+    <h2 id="h-limits">Limits</h2>
+    <ol class="pts">
+      <li>There are only three full cycle lows to test on (2015, 2018, 2022). Small samples can mislead.</li>
+      <li>The leverage signal has no backtest. Its weight is a judgment.</li>
+      <li>ETFs and company treasuries now hold a large share of coins. Holder behaviour may change, so the deep on-chain readings of past lows may not come back.</li>
+      <li>Data providers can revise past values.</li>
+      <li>The CBBI on the monitor is a separate index by Colin Talks Crypto. It is a cross-check and is not part of this score.</li>
+      <li>Information only. Not financial advice. Past lows do not promise future lows.</li>
+    </ol>
+  </section>
+  <a class="back" href="./">← Back to the live monitor</a>
+</div>
+<script>
+(function () {
+  var G = [
+    { n: "Cost basis and valuation", d: "Is price below what holders paid?", s: [
+      { k: "Price vs CVDD", w: 12, hits: "3 of 3", prec: 99, up: 100, full: "1.00×", what: "Price divided by CVDD, a floor price built from coin-days destroyed (how long coins sat before they moved).", why: "Price has touched this floor at every cycle low and rarely anywhere else.", wt: "Top weight. It fired at all three lows and 99% of its signal days were near a low: almost no false alarms." },
+      { k: "MVRV", w: 11, hits: "3 of 3", prec: 47, up: 99, full: "0.80", what: "Market value divided by realized value: price against the average price at which all coins last moved.", why: "Below 1, the average holder is at a loss. Deep readings have only come near cycle lows.", wt: "Near top weight. It is the core cost-basis measure with a strong record (precision eight times chance). It shares some weight with the next two, which use the same realized-cost data." },
+      { k: "Long-term holder cost", w: 9, hits: "3 of 3", prec: 47, up: 100, full: "0.80×", what: "Price divided by the average cost of coins held more than 155 days.", why: "When even patient holders are under water, the sellers who are left are few.", wt: "Same record as MVRV, but it overlaps with MVRV, so a little less weight." },
+      { k: "Balanced price", w: 6, hits: "3 of 3", prec: 52, up: 99, full: "1.00×", what: "Price divided by the balanced price, a fair-value line made from realized price minus transfer price.", why: "Price has met this line at the deepest point of past bears.", wt: "Good record, but it is built from realized price, so most of what it says is already in MVRV and CVDD." }
+    ] },
+    { n: "Capitulation and stress", d: "Are people selling at a loss, and is the pain wide?", s: [
+      { k: "SOPR, 7-day (loss-taking)", w: 8, hits: "2 of 2", prec: 51, up: 86, full: "−0.020", what: "Spent Output Profit Ratio minus 1, as a 7-day average: profit or loss on coins that moved.", why: "Below zero, holders sell at a loss. Deep, lasting loss-taking is what capitulation looks like.", wt: "The most direct measure of capitulation. The data covers two lows; it hit both with 51% precision. It uses different data from the cost-basis group, so it adds new information." },
+      { k: "Addresses in loss", w: 7, hits: "3 of 3", prec: 31, up: 91, full: "55%", what: "Share of addresses that hold coins worth less than they paid.", why: "Shows how wide the pain is. Lows came when about half of all addresses were at a loss.", wt: "Hit all three lows with fair precision. It counts people, not price ratios, so it adds a different view." },
+      { k: "Leverage flush", w: 6, hits: "no data", prec: null, up: null, full: "funding −5%/yr, OI −30%", what: "Futures funding rate (7-day) and how far open interest is below its 90-day high.", why: "Negative funding and a big fall in open interest show forced sellers are gone.", wt: "No backtest: the data starts in 2023. The weight is a judgment. Flushes mark many local lows, so the weight is capped so it cannot drive the score." },
+      { k: "Puell multiple", w: 5, hits: "3 of 3", prec: 39, up: 91, full: "0.45", what: "Daily miner income against its 1-year average.", why: "Low values put miners under stress. When weak miners have sold, a big source of supply is gone.", wt: "Good record, but miner selling matters less after each halving, so the weight is held down." },
+      { k: "Short-term holder cost", w: 5, hits: "3 of 3", prec: 21, up: 56, full: "0.75×", what: "Price divided by the average cost of coins moved in the last 155 days.", why: "Below 1, recent buyers are under water.", wt: "It hit all three lows but also fires in normal corrections (precision 21%), so its weight is low." },
+      { k: "Fear & Greed, 7-day", w: 3, hits: "2 of 2", prec: 19, up: 61, full: "10", what: "The Crypto Fear & Greed Index, 7-day average.", why: "Extreme fear comes at lows.", wt: "Mood swings fast and gives many false alarms (precision 19%), so its weight is low." },
+      { k: "Hash ribbons", w: 3, hits: "3 of 3", prec: 14, up: 86, full: "0–30 days after a recovery", what: "30-day against 60-day average hash rate. A recovery after miner capitulation is the signal.", why: "Recoveries came after past lows.", wt: "The lowest precision (14%): recoveries happen at many other times too. Better as confirmation." },
+      { k: "Reserve risk", w: 2, hits: "3 of 3", prec: 21, up: 98, full: "0.0010", what: "Price against the confidence of long-term holders (how little they spend).", why: "Low values have meant good long-term value.", wt: "Low precision and it overlaps with MVRV, so the smallest weight." }
+    ] },
+    { n: "Trend and cycle", d: "Is price below its long-run trend, and has enough time passed?", s: [
+      { k: "200-week average", w: 8, hits: "2 of 3", prec: 49, up: 100, full: "0.85×", what: "Price divided by the 200-week moving average, the long-run trend line.", why: "Price has rarely stayed below this line for long. Time below it has been among the best times to buy.", wt: "It fired at two of three lows with high precision (49%), and long-run trend is a different kind of evidence from cost basis." },
+      { k: "Pi Cycle bottom", w: 6, hits: "3 of 3", prec: 42, up: 100, full: "0.95", what: "The 150-day exponential average against 0.745 × the 471-day average.", why: "A cross below has lined up with past lows within weeks.", wt: "Hit all three lows with good precision. It uses only price averages, so it shares the trend group's weight." },
+      { k: "Time since peak", w: 6, hits: "3 of 3", prec: 36, up: 96, full: "365–420 days", what: "Days since the cycle's all-time high.", why: "Past lows came 365–420 days after the top.", wt: "The only signal that does not use price, so it adds independent timing evidence." },
+      { k: "Mayer multiple", w: 3, hits: "3 of 3", prec: 39, up: 81, full: "0.60", what: "Price divided by the 200-day moving average.", why: "Deep readings mark oversold markets.", wt: "Good record, but it overlaps with the 200-week line, so its weight is low." }
+    ] }
+  ];
+  var B = [["0–19 Very weak", 70.1, 0, 47, 60, 0], ["20–39 Weak", 12.5, 0, 72, 75, 1], ["40–59 Building", 5.5, 3, 69, 83, 2], ["60–74 Strong", 6.2, 33, 75, 100, 3], ["75–89 Very strong", 5.4, 89, 107, 100, 4], ["90+ Capitulation", 0.3, 100, 128, 100, 5]];
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  var gh = "", sh = "";
+  G.forEach(function (g) {
+    var tot = g.s.reduce(function (a, x) { return a + x.w; }, 0);
+    gh += '<div class="grp"><div class="grp-h"><h3>' + esc(g.n) + ' · ' + tot + '</h3><span class="sub">' + esc(g.d) + "</span></div>";
+    g.s.forEach(function (x) { gh += '<div class="wrow"><span>' + esc(x.k) + '</span><span class="wbar"><i style="width:' + (x.w / 12 * 100).toFixed(0) + '%"></i></span><span class="v">' + x.w + "</span></div>"; });
+    gh += "</div>";
+    g.s.forEach(function (x) {
+      sh += '<article class="sc"><div class="sc-h"><h3>' + esc(x.k) + '</h3><span class="wt">weight ' + x.w + '</span></div><span class="grpn">' + esc(g.n) + "</span>" +
+        "<p>" + esc(x.what) + " " + esc(x.why) + "</p>" +
+        "<dl><dt>Full score at</dt><dd>" + esc(x.full) + "</dd><dt>Past lows hit</dt><dd>" + esc(x.hits) + "</dd><dt>Precision</dt><dd>" + (x.prec == null ? "not tested" : x.prec + "% (random day: 6%)") + "</dd><dt>Higher 1 year later</dt><dd>" + (x.up == null ? "not tested" : x.up + "% of signal days") + "</dd></dl>" +
+        '<p class="why"><b>Why this weight:</b> ' + esc(x.wt) + "</p></article>";
+    });
+  });
+  document.getElementById("groups").innerHTML = gh;
+  document.getElementById("sigs").innerHTML = sh;
+  document.getElementById("bands").innerHTML = B.map(function (b) { return '<tr><td><span style="display:inline-flex;align-items:center;gap:8px"><span class="sw" style="background:var(--b' + b[5] + ')"></span>' + b[0] + '</span></td><td class="r">' + b[1] + '%</td><td class="r">' + b[2] + '%</td><td class="r">+' + b[3] + '%</td><td class="r">' + b[4] + "%</td></tr>"; }).join("");
+})();
+</script>
+</body>
+</html>
