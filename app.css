@@ -137,6 +137,7 @@ body.kiosk .gauge { max-width: 520px; }
 #exit-kiosk { display: none; }
 body.kiosk #exit-kiosk { display: inline-flex; }
 
+@media (max-width: 760px) { .row.toprow > .cbbi-card { flex: 1 1 100%; } }
 @media (max-width: 560px) {
   .btn .lbl, .controls label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .btn.ic-sm { width: 44px; padding: 0; justify-content: center; }
