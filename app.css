@@ -147,8 +147,10 @@ body.kiosk #exit-kiosk { display: inline-flex; }
   .gauge .num b { font-size: 60px; }
   .row.toprow > .cbbi-card { flex: 1 1 100%; }
   table.p2s .hs { display: none; }
-  table.p2s .ss { display: inline-block; }
+  table.p2s .ss { display: block; }
   table.p2s td, table.p2s th { padding: 7px 3px; font-size: 13px; }
-  table.p2s td { white-space: normal; }
+  table.p2s td, table.p2s th { white-space: normal; }
+  table.p2s th { letter-spacing: .02em; vertical-align: bottom; }
+  table.p2s .cf { padding: 2px 6px; }
 }
 @media (prefers-reduced-motion: reduce) { #g-prog, .g-mark, #cbbi-arc { transition: none; } .live .dot.beat { animation: none; } }
