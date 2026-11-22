@@ -1,4 +1,4 @@
-/* BTC Value Monitor v7 */
+/* BTC Value Monitor v8 */
 (function () {
   "use strict";
   // ---------- helpers ----------
@@ -156,9 +156,16 @@
     return o;
   }
 
+  // The backtest page loads this file with BVM_EXPORT set: it gets the same model code, then the page stops here.
+  if (window.BVM_EXPORT) {
+    window.BVM = { LV: LV, HALV: HALV, epochOf: epochOf, fAt: fAt, lin: lin, IND: IND, CONF: CONF, BANDS: BANDS, BSTATS: BSTATS, BEARS: BEARS, bandIdx: bandIdx, bandName: bandName, CUTS: CUTS,
+      BI: BI, BIB: BIB, biIdx: biIdx, biName: biName, biComps: biComps, gateOf: gateOf, CYCLES: CYCLES, parts: parts, rowRaw: rowRaw, cwFind: cwFind, cwCells: cwCells,
+      addDays: addDays, daysBetween: daysBetween, fd: fd, fdy: fdy, usd: usd, esc: esc, f2: f2 };
+    return;
+  }
   // ---------- hover explainers ----------
   var TIPS = {
-    score: "<span class='tt-h'>Value: is BTC cheap?</span>The main score. 16 signals, each scored 0–100 by how close it is to the reading seen at past cycle lows, then averaged by weight. It says how cheap BTC is. It does not say the low is in: read it with Bottom in?. Red is low, blue is high. A score, not a probability. Hover the coloured arcs to see what each band has meant in the past.",
+    score: "<span class='tt-h'>Value: is BTC cheap?</span>The main score. 16 signals, each scored 0–100 by how close it is to the reading seen at past cycle lows, then averaged by weight. It says how cheap BTC is. It does not say the low is in: read it with Bottom in?. Colours run from not cheap to cheap (change them with Colours). A score, not a probability. Hover the coloured arcs to see what each band has meant in the past.",
     bi: "<span class='tt-h'>Bottom in? Has the fall stopped?</span>The timing check. Six signs that only show after a low: no new low, a bounce, price back above recent buyers' cost and the 200-day average, selling at a profit, and miners recovered. In past cycles it reached 50 two to three months after the low, when price was already 27–90% above it. It is held down until the value score has reached 75 in this bear market. A score, not a probability. Money flows are shown but not scored, because they have no data before 2024.",
     ev: "<span class='tt-h'>Price checks</span>Plain checks on price. They are not part of either score. They show what has improved and the price that would undo it. In the 2015, 2018 and 2022 bear markets they gave many false starts: the trend check turned on 3 to 5 times before the final low, and price then fell a further 34–82%; 3 to 4 confirmed higher lows failed in each. Read them with Value.",
     "ev-depth": "<span class='tt-h'>Depth</span>The deepest fall from the all-time high close ($124,824) to the lowest price so far. Ticks when it reaches the trend of past lows (−73%). Past lows: −86.6% (2015), −84.1% (2018), −77.1% (2022).",
@@ -221,7 +228,6 @@
   TIPS["val-rc"] = "<span class='tt-h'>How the value score is made</span>16 signals. Each gets a mark from 0 to 100 for how close it is to its reading at past cycle lows. Weight × mark ÷ 100 = points. The points add up to the score.<span class='tt-m'>The bar has one coloured piece per signal, sized by its points: hover a piece. The hatched part is the points still missing. Open the full sum for each signal's reading (its ? button).</span>";
   TIPS["bi-rc"] = "<span class='tt-h'>How the Bottom in score is made</span>Six recovery signs that showed up after past cycle lows. Each earns points up to its maximum (weights 25, 20, 15, 10, 10 and 5, scaled to 100). The points add up to the raw score. The deep-value check then sets how much of it counts.<span class='tt-m'>Each row's ? button gives the reading now and the price that would raise it.</span>";
   TIPS.flows = "<span class='tt-h'>Money flows</span>ETF net flow, Coinbase premium, stablecoin supply and USDT dominance. Shown, not scored: there is no data before 2024, so they cannot be backtested.";
-  TIPS.cw = "<span class='tt-h'>Cheap window</span>The weeks from the first close with Value 60+ (Cheap or better) to the last one. A gap of up to 12 weeks below 60 does not end a window. <b>Fell after</b> is the fall from that first Cheap close to the lowest price after it (for past cycles, the final low). The score can stop saying Cheap before the low is in: in 2022 it was below 60 for three weeks in August, three months before the November low. With three past cycles, compare them. Do not read them as a countdown.<span class='tt-m'>Past cycles: one reading a week (Monday close), from the top to one year after the low. This cycle: daily closes; a week counts as Cheap if any close in it was 60+. Uses the levels selected above (small-cycle or classic). Hover a row for its dates and prices.</span>";
   TIPS.sig = "<span class='tt-h'>Signals</span>Each signal scored 0–100, heaviest weight first. Hover a name to see why it matters. The small button next to a name changes the view for that signal only.";
 
   var tt = document.createElement("div"); tt.id = "tt"; tt.setAttribute("role", "tooltip"); document.body.appendChild(tt);
@@ -373,7 +379,7 @@
       S.cm = rows.map(function (x) { return [x.time.slice(0, 10), +x.PriceUSD, +x.CapMVRVCur]; });
       S.cmIdx = {}; S.cm.forEach(function (x, i) { S.cmIdx[x[0]] = i; });
       S.cmX = { iss: rows.map(function (x) { return x.IssTotUSD == null ? null : +x.IssTotUSD; }), hr: rows.map(function (x) { return x.HashRate == null ? null : +x.HashRate; }) };
-      S.cycCache = {};
+      S.cycCache = {}; S.cmPreC = null; S.pastD = {};
       srcOk("cm", S.cm[S.cm.length - 1][0]);
     }).catch(function () { srcFail("cm"); }).then(function () { rebuild(); renderP2S(); });
   }
@@ -460,21 +466,29 @@
   // ---------- daily rows for this cycle, worked out in the browser from the sources ----------
   // Same fields as history.json rows. Price-linked fields are ratios to the day's close. lo = the day's intraday low.
   var PRICE_F = ["cvdd", "mvrv", "lth", "bal", "w200", "mayer", "sth", "puell", "rr"];
-  function buildRows() {
-    if (!S.cm || !S.cmX) return null;
+  function cmPre() {
+    if (S.cmPreC && S.cmPreC.n === S.cm.length) return S.cmPreC;
     var cm = S.cm, n = cm.length, P = cm.map(function (x) { return x[1]; }), iss = S.cmX.iss.slice(), hr = S.cmX.hr.slice(), i, j;
     for (i = 1; i < n; i++) { if (iss[i] == null) iss[i] = iss[i - 1]; if (hr[i] == null) hr[i] = hr[i - 1]; }
     function pref(a) { var s = [0]; for (var k = 0; k < a.length; k++) s.push(s[k] + (a[k] || 0)); return s; }
     var sp = pref(P), si = pref(iss), sh = pref(hr);
     function avg(s, k, w) { return k - w + 1 < 0 ? null : (s[k + 1] - s[k - w + 1]) / w; }
-    // 150-day EMA started on 1 Jan 2019 (as the daily task), all-time high close, hash ribbons
-    var ema = [], e = null, kf = 2 / 151, ath = 0, athD = null, cap = 0, lastRec = null, hc = [], rec = [], athA = [];
+    // 150-day EMA started on 1 Jan 2019 (as the daily task), and one started at the first day (for past cycles);
+    // all-time high close; hash ribbons
+    var ema = [], emaAll = [], e = null, e2 = null, kf = 2 / 151, ath = 0, athD = null, cap = 0, lastRec = null, hc = [], rec = [], athA = [];
     for (j = 0; j < n; j++) {
       if (cm[j][0] >= "2019-01-01") { e = e == null ? P[j] : P[j] * kf + e * (1 - kf); } ema.push(e);
+      e2 = e2 == null ? P[j] : P[j] * kf + e2 * (1 - kf); emaAll.push(j >= 150 ? e2 : null);
       if (P[j] > ath) { ath = P[j]; athD = cm[j][0]; } athA.push([ath, athD]);
       if (j >= 60) { var a30 = avg(sh, j, 30), a60 = avg(sh, j, 60); if (a30 < a60) cap++; else { if (cap >= 7) lastRec = cm[j][0]; cap = 0; } hc.push(a30 < a60 ? 1 : 0); } else hc.push(null);
       rec.push(lastRec);
     }
+    S.cmPreC = { n: n, P: P, iss: iss, hr: hr, sp: sp, si: si, sh: sh, avg: avg, ema: ema, emaAll: emaAll, athA: athA, hc: hc, rec: rec };
+    return S.cmPreC;
+  }
+  function buildRows() {
+    if (!S.cm || !S.cmX) return null;
+    var X = cmPre(), cm = S.cm, n = X.n, P = X.P, iss = X.iss, sp = X.sp, si = X.si, avg = X.avg, ema = X.ema, athA = X.athA, hc = X.hc, rec = X.rec;
     if (S.cmIdx[NOWC.top] == null) return null;
     var lib = libMap(), today = utcToday(), rows = [], carry = {}, lowRun = null, lowD = null;
     for (var d = addDays(NOWC.top, -45); d <= today; d = addDays(d, 1)) {
@@ -653,9 +667,12 @@
       var st = srcState(s); if (st.cls === "bad") bad++; if (st.cls === "old") old++;
       h += '<span class="src ' + st.cls + '"><i></i>' + esc(s.n) + ' <b>' + esc(st.txt) + "</b></span>";
     });
+    var xc = xCheck();
+    if (xc) h += '<span class="src bad tip" tabindex="0" data-tipk="xchk"><i></i>Price check <b>' + xc.g.toFixed(1) + "% gap " + fd(xc.d) + "</b></span>";
     $("src-line").innerHTML = '<span class="tip src-h" tabindex="0" data-tipk="src">Data</span>' + h;
     var dot = $("fresh-dot"), t = $("fresh-t");
     if (S.mode !== "live" && !S.src.cm) { dot.style.background = "#E0A23C"; t.textContent = "Loading live data…"; }
+    else if (xc) { dot.style.background = "#E0A23C"; t.textContent = "Live data · price feeds disagree"; }
     else if (S.mode !== "live") { dot.style.background = "var(--down)"; t.textContent = "Live sources not reached · daily readings"; }
     else if (bad || old) { dot.style.background = "#E0A23C"; t.textContent = "Live data · " + (bad + old) + " source" + (bad + old > 1 ? "s" : "") + " late"; }
     else { dot.style.background = "var(--up)"; t.textContent = "Live data up to date"; }
@@ -1347,14 +1364,18 @@
   CONF.forEach(function (c) { TIPS["conf-" + c.k] = "<span class='tt-h'>" + esc(c.name) + "</span>" + esc(c.tip); });
 
   // ---------- cheap windows ----------
-  // A window runs from the first close with Value 60+ to the last one. A gap of up to 12 weeks below 60 does not end it.
-  // Past cycles: weekly closes (Mondays), from the top to one year after the low. This cycle: daily closes.
-  var CW_GAP = 84;
-  function cwFind(rows, mode) {
+  // A window runs from the first close with Value at or above the line to the last one. A gap below the line shorter than
+  // the gap setting does not end it. Settings (line, gap, past-cycle data) are kept in this browser.
+  S.cwc = (function () {
+    var d = { thr: 60, gap: 12, past: "daily" };
+    try { var o = JSON.parse(sget("bbm.cw") || "null"); if (o) { d.thr = Math.max(40, Math.min(90, Math.round(+o.thr / 5) * 5 || 60)); d.gap = Math.max(1, Math.min(26, Math.round(+o.gap) || 12)); d.past = o.past === "weekly" ? "weekly" : "daily"; } } catch (e) {}
+    return d;
+  })();
+  function cwFind(rows, mode, thr, gapD) {
     var ws = [], cur = null;
     rows.forEach(function (o) {
-      var v = histVal(o, mode); if (v == null || v < 60) return;
-      if (cur && daysBetween(cur.last, o.d) <= CW_GAP) cur.last = o.d;
+      var v = histVal(o, mode); if (v == null || v < thr) return;
+      if (cur && daysBetween(cur.last, o.d) <= gapD) cur.last = o.d;
       else { cur = { start: o.d, p0: o.p, last: o.d }; ws.push(cur); }
     });
     return ws;
@@ -1370,28 +1391,63 @@
     });
     return a;
   }
+  // Past cycles, day by day: Coin Metrics daily data for the price-based signals; LookIntoBitcoin lines (weekly before
+  // Oct 2025) as cost lines drawn straight between the weekly readings, divided into each day's price.
+  function pastDaily(c) {
+    if (!S.cm || !S.cmX || !S.histW || S.cmIdx[c.top] == null) return null;
+    var key = S.cm.length + ":" + (S.fngK ? S.fngK.length : 0) + ":" + S.histW.length;
+    S.pastD = S.pastD || {}; if (S.pastD[c.id] && S.pastD[c.id].key === key) return S.pastD[c.id].rows;
+    var X = cmPre(), cm = S.cm, end = addDays(c.low, 365), rows = [];
+    var wk = S.histW.filter(function (o) { return o.d >= addDays(c.top, -14) && o.d <= addDays(end, 14); }).map(function (o) {
+      return { t: dnum(o.d), sthP: o.sth ? o.p / o.sth : null, lthP: o.lth ? o.p / o.lth : null, cvddP: o.cvdd ? o.p / o.cvdd : null, balP: o.bal ? o.p / o.bal : null, loss: o.loss, sopr: o.sopr, rr: o.rr, pL: o.p, fg: o.fg };
+    });
+    if (wk.length < 2) return null;
+    var wi = 0;
+    for (var d = c.top; d <= end; d = addDays(d, 1)) {
+      var j = S.cmIdx[d]; if (j == null) continue;
+      var t = dnum(d); while (wi < wk.length - 2 && wk[wi + 1].t <= t) wi++;
+      var a = wk[wi], b = wk[wi + 1], f = b.t > a.t ? Math.max(0, Math.min(1, (t - a.t) / (b.t - a.t))) : 0;
+      var ip = function (k) { var x = a[k], y = b[k]; return x == null ? (f > 0.5 ? y : null) : y == null ? (f <= 0.5 ? x : null) : x + (y - x) * f; };
+      var p = X.P[j], s1400 = X.avg(X.sp, j, 1400), s200 = X.avg(X.sp, j, 200), s471 = X.avg(X.sp, j, 471), i365 = X.avg(X.si, j, 365);
+      var r = { d: d, p: p, dly: true, past: true, v: {}, vl: {} };
+      r.mvrv = cm[j][2]; r.w200 = s1400 ? p / s1400 : null; r.mayer = s200 ? p / s200 : null;
+      r.pi = X.emaAll[j] && s471 ? X.emaAll[j] / (0.745 * s471) : null;
+      r.puell = i365 ? X.iss[j] / i365 : null; r.hcap = X.hc[j]; r.dsr = X.rec[j] ? daysBetween(X.rec[j], d) : null;
+      r.dsp = daysBetween(X.athA[j][1], d);
+      var sthP = ip("sthP"), lthP = ip("lthP"), cvddP = ip("cvddP"), balP = ip("balP"), rr = ip("rr"), pL = ip("pL");
+      r.sth = sthP ? p / sthP : null; r.lth = lthP ? p / lthP : null; r.cvdd = cvddP ? p / cvddP : null; r.bal = balP ? p / balP : null;
+      r.loss = ip("loss"); r.sopr = ip("sopr"); r.rr = rr != null && pL ? rr * p / pL : null;
+      r.fg = S.fng ? fg7(d) : ip("fg"); r.fund = null; r.oidd = null; r.lo = p;
+      rows.push(r);
+    }
+    S.pastD[c.id] = { key: key, rows: rows };
+    return rows;
+  }
   function cheapWindows(mode) {
     if (!S.hist) return null;
     mode = mode || S.lv;
-    var rows = S.hist.rows, today = utcToday(), out = { past: [], now: [] };
+    var cf = S.cwc, thr = cf.thr, gapD = cf.gap * 7, rows = S.hist.rows, today = utcToday();
+    var out = { past: [], now: [], thr: thr, gap: cf.gap, basis: "weekly" };
     CYCLES.forEach(function (c) {
-      var end = c.low ? addDays(c.low, 365) : today;
-      var rs = rows.filter(function (o) { return o.d >= c.top && o.d <= end; });
-      var ws = cwFind(rs, mode);
+      var end = c.low ? addDays(c.low, 365) : today, rs = null;
+      if (c.low && cf.past === "daily") { rs = pastDaily(c); if (rs) out.basis = "daily"; }
+      if (!rs) rs = rows.filter(function (o) { return o.d >= c.top && o.d <= end; });
+      var ws = cwFind(rs, mode, thr, gapD);
       if (c.low) {
         // the window around the cycle low (else the first one)
-        var w = ws.filter(function (x) { return x.start <= c.low && addDays(x.last, 7) >= c.low; })[0] || ws[0];
-        if (!w) return;
+        var w = ws.filter(function (x) { return x.start <= c.low && addDays(x.last, 7) >= c.low; })[0] || ws.filter(function (x) { return x.start <= c.low; }).pop() || ws[0];
+        if (!w) { out.past.push({ cyc: c, none: true }); return; }
         w.cyc = c; w.cells = cwCells(w, rs, mode, w.last); w.weeks = w.cells.length;
-        w.lowP = c.lowP; w.lowD = c.low; w.fall = (c.lowP / w.p0 - 1) * 100;
-        w.lowWk = Math.floor(daysBetween(w.start, c.low) / 7) + 1;
+        w.lowP = c.lowP; w.lowD = c.low; w.lowFirst = c.low < w.start;
+        w.fall = w.lowFirst ? null : (c.lowP / w.p0 - 1) * 100;
+        w.lowWk = w.lowFirst ? null : Math.floor(daysBetween(w.start, c.low) / 7) + 1;
         out.past.push(w);
       } else {
         var P = liveP();
         ws.forEach(function (w, i) {
-          w.cyc = c; w.on = i === ws.length - 1 && daysBetween(w.last, today) <= CW_GAP;
+          w.cyc = c; w.on = i === ws.length - 1 && daysBetween(w.last, today) <= gapD;
           w.cells = cwCells(w, rs, mode, w.on ? today : w.last); w.weeks = w.cells.length;
-          // the lowest price after the first Cheap close (intraday lows, and the live price)
+          // the lowest price after the first close in the window (intraday lows, and the live price)
           var lo = null, ld = null;
           rs.forEach(function (o) { if (o.d <= w.start) return; var l = o.lo != null ? o.lo : o.p; if (lo == null || l < lo) { lo = l; ld = o.d; } });
           if (P && (lo == null || P < lo)) { lo = P; ld = today; }
@@ -1404,43 +1460,206 @@
     out.cur = out.now.filter(function (w) { return w.on; })[0] || null;
     return out;
   }
+  TIPS.cw = function () {
+    var c = S.cwc;
+    return "<span class='tt-h'>Cheap window</span>The weeks from the first close with Value " + c.thr + "+ to the last one. A gap below " + c.thr + " of up to " + c.gap + " week" + (c.gap > 1 ? "s" : "") + " does not end a window. <b>Fell after</b> is the fall from that first close to the lowest price after it (for past cycles, the final low). The score can stop saying Cheap before the low is in: in 2022 it was below 60 for three weeks in August, three months before the November low. With three past cycles, compare them. Do not read them as a countdown." +
+      "<span class='tt-m'>Past cycles: " + (c.past === "daily" ? "daily closes, rebuilt from Coin Metrics daily data and the weekly LookIntoBitcoin lines (drawn straight between weekly readings)" : "one reading a week (Monday close), as in the backtest") + ", from the top to one year after the low. This cycle: daily closes. A week counts as cheap if any close in it was " + c.thr + "+. Uses the levels selected (small-cycle or classic). Change the rules with Settings.</span>";
+  };
   function cwPct(v) { return v == null ? "—" : v > -0.05 ? "0%" : "−" + Math.abs(v).toFixed(0) + "%"; }
   function renderWin() {
     var el = $("cw"); if (!el) return;
     var W = cheapWindows(); S.cw = W;
-    if (!W || !W.past.length) { el.innerHTML = ""; return; }
-    var today = utcToday(), cur = W.cur, last = W.now[W.now.length - 1];
-    var rows = W.past.map(function (w) { return { w: w, lab: w.lowD.slice(0, 4) }; });
+    var cf = S.cwc, sub = $("cw-sub");
+    if (sub) sub.textContent = "Value " + cf.thr + "+ · ends after " + cf.gap + " wk below · past cycles " + (W && W.basis === "daily" ? "daily" : "weekly") + " · " + (S.lv === "adj" ? "small-cycle" : "classic") + " levels";
+    if (!W || !W.past.length) { el.innerHTML = '<p class="sub" style="margin:0">Loading the history…</p>'; return; }
+    var today = utcToday(), cur = W.cur, last = W.now[W.now.length - 1], thr = W.thr;
+    var rows = W.past.map(function (w) { return { w: w, lab: w.cyc.low.slice(0, 4) }; });
     W.now.forEach(function (w) { rows.push({ w: w, lab: w.on ? "Now" : MON[+w.start.slice(5, 7) - 1] + " ’" + w.start.slice(2, 4) }); });
-    var maxW = Math.max(20, Math.max.apply(null, rows.map(function (r) { return r.w.weeks; })));
+    var maxW = Math.max(20, Math.max.apply(null, rows.map(function (r) { return r.w.weeks || 0; })));
     var head;
-    if (cur) head = '<b class="cw-wk">Week ' + cur.weeks + '</b><span>of this cheap window · since ' + fd(cur.start) + (cur.last < addDays(today, -1) ? " · last Cheap close " + fd(cur.last) : "") + "</span>";
-    else if (last) head = '<b class="cw-wk cw-no">Not in a cheap window</b><span>The last one ended ' + fdy(last.last) + "</span>";
-    else head = '<b class="cw-wk cw-no">No cheap window yet</b><span>in this bear market</span>';
-    var h = '<div class="cw-h"><span class="rc-k">Cheap window</span>' + qi("cw", "the cheap window") + '</div><div class="cw-now">' + head + "</div>";
+    if (cur) head = '<b class="cw-wk">Week ' + cur.weeks + '</b><span>of this cheap window · since ' + fd(cur.start) + (cur.last < addDays(today, -1) ? " · last close at " + thr + "+ on " + fd(cur.last) : "") + "</span>";
+    else if (last) head = '<b class="cw-wk cw-no">Not in a cheap window</b><span>The last one ended ' + fdy(addDays(last.last, W.gap * 7 + 1)) + " (last close at " + thr + "+ on " + fd(last.last) + ")</span>";
+    else head = '<b class="cw-wk cw-no">No cheap window yet</b><span>No close at ' + thr + "+ in this bear market</span>";
+    var h = '<div class="cw-now">' + head + "</div>";
     h += '<div class="cw-t"><div class="cw-r cw-hd"><span></span><span>Week by week</span><span class="r">Lasted</span><span class="r">Fell after</span></div>';
     rows.forEach(function (r) {
-      var w = r.w, now = !w.cyc.low, cells = "";
+      var w = r.w, now = !w.cyc.low;
+      if (w.none) { h += '<div class="cw-r"><span class="cw-l">' + esc(r.lab) + '</span><span class="cw-none">No close at ' + thr + "+ in this bear market</span><span class=\"r mono\">—</span><span class=\"r mono\">—</span></div>"; return; }
+      var cells = "";
       w.cells.forEach(function (v, i) {
-        var cls = v == null ? "na" : v >= 60 ? "ch" : "";
+        var cls = v == null ? "na" : v >= thr ? "ch" : "";
         if (w.lowWk === i + 1) cls += " low";
         if (w.on && i === w.cells.length - 1) cls += " cur";
-        cells += '<i class="' + cls + '"' + (v != null && v >= 60 ? ' style="background:' + bandCol(v) + '"' : "") + "></i>";
+        cells += '<i class="' + cls + '"' + (v != null && v >= thr ? ' style="background:' + bandCol(v) + '"' : "") + "></i>";
       });
-      var cheapN = w.cells.filter(function (v) { return v != null && v >= 60; }).length;
+      var cheapN = w.cells.filter(function (v) { return v != null && v >= thr; }).length;
       var tip = "<span class='tt-h'>" + (now ? (w.on ? "This cheap window" : "Earlier window, this bear market") : esc(w.cyc.name) + " bear market") + "</span>" +
-        fdy(w.start) + (w.on ? " to now" : " to " + fdy(w.last)) + ": " + (w.on ? "week " + w.weeks : w.weeks + " week" + (w.weeks > 1 ? "s" : "")) + ", Cheap or better in " + cheapN + " of them." +
-        "<br>First Cheap close: <b>" + usd(w.p0) + "</b> (" + fd(w.start) + ")." +
+        fdy(w.start) + (w.on ? " to now" : " to " + fdy(w.last)) + ": " + (w.on ? "week " + w.weeks : w.weeks + " week" + (w.weeks > 1 ? "s" : "")) + ", Value " + thr + "+ in " + cheapN + " of them." +
+        "<br>First close at " + thr + "+: <b>" + usd(w.p0) + "</b> (" + fd(w.start) + ")." +
         (now ? "<br>Lowest price since: <b>" + usd(w.lowP) + "</b>" + (w.lowD ? " (" + fd(w.lowD) + ")" : "") + ", " + (w.fall < -0.05 ? Math.abs(w.fall).toFixed(1) + "% lower so far." : "no lower so far.")
-             : "<br>Cycle low: <b>" + usd(w.lowP) + "</b> on " + fdy(w.lowD) + ", week " + w.lowWk + " of the window: " + Math.abs(w.fall).toFixed(1) + "% below the first Cheap close.");
-      h += '<div class="cw-r' + (w.on ? " on" : "") + '" tabindex="0" data-tip="' + attrHtml(tip) + '"><span class="cw-l">' + esc(r.lab) + '</span><span class="cw-s" style="--n:' + maxW + '">' + cells + '</span><span class="r mono">' + (w.on ? "wk " + w.weeks : w.weeks + " wk") + '</span><span class="r mono">' + cwPct(w.fall) + (now ? '<small class="muted">so far</small>' : "") + "</span></div>";
+          : w.lowFirst ? "<br>The cycle low (" + usd(w.lowP) + ", " + fdy(w.lowD) + ") came " + Math.round(daysBetween(w.lowD, w.start) / 7) + " weeks before this window began."
+          : "<br>Cycle low: <b>" + usd(w.lowP) + "</b> on " + fdy(w.lowD) + ", week " + w.lowWk + " of the window: " + Math.abs(w.fall).toFixed(1) + "% below the first close at " + thr + "+.");
+      h += '<div class="cw-r' + (w.on ? " on" : "") + '" tabindex="0" data-tip="' + attrHtml(tip) + '"><span class="cw-l">' + esc(r.lab) + '</span><span class="cw-s" style="--n:' + maxW + '">' + cells + '</span><span class="r mono">' + (w.on ? "wk " + w.weeks : w.weeks + " wk") + '</span><span class="r mono">' + (w.lowFirst ? "low first" : cwPct(w.fall)) + (now ? '<small class="muted">so far</small>' : "") + "</span></div>";
     });
     h += "</div>";
-    var lens = W.past.map(function (w) { return w.weeks; }), lw = W.past.map(function (w) { return w.lowWk; });
-    h += '<div class="cw-k"><span><i class="ch" style="background:var(--b3)"></i>Cheap or better</span><span><i></i>Below 60</span><span><i class="low"></i>Week of the low (lowest so far)</span></div>';
-    h += '<p class="cw-f">Not a countdown: past windows lasted ' + Math.min.apply(null, lens) + " to " + Math.max.apply(null, lens) + " weeks, and the low came in week " + lw.slice(0, -1).join(", ") + " and " + lw[lw.length - 1] + ".</p>";
+    h += '<div class="cw-k"><span><i class="ch" style="background:var(--b3)"></i>Value ' + thr + '+</span><span><i></i>Below ' + thr + '</span><span><i class="low"></i>Week of the low (lowest so far)</span></div>';
+    var ok = W.past.filter(function (w) { return !w.none; }), lens = ok.map(function (w) { return w.weeks; });
+    var lw = W.past.map(function (w) { var y = w.cyc.low.slice(0, 4); return w.none ? y + ": no window" : w.lowFirst ? y + ": before the window" : y + ": week " + w.lowWk; });
+    if (lens.length) h += '<p class="cw-f">Not a countdown. Past windows lasted ' + (lens.length > 1 ? Math.min.apply(null, lens) + " to " + Math.max.apply(null, lens) : lens[0]) + " weeks. The low came in " + lw.join(", ") + ".</p>";
     el.innerHTML = h;
   }
+  // settings panel
+  (function () {
+    var b = $("cw-set-b"), p = $("cw-set"); if (!b || !p) return;
+    function sync() {
+      var c = S.cwc;
+      $("cw-thr").value = c.thr; $("cw-thr-o").textContent = c.thr + " · " + bandName(c.thr);
+      $("cw-gap").value = c.gap; $("cw-gap-o").textContent = c.gap + " week" + (c.gap > 1 ? "s" : "");
+      Array.prototype.forEach.call(document.querySelectorAll("#cw-past button"), function (x) { x.setAttribute("aria-pressed", x.getAttribute("data-p") === c.past ? "true" : "false"); });
+      Array.prototype.forEach.call(document.querySelectorAll("#cw-lv button"), function (x) { x.setAttribute("aria-pressed", x.getAttribute("data-l") === S.lv ? "true" : "false"); });
+    }
+    function save() { sset("bbm.cw", JSON.stringify(S.cwc)); sync(); renderWin(); renderVerdict(); }
+    b.addEventListener("click", function () { var on = p.hidden; p.hidden = !on; b.setAttribute("aria-expanded", on ? "true" : "false"); sync(); });
+    $("cw-thr").addEventListener("input", function () { S.cwc.thr = +this.value; save(); });
+    $("cw-gap").addEventListener("input", function () { S.cwc.gap = +this.value; save(); });
+    $("cw-past").addEventListener("click", function (e) { var x = e.target.closest("button"); if (!x) return; S.cwc.past = x.getAttribute("data-p"); save(); });
+    $("cw-lv").addEventListener("click", function (e) { var x = e.target.closest("button"); if (!x) return; var l = x.getAttribute("data-l"); var lb = document.querySelector('#lv button[data-l="' + l + '"]'); if (lb) lb.click(); sync(); });
+    $("cw-def").addEventListener("click", function () { S.cwc = { thr: 60, gap: 12, past: "daily" }; try { localStorage.removeItem("bbm.cw"); } catch (e) {} sync(); renderWin(); renderVerdict(); });
+    window.__cwSync = sync;
+  })();
+
+  // ---------- since a past close: what changed ----------
+  S.since = sget("bbm.since") || "7";
+  function sinceRef() {
+    var today = utcToday(), d;
+    if (S.since === "thu") { d = addDays(today, -1); while (new Date(d + "T00:00:00Z").getUTCDay() !== 4) d = addDays(d, -1); }
+    else d = addDays(today, -(+S.since || 7));
+    return d;
+  }
+  function renderSince() {
+    var el = $("since-t"); if (!el || !S.latest) return;
+    var d = sinceRef(), row = null;
+    (S.dr || []).forEach(function (o) { if (o.d === d) row = o; });
+    if (!row && S.hist) { row = histNear(d, 4); }
+    if (!row) { el.textContent = "No reading for that day yet."; $("since-d").textContent = ""; return; }
+    $("since-d").textContent = "(" + fd(row.d) + " close)";
+    var P = liveP(), v1 = P ? scoreAt(P) : closeParts().total, v0 = histVal(row), b1 = S.biNow && S.biNow.s, b0 = row.bi, p1 = P || S.latest.price, p0 = row.p, bits = [];
+    bits.push("Value <b>" + Math.round(v0) + " → " + Math.round(v1) + "</b>" + (bandName(v0) !== bandName(v1) ? " (" + bandName(v0) + " → " + bandName(v1) + ")" : ""));
+    if (b0 != null && b1 != null) bits.push("Bottom in? <b>" + Math.round(b0) + " → " + Math.round(b1) + "</b>");
+    bits.push("BTC <b>" + usd(p0) + " → " + usd(p1) + "</b> (" + sgn((p1 / p0 - 1) * 100, 1) + "%)");
+    var W = S.cw, g = S.cwc.gap * 7, today = utcToday();
+    if (W && W.cur && W.cur.start > row.d) bits.push("a cheap window began " + fd(W.cur.start));
+    if (W) W.now.forEach(function (w) { var e = addDays(w.last, g + 1); if (!w.on && e > row.d && e <= today) bits.push("the cheap window ended " + fd(e)); });
+    var cl = cycleLowNow(P); if (cl.ld && cl.ld > row.d) bits.push("new cycle low " + usd(cl.lo) + " on " + fd(cl.ld));
+    el.innerHTML = bits.join(" · ");
+  }
+  (function () { var s = $("since-sel"); if (!s) return; s.value = S.since; s.addEventListener("change", function () { S.since = s.value; sset("bbm.since", S.since); renderSince(); }); })();
+
+  // ---------- price cross-check: Coin Metrics close against the Bybit daily close ----------
+  function xCheck() {
+    if (!S.cm || !S.ohlc) return null; var bad = null, n = 0;
+    for (var i = S.cm.length - 1; i >= 0 && n < 5; i--) {
+      var d = S.cm[i][0], o = S.ohlc[d]; if (!o || !o.c) continue; n++;
+      var g = Math.abs(S.cm[i][1] / o.c - 1) * 100; if (g > 2 && (!bad || g > bad.g)) bad = { d: d, g: g, a: S.cm[i][1], b: o.c };
+    }
+    return bad;
+  }
+  TIPS.xchk = "<span class='tt-h'>Price cross-check</span>The page compares the Coin Metrics daily close with the Bybit daily close for the last five days. They are normally within a fraction of a percent. A gap of more than 2% means one feed may be wrong, so treat the scores with care until it clears.";
+
+  // ---------- alerts for the daily task: what crossed between the last two daily closes ----------
+  function pubAlerts() {
+    var dr = S.dr, out = { ok: !!(dr && S.mode === "live"), msgs: [] };
+    if (!out.ok) return out;
+    var rows = dr.filter(function (o) { return !o.live; }), a = rows[rows.length - 1], b = rows[rows.length - 2], P = liveP(), today = utcToday();
+    if (!a || !b) { out.ok = false; return out; }
+    var va = histVal(a), vb = histVal(b);
+    out.date = a.d; out.value = Math.round(va); out.bi = a.bi == null ? null : Math.round(a.bi); out.price = Math.round(P || a.p); out.liveValue = P ? Math.round(scoreAt(P)) : null;
+    out.levels = S.lv; out.window = S.cwc;
+    [75, 90].forEach(function (t) {
+      if (va >= t && vb < t) out.msgs.push("Value rose to " + Math.round(va) + " (" + bandName(va) + ", above " + t + ")");
+      if (va < t && vb >= t) out.msgs.push("Value fell to " + Math.round(va) + " (below " + t + ")");
+    });
+    if (a.bi != null && b.bi != null) [25, 50, 75].forEach(function (t) {
+      if (a.bi >= t && b.bi < t) out.msgs.push("Bottom in? rose to " + Math.round(a.bi) + " (" + biName(a.bi) + ", above " + t + ")");
+      if (a.bi < t && b.bi >= t) out.msgs.push("Bottom in? fell to " + Math.round(a.bi) + " (below " + t + ")");
+    });
+    var W = cheapWindows(), g = S.cwc.gap * 7;
+    if (W) {
+      if (W.cur && W.cur.start > b.d) out.msgs.push("A cheap window began on " + fd(W.cur.start) + " (Value " + W.thr + "+)");
+      W.now.forEach(function (w) { var e = addDays(w.last, g + 1); if (!w.on && e > b.d && e <= today) out.msgs.push("The cheap window ended: no close at " + W.thr + "+ for " + S.cwc.gap + " weeks (last on " + fd(w.last) + ")"); });
+      if (W.cur) out.week = W.cur.weeks;
+    }
+    if (a.dsl === 0 && b.low > a.low) out.msgs.push("New cycle low: " + usd(a.low) + " on " + fd(a.d));
+    if (P && P < a.low) out.msgs.push("BTC is below the cycle low now (" + usd(P) + ", low " + usd(a.low) + ")");
+    var x = xCheck(); if (x) out.msgs.push("Price feeds disagree by " + x.g.toFixed(1) + "% on " + fd(x.d) + ": check the data");
+    return out;
+  }
+
+  // ---------- colours panel ----------
+  (function () {
+    var B = window.BVMPrefs, pop = $("pal"), btn = $("pal-b"); if (!B || !pop || !btn) return;
+    var cur = B.load(); if (S.cb) cur = { id: "cb" };
+    var cust = cur.id === "custom" ? cur.c : { lo: "#E5484D", mid: "#EEE8DF", hi: "#2F7FE0", useMid: true, fit: true, steps: null };
+    function light() { return document.documentElement.getAttribute("data-light") === "1"; }
+    function strip(a) { return '<span class="pal-strip">' + a.map(function (c) { return '<i style="background:' + c + '"></i>'; }).join("") + "</span>"; }
+    function chk(a) { var r = B.check(a); return '<span class="pal-ok ' + r.word.toLowerCase() + '" title="Smallest step difference for red-green colour blindness">' + r.word + " for colour blindness</span>"; }
+    function choose(o) {
+      cur = o;
+      if (o.id === "cb") { S.cb = true; sset("bbm.cb", "1"); B.save({ id: "cb" }); B.apply({ id: "default" }); }
+      else { S.cb = false; sset("bbm.cb", "0"); B.save(o); B.apply(o); }
+      applySkin(); build();
+    }
+    function custSteps() { return cust.steps && cust.steps.length === 6 ? cust.steps : B.gen(cust.lo, cust.useMid ? cust.mid : null, cust.hi); }
+    function build() {
+      var L = light(), h = '<div class="pop-h"><b>Colours</b><button type="button" class="btn sm" id="pal-x">Close</button></div>' +
+        '<p class="sub" style="margin:0">Score colours run from not cheap (left) to cheap (right). Pick a pairing, or make your own. Saved in this browser.</p><div class="pal-list">';
+      B.PRESETS.forEach(function (p) {
+        var a = (L ? p.light : p.dark);
+        h += '<button type="button" class="pal-p" data-id="' + p.id + '" aria-pressed="' + (cur.id === p.id ? "true" : "false") + '"><span class="pal-n">' + esc(p.name) + "</span>" + strip(a) + '<span class="pal-t">' + esc(p.note) + " " + chk(a) + "</span></button>";
+      });
+      var cs = custSteps(), shown = cust.fit === false ? cs : cs.map(function (c) { return B.fit(c, L); });
+      h += '</div><details class="pal-c"' + (cur.id === "custom" ? " open" : "") + '><summary>Make your own</summary><div class="pal-in">' +
+        '<label>Not cheap <input type="color" id="pc-lo" value="' + cust.lo + '"></label>' +
+        '<label>Middle <input type="color" id="pc-mid" value="' + cust.mid + '"' + (cust.useMid ? "" : " disabled") + '></label>' +
+        '<label>Cheap <input type="color" id="pc-hi" value="' + cust.hi + '"></label></div>' +
+        '<label class="chk"><input type="checkbox" id="pc-um"' + (cust.useMid ? " checked" : "") + '> Pass through a light middle (best for two very different colours)</label>' +
+        '<div class="pal-steps">' + shown.map(function (c, i) { return '<input type="color" data-i="' + i + '" value="' + c.toLowerCase() + '" aria-label="Step ' + (i + 1) + '">'; }).join("") + "</div>" +
+        '<div class="pal-row">' + chk(shown) + '<label class="chk"><input type="checkbox" id="pc-fit"' + (cust.fit === false ? "" : " checked") + "> Keep steps readable on this skin</label></div>" +
+        '<button type="button" class="btn" id="pc-use">' + (cur.id === "custom" ? "Using your colours" : "Use my colours") + "</button></details>" +
+        '<div class="pop-f"><button type="button" class="btn sm" id="pal-def">Back to default</button><button type="button" class="btn sm" id="pal-link">Copy setup link</button></div>';
+      pop.innerHTML = h;
+    }
+    function open(on) { pop.hidden = !on; btn.setAttribute("aria-expanded", on ? "true" : "false"); if (on) { build(); var f = pop.querySelector(".pal-p[aria-pressed='true']") || pop.querySelector("button"); if (f) f.focus(); } }
+    btn.addEventListener("click", function () { open(pop.hidden); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !pop.hidden) { open(false); btn.focus(); } });
+    document.addEventListener("pointerdown", function (e) { if (!pop.hidden && !pop.contains(e.target) && !btn.contains(e.target)) open(false); });
+    function useCustom() { choose({ id: "custom", c: JSON.parse(JSON.stringify(cust)) }); var d = pop.querySelector(".pal-c"); if (d) d.open = true; }
+    pop.addEventListener("click", function (e) {
+      var p = e.target.closest(".pal-p"); if (p) { choose({ id: p.getAttribute("data-id") }); return; }
+      var t = e.target.closest("button"); if (!t) return;
+      if (t.id === "pal-x") open(false);
+      else if (t.id === "pal-def") choose({ id: "default" });
+      else if (t.id === "pc-use") useCustom();
+      else if (t.id === "pal-link") copyLink(t);
+    });
+    var tmr = null;
+    pop.addEventListener("input", function (e) {
+      var t = e.target;
+      if (t.id === "pc-lo" || t.id === "pc-mid" || t.id === "pc-hi") { cust[t.id.slice(3)] = t.value.toUpperCase(); cust.steps = null; }
+      else if (t.id === "pc-um") cust.useMid = t.checked;
+      else if (t.id === "pc-fit") cust.fit = t.checked;
+      else if (t.hasAttribute("data-i")) { var s = Array.prototype.map.call(pop.querySelectorAll(".pal-steps input"), function (x) { return x.value.toUpperCase(); }); cust.steps = s; cust.fit = false; }
+      else return;
+      clearTimeout(tmr); tmr = setTimeout(useCustom, 120);
+    });
+    $("cb").addEventListener("click", function () { choose(S.cb ? { id: "default" } : { id: "cb" }); });
+  })();
+  function copyLink(b) {
+    var u = window.BVMPrefs ? window.BVMPrefs.setupLink() : location.href, t0 = b.textContent;
+    function done(ok) { b.textContent = ok ? "Link copied" : "Copy failed: see the address bar"; if (!ok) try { history.replaceState(null, "", u); } catch (e) {} setTimeout(function () { b.textContent = t0; }, 2500); }
+    try { navigator.clipboard.writeText(u).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
+  }
+  if (window.BVMPrefs && window.BVMPrefs.imported) setTimeout(function () { var t = $("fresh-t"); if (t) { var o = t.textContent; t.textContent = "Layout and colours loaded from the link"; setTimeout(function () { if (S.latest) renderHeader(); }, 4000); } }, 1500);
 
   // ---------- cycle clock ----------
   var CLK = {
@@ -1520,8 +1739,9 @@
     $("vd-value-a").innerHTML = '<span class="pip" style="background:' + bandCol(v) + '"></span>' + esc(yes) + " · " + esc(bandName(v)) + ' <span class="mono">' + Math.round(v) + "</span>";
     $("vd-bi-a").innerHTML = b && b.s != null ? '<span class="pip" style="background:' + biCol(b.s) + '"></span>' + esc(biName(b.s)) + ' <span class="mono">' + Math.round(b.s) + "</span>" : "—";
     $("vd-clock-a").innerHTML = "Day " + c.dTop + " since the top · past lows came on days 364–406";
-    var cw = S.cw && S.cw.cur, vs = $("vd-value-s");
-    if (vs) vs.textContent = cw ? "Week " + cw.weeks + " of this cheap window · past ones lasted " + S.cw.past.map(function (w) { return w.weeks; }).join(", ") + " weeks" : "";
+    var cw = S.cw && S.cw.cur, vs = $("vd-value-s"), pl = S.cw ? S.cw.past.filter(function (w) { return !w.none; }).map(function (w) { return w.weeks; }) : [];
+    if (vs) vs.textContent = cw ? "Week " + cw.weeks + " of this cheap window" + (pl.length ? " · past ones lasted " + pl.join(", ") + " weeks" : "") : "";
+    renderSince();
   }
 
   // ---------- signals tabs ----------
@@ -1672,7 +1892,7 @@
   S.cb = (qs.get("cb") || sget("bbm.cb")) === "1";
   $("skin").value = S.skinSel; if ($("skin").value !== S.skinSel) { S.skinSel = "midnight"; $("skin").value = "midnight"; }
   $("skin").addEventListener("change", function () { S.skinSel = this.value; sset("bbm.skin", S.skinSel); applySkin(); });
-  $("cb").addEventListener("click", function () { S.cb = !S.cb; sset("bbm.cb", S.cb ? "1" : "0"); applySkin(); });
+  if (!window.BVMPrefs) $("cb").addEventListener("click", function () { S.cb = !S.cb; sset("bbm.cb", S.cb ? "1" : "0"); applySkin(); });
   if (mq && mq.addEventListener) mq.addEventListener("change", function () { if (S.skinSel === "auto") applySkin(); });
   $("ranges").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
@@ -1879,6 +2099,7 @@
     }
     $("arrange").addEventListener("click", function () { setArr(!arranging()); });
     $("arr-done").addEventListener("click", function () { setArr(false); });
+    if ($("arr-link")) $("arr-link").addEventListener("click", function () { copyLink(this); });
     $("arr-tidy").addEventListener("click", function () {
       if (!free) return;
       commit();
@@ -2018,7 +2239,7 @@
   S.dataAt = Date.now();
   fetchPrice(); fetchHourly(); fetchDaily(); loadData(); loadHist(); loadRecent();
   fetchCM(); fetchFng(); fetchLev(); fetchStable(); fetchPremium(); fetchCbbi();
-  if (qs.get("debug") === "1") window.__bbm = { S: S, histVal: histVal, histValAt: histValAt, parts: parts, liveRaw: liveRaw, biLive: biLive, clockNow: clockNow, histNear: histNear, scoreAt: scoreAt, closeParts: closeParts, levAt: levAt, fg7: fg7, stable30: stable30 };
+  if (qs.get("debug") === "1") window.__bbm = { S: S, alerts: pubAlerts, cheapWindows: cheapWindows, pastDaily: pastDaily, histVal: histVal, histValAt: histValAt, parts: parts, liveRaw: liveRaw, biLive: biLive, clockNow: clockNow, histNear: histNear, scoreAt: scoreAt, closeParts: closeParts, levAt: levAt, fg7: fg7, stable30: stable30 };
   setInterval(function () { if (!document.hidden) fetchPrice(); }, 15000);
   setInterval(renderLiveAge, 1000);
   setInterval(function () { if (!document.hidden) { fetchHourly(); fetchPremium(); if (S.latest) renderHistory(); } }, 5 * 60e3);
