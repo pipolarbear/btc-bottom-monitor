@@ -329,6 +329,23 @@
     }).catch(function () { srcFail("task"); if (!S.latest) { $("hdr-sub").textContent = "Could not load the daily readings. Retrying…"; } });
   }
   function J(u) { return fetch(u, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
+  // Coin Metrics sometimes holds a request for 40 s or more. If no answer comes in `gap` ms, send the
+  // same request again (page_size changed by one so the URL differs) and use the first answer that arrives.
+  function hedged(u, tries, gap) {
+    return new Promise(function (res, rej) {
+      var done = false, started = 0, fails = 0, ctl = [];
+      function go() {
+        if (done || started >= tries) return;
+        var i = started++, c = window.AbortController ? new AbortController() : null; ctl.push(c);
+        var ui = i ? u.replace(/page_size=(\d+)/, function (m, n) { return "page_size=" + (+n - i); }) : u;
+        fetch(ui, { cache: "no-store", signal: c ? c.signal : undefined }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+          .then(function (j) { if (done) return; done = true; ctl.forEach(function (x) { if (x && x !== c) try { x.abort(); } catch (e) { } }); res(j); })
+          .catch(function (e) { if (done) return; fails++; if (fails >= tries) { done = true; rej(e); } else if (fails >= started) go(); });
+        if (started < tries) setTimeout(function () { if (started === i + 1) go(); }, gap);
+      }
+      go();
+    });
+  }
   function utcToday() { return new Date().toISOString().slice(0, 10); }
   S.src = {};
   function srcOk(k, asOf) { S.src[k] = { ok: true, asOf: asOf, at: Date.now() }; }
@@ -339,7 +356,7 @@
   function fetchCM() {
     var url = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=PriceUSD,CapMVRVCur,IssTotUSD,HashRate&frequency=1d&start_time=2013-06-01&page_size=10000", rows = [];
     function step(u) {
-      return J(u).then(function (j) { rows = rows.concat(j.data || []); return j.next_page_url ? step(j.next_page_url) : null; });
+      return hedged(u, 3, 7000).then(function (j) { rows = rows.concat(j.data || []); return j.next_page_url ? step(j.next_page_url) : null; });
     }
     return step(url).then(function () {
       rows = rows.filter(function (x) { return x.PriceUSD && x.CapMVRVCur; });
