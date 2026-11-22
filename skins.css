@@ -1,33 +1,33 @@
-/* BTC Bottom Monitor: skins and shared base styles */
+/* BTC Value Monitor: skins and shared base styles. Score colours run red (low) to blue (high). */
 :root, :root[data-skin="midnight"] {
   --bg: #0D1117; --surf: #151A22; --surf2: #1E2530; --ink: #E7EBF1; --muted: #9AA3B3; --line: #2A313D;
   --accent: #F0A440; --up: #5DB673; --down: #F07B6E;
-  --b0: #6E7889; --b1: #8792A5; --b2: #E6A957; --b3: #8DC97A; --b4: #5DB673; --b5: #3E9D5C;
+  --b0: #E5484D; --b1: #F08A6C; --b2: #F2C6A9; --b3: #A9CFEF; --b4: #5FA8EA; --b5: #2F7FE0;
   --head: Archivo, system-ui, sans-serif; --body: Archivo, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
   --stretch: 78%; --hw: 700; --r: 10px; --rs: 6px; --hcase: none; --hls: 0; --shadow: 0 6px 18px rgba(0,0,0,.28);
 }
 :root[data-skin="daylight"] {
   --bg: #F3F5F8; --surf: #FFFFFF; --surf2: #EBEEF3; --ink: #161A22; --muted: #535B6B; --line: #D6DCE4;
   --accent: #A85A06; --up: #2E7D46; --down: #C2362B;
-  --b0: #A9B0BC; --b1: #838C9C; --b2: #D99A35; --b3: #7DB86A; --b4: #3F9A57; --b5: #1F6E3B;
+  --b0: #C62F2C; --b1: #E3755B; --b2: #EDB89E; --b3: #9DC3E6; --b4: #4A8ED2; --b5: #1C5DAD;
   --shadow: 0 6px 18px rgba(20,30,50,.12);
 }
 :root[data-skin="terminal"] {
   --bg: #040704; --surf: #081008; --surf2: #0F1C0F; --ink: #B8F5B0; --muted: #73B26B; --line: #1E3A1E;
   --accent: #4AF07A; --up: #4AF07A; --down: #F5C04A;
-  --b0: #2C452C; --b1: #43643D; --b2: #A39A3E; --b3: #58B84F; --b4: #38D865; --b5: #B0FFA8;
+  --b0: #E5484D; --b1: #F08A6C; --b2: #F2C6A9; --b3: #A9CFEF; --b4: #5FA8EA; --b5: #2F7FE0;
   --head: var(--mono); --body: var(--mono); --stretch: 100%; --hw: 600; --r: 2px; --rs: 2px; --hcase: uppercase; --hls: .06em;
 }
 :root[data-skin="ocean"] {
   --bg: #071624; --surf: #0C2236; --surf2: #132D47; --ink: #E4F1FA; --muted: #93B5CC; --line: #1F3D58;
   --accent: #3CC8E8; --up: #5FD3A6; --down: #FF8A7A;
-  --b0: #3B5169; --b1: #587493; --b2: #E3B55E; --b3: #7ACFB7; --b4: #3DB59D; --b5: #1C9584;
+  --b0: #E5484D; --b1: #F08A6C; --b2: #F2C6A9; --b3: #A9CFEF; --b4: #5FA8EA; --b5: #2F7FE0;
   --head: "Space Grotesk", system-ui, sans-serif; --body: Inter, system-ui, sans-serif; --stretch: 100%; --hw: 600; --r: 14px; --rs: 8px;
 }
 :root[data-skin="paper"] {
   --bg: #F4EFE6; --surf: #FBF8F2; --surf2: #EFE7DA; --ink: #2A2520; --muted: #62584E; --line: #DAD0C1;
   --accent: #9C3D1F; --up: #3F6B3A; --down: #A8321E;
-  --b0: #C2B8A8; --b1: #A09684; --b2: #C68B2A; --b3: #88A468; --b4: #5A8549; --b5: #2F5A30;
+  --b0: #C62F2C; --b1: #E3755B; --b2: #EDB89E; --b3: #9DC3E6; --b4: #4A8ED2; --b5: #1C5DAD;
   --head: Newsreader, Georgia, serif; --body: Inter, system-ui, sans-serif; --stretch: 100%; --hw: 600; --r: 4px; --rs: 3px;
   --shadow: 0 6px 18px rgba(60,40,20,.12);
 }
