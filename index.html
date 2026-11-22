@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..700&family=Space+Grotesk:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="skins.css?v=6">
-<link rel="stylesheet" href="app.css?v=6">
+<link rel="stylesheet" href="skins.css?v=7">
+<link rel="stylesheet" href="app.css?v=7">
 <script>try { var s = new URLSearchParams(location.search), k = s.get("skin") || localStorage.getItem("bbm.skin") || "midnight"; if (k === "auto") k = matchMedia("(prefers-color-scheme: light)").matches ? "daylight" : "midnight"; document.documentElement.setAttribute("data-skin", k); document.documentElement.setAttribute("data-light", k === "daylight" || k === "paper" ? "1" : "0"); document.documentElement.setAttribute("data-cb", (s.get("cb") || localStorage.getItem("bbm.cb")) === "1" ? "1" : "0"); } catch (e) {}</script>
 </head>
 <body>
@@ -37,6 +37,7 @@
     <button type="button" class="btn k-hide ic-sm" id="cb" aria-pressed="false" aria-label="Colour-blind safe colours" title="Colour-blind safe colours"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl">Colour-blind safe</span></button>
     <button type="button" class="btn k-hide ic-sm" id="save" aria-label="Save as image" title="Save as image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span class="lbl" id="save-t">Save image</span></button>
     <button type="button" class="btn k-hide ic-sm" id="arrange" aria-pressed="false" aria-label="Arrange cards" title="Arrange cards"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg><span class="lbl">Arrange</span></button>
+    <button type="button" class="btn k-hide ic-sm" id="reset-layout" hidden aria-label="Reset layout" title="Put the cards back in the default layout"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg><span class="lbl" id="reset-t">Reset layout</span></button>
     <button type="button" class="btn icon k-hide" id="kiosk" aria-label="Full screen" title="Full screen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
     <button type="button" class="btn" id="exit-kiosk"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>Exit full screen</button>
   </div>
@@ -61,7 +62,7 @@
 </section>
 
 <section class="verdict" id="verdict" data-card="verdict" data-name="Summary" aria-live="polite" aria-label="Summary">
-  <div class="vd" id="vd-value"><span class="q">Is BTC cheap?</span><span class="a" id="vd-value-a">—</span></div>
+  <div class="vd" id="vd-value"><span class="q">Is BTC cheap?</span><span class="a" id="vd-value-a">—</span><span class="vd-s" id="vd-value-s"></span></div>
   <div class="vd" id="vd-bi"><span class="q">Bottom in? · timing check</span><span class="a" id="vd-bi-a">—</span></div>
   <div class="vd" id="vd-clock"><span class="q">Cycle clock</span><span class="a" id="vd-clock-a">—</span></div>
 </section>
@@ -85,7 +86,7 @@
 
   <section class="card score-card" data-card="value" data-name="Value" aria-labelledby="score-h">
     <div class="card-h" style="align-items:center">
-      <div class="hstack"><h2 id="score-h"><span class="tip" tabindex="0" data-tipk="score">Value</span></h2><span class="sub">Is BTC cheap? · main score · 16 signals</span></div>
+      <div class="hstack"><h2 id="score-h">Value <button type="button" class="qi" data-tipk="score" aria-label="About the value score">?</button></h2><span class="sub">Is BTC cheap? · main score · 16 signals</span></div>
       <div class="seg seg-sm" role="group" aria-label="Levels" id="lv" data-nocap><button type="button" data-l="adj" class="tip" data-tipk="lv-adj">Small-cycle</button><button type="button" data-l="classic" class="tip" data-tipk="lv-classic">Classic</button></div>
     </div>
     <div class="gauge">
@@ -106,18 +107,17 @@
     </div>
     <div class="chips" id="chips"></div>
     <div class="next" id="next"></div>
+    <div class="cw" id="cw" aria-label="Cheap window"></div>
     <div class="rc" id="val-rc">
-      <div class="rc-h"><b id="val-rc-t">How the value score is made</b></div>
-      <p class="rc-x">16 signals. Each gets a mark from 0 to 100 for how close it is to its reading at past cycle lows. Weight × mark ÷ 100 = points. The points add up to the score.</p>
+      <div class="rc-h"><b id="val-rc-t">How the value score is made</b><button type="button" class="qi" data-tipk="val-rc" aria-label="About how the value score is made">?</button></div>
       <div class="stack" id="val-stack" aria-hidden="true"></div>
-      <div class="stack-l"><span>Coloured: points earned, one piece per signal (hover a piece)</span><span>Hatched: points still missing</span></div>
       <div class="rc-cols"><div><span class="rc-k">Most points</span><ol id="val-top"></ol></div><div><span class="rc-k">Most points missing</span><ol id="val-gap"></ol></div></div>
       <details class="rc-all" id="val-all"><summary>Show the sum for all 16 signals</summary><div class="rc-rows" id="val-rows"></div></details>
     </div>
   </section>
 
   <section class="card bi-card" data-card="bi" data-name="Bottom in?" aria-labelledby="bi-h">
-    <div class="card-h"><div class="hstack"><h2 id="bi-h"><span class="tip" tabindex="0" data-tipk="bi">Bottom in?</span></h2><span class="sub">Timing check · has the fall stopped? · 6 recovery signs</span></div></div>
+    <div class="card-h"><div class="hstack"><h2 id="bi-h">Bottom in? <button type="button" class="qi" data-tipk="bi" aria-label="About the Bottom in score">?</button></h2><span class="sub">Timing check · has the fall stopped? · 6 recovery signs</span></div></div>
     <div class="gauge">
       <svg viewBox="0 0 400 240" role="img" id="bi-svg" aria-label="Bottom in score">
         <g id="bi-bands"></g>
@@ -133,7 +133,7 @@
   </section>
 
   <section class="card cbbi-card" data-card="cbbi" data-name="CBBI" aria-labelledby="cbbi-h">
-    <div class="card-h"><h2 id="cbbi-h"><span class="tip" tabindex="0" data-tipk="cbbi">CBBI</span></h2><span class="sub">Colin's Bull Run Index</span></div>
+    <div class="card-h"><h2 id="cbbi-h">CBBI <button type="button" class="qi" data-tipk="cbbi" aria-label="About the CBBI">?</button></h2><span class="sub">Colin's Bull Run Index</span></div>
     <div class="cbbi-dial">
       <svg viewBox="0 0 240 140" role="img" id="cbbi-svg" aria-label="CBBI">
         <g id="cbbi-bands"></g>
@@ -143,18 +143,17 @@
       <div class="num"><b id="cbbi-num">—</b><span id="cbbi-zone">&nbsp;</span></div>
     </div>
     <div class="cbbi-comp" id="cbbi-comp"><span class="sub">Loading…</span></div>
-    <p class="sub" style="margin:0" id="cbbi-note">0 = cycle bottom zone, 100 = cycle top zone. A cross-check: not part of the scores here. Source: <a href="https://colintalkscrypto.com/cbbi/" target="_blank" rel="noopener">colintalkscrypto.com</a></p>
+    <p class="sub" style="margin:0" id="cbbi-note">Cross-check only. Source: <a href="https://colintalkscrypto.com/cbbi/" target="_blank" rel="noopener">colintalkscrypto.com</a></p>
   </section>
 
   <section class="card checks-card" data-card="checks" data-name="Price checks" aria-labelledby="ev-h">
-    <div class="card-h"><div class="hstack"><h2 id="ev-h"><span class="tip" tabindex="0" data-tipk="ev">Price checks</span></h2><span class="sub">Plain checks on price for the timing question. Not scored. They show what has improved and the price that would undo it.</span></div></div>
+    <div class="card-h"><div class="hstack"><h2 id="ev-h">Price checks <button type="button" class="qi" data-tipk="ev" aria-label="About the price checks">?</button></h2><span class="sub">Timing · not scored</span></div></div>
     <div class="bi-ev" id="bi-ev"></div>
   </section>
 
 <section class="card" data-card="clock" data-name="Cycle clock" aria-labelledby="clk-h">
-  <div class="card-h"><h2 id="clk-h"><span class="tip" tabindex="0" data-tipk="clocks">Cycle clock</span></h2><span class="sub">Now against the 2015, 2018 and 2022 lows</span></div>
+  <div class="card-h"><h2 id="clk-h">Cycle clock <button type="button" class="qi" data-tipk="clocks" aria-label="About the cycle clock">?</button></h2><span class="sub">Now against the 2015, 2018 and 2022 lows</span></div>
   <div class="clocks" id="clocks"></div>
-  <p class="sub" style="margin:0">Ticks mark the readings at the 2015, 2018 and 2022 lows. The green arc spans them. The diamond is where the trend of past lows points for this cycle. The orange dot is now.</p>
 </section>
 
 <section class="card" data-card="hist" data-name="Value score history" aria-labelledby="hist-h">
@@ -175,7 +174,7 @@
 
 <section class="card" data-card="sig" data-name="Signals" aria-labelledby="sig-h">
   <div class="card-h" style="align-items:center">
-    <h2 id="sig-h">Signals</h2>
+    <h2 id="sig-h">Signals <button type="button" class="qi" data-tipk="sig" aria-label="About the signals">?</button></h2>
     <div class="seg" role="tablist" aria-label="Signals view" id="sig-tabs" data-nocap>
       <button type="button" role="tab" data-t="d14" id="tab-btn-d14" aria-controls="tab-d14">Last 14 days</button><button type="button" role="tab" data-t="cyc" id="tab-btn-cyc" aria-controls="tab-cyc">Versus past cycles</button>
     </div>
@@ -183,14 +182,13 @@
 
   <div id="tab-d14" role="tabpanel" aria-labelledby="tab-btn-d14" class="tabp">
     <div class="tab-top">
-      <p class="sub" style="margin:0">Each signal scored 0–100, heaviest weight first. Hover a name to see why it matters. The small button next to a name changes the view for that signal only.</p>
       <div class="seg" role="group" aria-label="View for every signal" id="sig-all" data-nocap>
         <button type="button" data-v="heat">Heat map</button><button type="button" data-v="num">Numbers</button><button type="button" data-v="line">Line</button>
       </div>
     </div>
     <div class="sig-scroll"><div class="sig" id="sig"></div></div>
     <div class="bands" id="bands"></div>
-    <p class="sub" style="margin:0" id="sig-note"></p>
+    <p class="sub sig-n" style="margin:0" id="sig-note"></p>
   </div>
 
   <div id="tab-cyc" role="tabpanel" aria-labelledby="tab-btn-cyc" class="tabp" hidden>
@@ -208,10 +206,9 @@
 </section>
 
   <section class="card moved-card k-hide" data-card="moved" data-name="What moved" aria-labelledby="moved-h">
-    <div class="card-h"><h2 id="moved-h"><span class="tip" tabindex="0" data-tipk="moved">What moved</span></h2><span class="sub">points of value score</span></div>
+    <div class="card-h"><h2 id="moved-h">What moved <button type="button" class="qi" data-tipk="moved" aria-label="About what moved">?</button></h2><span class="sub">points of value score</span></div>
     <div class="mv" id="mv-live"></div>
     <div class="mv" id="mv-day"></div>
-    <p class="muted" style="margin:0;font-size:13px">Price-linked signals follow the live price. On-chain lines update once a day at the source.</p>
   </section>
   <section class="card p2s-card k-hide" data-card="p2s" data-name="Price to value score" aria-labelledby="p2s-h">
     <div class="card-h" style="align-items:center"><div style="display:flex;flex-direction:column;gap:2px"><h2 id="p2s-h">Price to value score</h2><span class="sub">with the chance of each price</span></div>
@@ -236,7 +233,7 @@
 
 </div>
 
-<div class="arr-bar" id="arr-bar" data-nocap role="region" aria-label="Arrange cards"><span>Drag a card by its ⠿ handle, or use ↑ ↓. Your order is kept in this browser.</span><span class="arr-btns"><button type="button" class="btn" id="arr-reset">Reset order</button><button type="button" class="btn" id="arr-done">Done</button></span></div>
+<div class="arr-bar" id="arr-bar" data-nocap role="region" aria-label="Arrange cards"><span id="arr-tx">Drag a card anywhere.</span><span class="arr-btns"><button type="button" class="btn" id="arr-tidy" hidden>Tidy up</button><button type="button" class="btn" id="arr-reset">Reset layout</button><button type="button" class="btn primary" id="arr-done">Done</button></span></div>
 
 <footer class="foot k-hide">
   <span>Live price: Bybit (Coinbase, Kraken or OKX if Bybit fails). Daily readings: Coin Metrics, LookIntoBitcoin, alternative.me, CoinGlass, DefiLlama, TradingView. CBBI: colintalkscrypto.com.</span>
@@ -244,6 +241,6 @@
 </footer>
 
 </div>
-<script src="app.js?v=6.1"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
