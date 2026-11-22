@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en" data-skin="midnight" data-cb="0" data-light="0">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Check our homework | BTC Value Monitor</title>
+<meta name="description" content="The BTC Value Monitor backtest, worked out in your browser from the published data: formulas, levels, band statistics, Bottom in, cheap windows and an out-of-sample test.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="skins.css?v=8">
+<script>try { var k = localStorage.getItem("bbm.skin") || "midnight"; if (k === "auto") k = matchMedia("(prefers-color-scheme: light)").matches ? "daylight" : "midnight"; document.documentElement.setAttribute("data-skin", k); document.documentElement.setAttribute("data-light", k === "daylight" || k === "paper" ? "1" : "0"); document.documentElement.setAttribute("data-cb", localStorage.getItem("bbm.cb") === "1" ? "1" : "0"); } catch (e) {}</script>
+<script src="prefs.js?v=8"></script>
+<style>
+.wrap { max-width: 1060px; }
+.lede { font-size: 17px; line-height: 1.55; max-width: 72ch; margin: 0; }
+.card p, .card li { max-width: 80ch; }
+.card p { margin: 0; }
+.card h3 { margin: 6px 0 0; font-size: 16px; }
+.back { font-size: 14px; }
+.dl { display: flex; flex-wrap: wrap; gap: 8px; }
+.toc { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13.5px; }
+.note { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.formula { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--rs); background: var(--surf2); font-size: 14.5px; }
+.sum { padding: 12px 14px; border-left: 3px solid var(--accent); background: var(--surf2); border-radius: var(--rs); font-size: 14.5px; }
+table.t { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.t th, table.t td { padding: 7px 6px; border-bottom: 1px dashed var(--line); text-align: left; vertical-align: top; }
+table.t th { font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--line); }
+table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
+table.t.sm { font-size: 13px; }
+table.t.sm td, table.t.sm th { padding: 6px 5px; }
+table.t.wk td { white-space: nowrap; font-family: var(--mono); font-size: 12px; }
+table.t.loo td:first-child { width: 26%; }
+.ref { display: block; font-size: 11px; color: var(--muted); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: middle; }
+.tscroll { overflow-x: auto; }
+.big { max-height: 560px; overflow: auto; border: 1px solid var(--line); border-radius: var(--rs); }
+.big thead th { position: sticky; top: 0; background: var(--surf); }
+.ctls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.ctl { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--muted); }
+.sel-sm { height: 32px; padding: 0 6px; border-radius: var(--rs); border: 1px solid var(--line); background: var(--surf); color: var(--ink); font-size: 13px; }
+.seg.seg-sm button { height: 32px; padding: 0 10px; font-size: 12.5px; }
+#b-chart svg { width: 100%; height: auto; display: block; }
+#b-chart text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.leg { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.leg span { display: inline-flex; align-items: center; gap: 6px; }
+.leg i { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+ul.lim { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14.5px; }
+code { font-family: var(--mono); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="./">← Back to the live monitor</a>
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <h1>Check our homework</h1>
+    <p class="lede">Every number on this page is worked out in your browser, now, from the data file history.json and the monitor's own code (app.js). The only figures typed in by hand are the model's settings, and the page checks them against app.js. Download the data and check it yourself.</p>
+    <div class="dl"><a class="btn" href="history.json" download>Download history.json</a><button type="button" class="btn" id="csv">Download every week as CSV</button><a class="btn" href="thesis.html">How the scores work</a></div>
+    <p class="note" id="status">Loading history.json…</p>
+    <nav class="toc" aria-label="Sections"><a href="#s1">1 The data</a><a href="#s2">2 The model</a><a href="#s3">3 A worked example</a><a href="#s4">4 Readings at past lows</a><a href="#s5">5 What the value score has meant</a><a href="#s6">6 Bottom in?</a><a href="#s7">7 Cheap windows</a><a href="#s8">8 Out-of-sample test</a><a href="#s9">9 Each cycle</a><a href="#s10">10 Limits</a><a href="#s11">11 Every week</a></nav>
+  </header>
+
+  <section class="card" id="s1"><h2>1. The data</h2><div id="b-data"></div></section>
+  <section class="card" id="s2"><h2>2. The model</h2><div id="b-model"></div></section>
+  <section class="card" id="s3"><h2>3. A worked example</h2><p>Pick a week to see every signal's reading, mark and points, and how they add up to the value score. It is the same sum as "How we got" on the monitor.</p><div id="b-ex"></div></section>
+  <section class="card" id="s4"><h2>4. Readings at past lows</h2><div id="b-lows"></div></section>
+  <section class="card" id="s5"><h2>5. What the value score has meant</h2><p>Each week from mid-2013 is put in its band. For each band: how often price was near that cycle's low, and what happened over the next year.</p><div id="b-bands"></div></section>
+  <section class="card" id="s6"><h2>6. Bottom in?</h2><p>How often the low had already passed when Bottom in? was in each band, and how late it confirmed each past low.</p><div id="b-bi"></div></section>
+  <section class="card" id="s7"><h2>7. Cheap windows</h2><p>Runs of weeks with the value score at or above a line, in each bear market. Change the line and the gap rule to see how the windows move.</p><div id="b-cw"></div></section>
+  <section class="card" id="s8"><h2>8. Out-of-sample test: leave one cycle out</h2>
+    <p>The small-cycle levels are fitted on the 2015, 2018 and 2022 lows. So the score has seen the answer for each of those cycles. This test hides one low at a time: it fits the line on the other two lows, uses that line's level for the hidden cycle, and scores that cycle again. If the results hardly change, the fit is not doing the work.</p>
+    <div id="b-loo"></div>
+    <p class="note">What this test does not cover: the classic levels and the weights were also chosen with all three lows in view. The classic column shows the score with no trend at all. With three cycles, no test can rule out luck.</p>
+  </section>
+  <section class="card" id="s9"><h2>9. Each cycle, side by side</h2><div id="b-chart"></div></section>
+  <section class="card" id="s10"><h2>10. Limits</h2>
+    <ul class="lim">
+      <li><b>Three cycles.</b> There are only three past lows to learn from. Neighbouring weeks are not separate tests, so a band with 40 weeks rests on two or three bear markets, not on 40 events.</li>
+      <li><b>Hindsight.</b> Levels and weights were set after the lows were known. Section 8 tests the part that is fitted by a formula. The rest is judgment and is listed in section 2 so you can change it and see.</li>
+      <li><b>Weekly readings.</b> The backtest uses Monday readings. A daily backtest finds some extremes a few days earlier or deeper.</li>
+      <li><b>Data revisions.</b> LookIntoBitcoin and Coin Metrics sometimes revise past values. history.json is a snapshot from November 2026.</li>
+      <li><b>Not tested.</b> Leverage (funding and open interest) starts in 2023 and money flows in 2024, so they are not in the backtest. Leverage carries 6 of the 100 weight points in the live score; money flows are shown but not scored.</li>
+      <li><b>Scores, not probabilities.</b> Past lows do not promise future lows. Information only, not financial advice.</li>
+    </ul>
+  </section>
+  <section class="card" id="s11"><h2>11. Every week</h2><p>All weekly readings with both value scores and Bottom in?. Newest first. The CSV download adds every signal's mark.</p><div id="b-tab"></div></section>
+  <footer class="foot"><span>Data: Coin Metrics, LookIntoBitcoin, alternative.me, Bitstamp. <a href="https://github.com/pixelmango47/btc-bottom-monitor">Source on GitHub</a> · MIT licence · Not financial advice.</span></footer>
+</div>
+<script>window.BVM_EXPORT = true;</script>
+<script src="app.js?v=8"></script>
+<script src="backtest.js?v=8"></script>
+</body>
+</html>
