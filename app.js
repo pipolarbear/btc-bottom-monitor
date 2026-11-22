@@ -1,4 +1,4 @@
-/* BTC Bottom Monitor v3 */
+/* BTC Value Monitor v5 */
 (function () {
   "use strict";
   // ---------- helpers ----------
@@ -84,6 +84,7 @@
     classic: [[69.7, 0, 44, 59], [12.4, 0, 74, 77], [6.1, 2, 65, 82], [6.0, 36, 68, 100], [5.1, 82, 105, 100], [0.6, 100, 134, 100]],
     adj: [[71.7, 0, 43, 59], [12.1, 0, 64, 77], [5.8, 5, 80, 97], [6.6, 47, 83, 100], [3.4, 100, 121, 100], [0.3, 100, 134, 100]]
   };
+  var BEARS = { adj: [4, 4, 4, 4, 3, 1], classic: [4, 4, 4, 3, 3, 1] };
   function bandIdx(s) { return s == null ? -1 : s < 20 ? 0 : s < 40 ? 1 : s < 60 ? 2 : s < 75 ? 3 : s < 90 ? 4 : 5; }
   function bandName(s) { var i = bandIdx(s); return i < 0 ? "—" : BANDS[i].name; }
   var CUTS = [0, 20, 40, 60, 75, 90, 101];
@@ -96,12 +97,14 @@
     { k: "sth", w: 20, name: "Above recent buyers' cost", tip: "Price against the short-term holder cost (coins moved in the last 155 days). Zero at 0.85×, full at 1.05×: recent buyers back in profit." },
     { k: "mayer", w: 15, name: "Above the 200-day average", tip: "Price against its 200-day average. Zero at 0.80×, full at 1.10×." },
     { k: "sopr", w: 10, name: "Selling at a profit", tip: "SOPR, 7-day. Zero at −0.005, full at +0.004: coins that move are sold at a profit again." },
-    { k: "hash", w: 5, name: "Miners recovered", tip: "Hash ribbons. Full when hash rate recovered after the low (or within 30 days before it). Zero while miners capitulate. Half otherwise." },
-    { k: "flows", w: 15, name: "Money coming back", tip: "The four flow signs: ETF net flow, Coinbase premium, stablecoin supply and USDT dominance. Live data only, so it is not in the backtest." }
+    { k: "hash", w: 5, name: "Miners recovered", tip: "Hash ribbons. Full when hash rate recovered after the low (or within 30 days before it). Zero while miners capitulate. Half otherwise." }
   ];
+  // Money flows (ETF net flow, Coinbase premium, stablecoin supply, USDT dominance) are shown on the card but not scored: no data before 2024, so they cannot be backtested.
   var BIB = [
-    { lo: 0, hi: 24, name: "Not yet", lowIn: 12, weeks: 138, col: 1 }, { lo: 25, hi: 49, name: "Early signs", lowIn: 31, weeks: 59, col: 2 },
-    { lo: 50, hi: 74, name: "Likely in", lowIn: 93, weeks: 30, col: 3 }, { lo: 75, hi: 100, name: "Confirmed", lowIn: 100, weeks: 94, col: 5 }
+    { lo: 0, hi: 24, name: "Not yet", lowIn: 12, weeks: 138, col: 1, cyc: "Mostly before the low, in all three bear markets (121 of 138 weekly readings)." },
+    { lo: 25, hi: 49, name: "Early signs", lowIn: 31, weeks: 59, col: 2, cyc: "On both sides of the low, in all three bear markets." },
+    { lo: 50, hi: 74, name: "Likely in", lowIn: 93, weeks: 30, col: 3, cyc: "After the low in 2015 and 2018. In 2022, two of its seven weeks came before the final (FTX) low." },
+    { lo: 75, hi: 100, name: "Confirmed", lowIn: 100, weeks: 94, col: 5, cyc: "Only after the low, in all three bear markets." }
   ];
   function biIdx(s) { return s == null ? -1 : s < 25 ? 0 : s < 50 ? 1 : s < 75 ? 2 : 3; }
   function biName(s) { var i = biIdx(s); return i < 0 ? "—" : BIB[i].name; }
@@ -155,8 +158,12 @@
 
   // ---------- hover explainers ----------
   var TIPS = {
-    score: "<span class='tt-h'>Value: is BTC cheap?</span>16 signals, each scored 0–100 by how close it is to the reading seen at past cycle lows, then averaged by weight. It says how cheap BTC is. It does not say the low is in. Hover the coloured arcs to see what each band has meant in the past.",
-    bi: "<span class='tt-h'>Bottom in? Has the low passed?</span>Seven signs that only show after a low: no new low, a bounce, price back above recent buyers' cost and the 200-day average, selling at a profit, miners and money coming back. In past cycles it passed 50 two to three months after the low. It is held down until the value score has reached 75 in this bear market.",
+    score: "<span class='tt-h'>Value: is BTC cheap?</span>The main score. 16 signals, each scored 0–100 by how close it is to the reading seen at past cycle lows, then averaged by weight. It says how cheap BTC is. It does not say the low is in: read it with Bottom in?. Red is low, blue is high. A score, not a probability. Hover the coloured arcs to see what each band has meant in the past.",
+    bi: "<span class='tt-h'>Bottom in? Has the fall stopped?</span>The timing check. Six signs that only show after a low: no new low, a bounce, price back above recent buyers' cost and the 200-day average, selling at a profit, and miners recovered. In past cycles it reached 50 two to three months after the low, when price was already 27–90% above it. It is held down until the value score has reached 75 in this bear market. A score, not a probability. Money flows are shown but not scored, because they have no data before 2024.",
+    ev: "<span class='tt-h'>Price checks</span>Plain checks on price. They are not part of either score. They show what has improved and the level that would undo it. In the 2015, 2018 and 2022 bear markets they gave many false starts: the trend check turned on 3 to 5 times before the final low, and price then fell a further 34–82%; 3 to 4 confirmed higher lows failed in each. Read them with Value.",
+    "ev-depth": "<span class='tt-h'>Depth</span>The deepest fall from the all-time high close ($124,824) to the lowest price so far. Ticks when it reaches the trend of past lows (−73%). Past lows: −86.6% (2015), −84.1% (2018), −77.1% (2022).",
+    "ev-hl": "<span class='tt-h'>Higher low</span>After the cycle low: a bounce of at least 10%, then a pullback of at least 5% that stays above the low, then a daily close above the bounce high. A new low resets it. After past final lows it confirmed 4 days (2015), 70 days (2019) and 51 days (2023) later.",
+    "ev-trend": "<span class='tt-h'>Trend</span>Daily close above its 30-day average, and the 30-day average above the 60-day. After past final lows, both held for five days running 50 days (2015), 77 days (2019) and 46 days (2023) later.",
     clocks: "<span class='tt-h'>Cycle clock</span>Where this cycle is in time and depth, against the 2015, 2018 and 2022 lows. Time clocks say when a low has come before. Depth clocks say how deep past lows went.",
     "lv-adj": "<span class='tt-h'>Small-cycle levels</span>Each past low was less deep than the one before. For MVRV, long-term holder cost, balanced price, Mayer multiple, addresses in loss and short-term holder cost, the full-score level moves one step along the trend of the 2015, 2018 and 2022 lows. See the method page for the numbers.",
     "lv-classic": "<span class='tt-h'>Classic levels</span>Fixed full-score levels: the readings that all three past lows reached. Use this view to compare with older screenshots.",
@@ -196,12 +203,13 @@
       var st = BSTATS[S.lv === "adj" ? "adj" : "classic"][i];
       return "<span class='tt-h'>" + b.lo + "–" + b.hi + " · " + b.name + "</span>" +
         "In " + st[0] + "% of weeks since mid-2013. Price was within 30% of that cycle's final low in " + st[1] + "% of these weeks. One year later, BTC was higher " + st[3] + "% of the time, with a median return of +" + st[2] + "%." +
-        "<span class='tt-m'>Weekly backtest, mid-2013 to Nov 2025, " + (S.lv === "adj" ? "small-cycle" : "classic") + " levels. Past results do not promise future results.</span>";
+        " Seen in " + BEARS[S.lv === "adj" ? "adj" : "classic"][i] + " of the last 4 bear markets." +
+        "<span class='tt-m'>Weekly backtest, mid-2013 to Nov 2025, " + (S.lv === "adj" ? "small-cycle" : "classic") + " levels. Neighbouring weeks overlap, so each band rests on a few bear markets. A guide, not a probability.</span>";
     };
   });
   BIB.forEach(function (b, i) {
-    TIPS["bib-" + i] = "<span class='tt-h'>" + b.lo + "–" + b.hi + " · " + b.name + "</span>In the 2014–15, 2018 and 2022 bear markets (top to one year after the low), the low had already passed in " + b.lowIn + "% of the " + b.weeks + " weeks in this band." +
-      "<span class='tt-m'>Weekly backtest without the money-flow sign (no data before 2024). Small sample: three cycles.</span>";
+    TIPS["bib-" + i] = "<span class='tt-h'>" + b.lo + "–" + b.hi + " · " + b.name + "</span>" + b.cyc + " In the 2014–15, 2018 and 2022 bear markets (top to one year after the low), the low had already passed in " + b.lowIn + "% of the " + b.weeks + " weekly readings in this band." +
+      "<span class='tt-m'>Neighbouring weeks overlap, so this rests on three bear markets, not on " + b.weeks + " separate tests. A score, not a probability.</span>";
   });
   BI.forEach(function (b) { TIPS["bic-" + b.k] = "<span class='tt-h'>" + esc(b.name) + " · weight " + b.w + "</span>" + esc(b.tip); });
   CONF.forEach(function (c) { TIPS["conf-" + c.k] = "<span class='tt-h'>" + esc(c.name) + "</span>" + esc(c.tip); });
@@ -622,7 +630,7 @@
     $("src-line").innerHTML = '<span class="tip src-h" tabindex="0" data-tipk="src">Data</span>' + h;
     var dot = $("fresh-dot"), t = $("fresh-t");
     if (S.mode !== "live") { dot.style.background = "var(--down)"; t.textContent = "Live sources not reached · daily readings"; }
-    else if (bad || old) { dot.style.background = "var(--b2)"; t.textContent = "Live data · " + (bad + old) + " source" + (bad + old > 1 ? "s" : "") + " late"; }
+    else if (bad || old) { dot.style.background = "#E0A23C"; t.textContent = "Live data · " + (bad + old) + " source" + (bad + old > 1 ? "s" : "") + " late"; }
     else { dot.style.background = "var(--up)"; t.textContent = "Live data up to date"; }
   }
   var shownScore = null;
@@ -752,7 +760,7 @@
   }
   var lastIcon = "";
   function renderTitle(s, P) {
-    document.title = Math.round(s) + " " + bandName(s) + (P ? " · " + usd(P) : "") + " | BTC Bottom Monitor";
+    document.title = Math.round(s) + " " + bandName(s) + (P ? " · " + usd(P) : "") + " | BTC Value Monitor";
     var col = css("--b" + Math.max(0, bandIdx(s))), key = Math.round(s) + col;
     if (key === lastIcon) return; lastIcon = key;
     try {
@@ -1068,8 +1076,8 @@
     S.cycCache[key] = res;
     return res;
   }
-  var PHIA = [[7.5, "Remote chance"], [22.5, "Highly unlikely"], [37.5, "Unlikely"], [52.5, "Realistic possibility"], [77.5, "Likely"], [92.5, "Highly likely"], [101, "Almost certain"]];
-  function phia(p) { for (var i = 0; i < PHIA.length; i++) if (p < PHIA[i][0]) return PHIA[i][1]; return PHIA[PHIA.length - 1][1]; }
+  var CHW = [[7.5, "Remote chance"], [22.5, "Highly unlikely"], [37.5, "Unlikely"], [52.5, "Realistic possibility"], [77.5, "Likely"], [92.5, "Highly likely"], [101, "Almost certain"]];
+  function chWord(p) { for (var i = 0; i < CHW.length; i++) if (p < CHW[i][0]) return CHW[i][1]; return CHW[CHW.length - 1][1]; }
   var CL = ["Low", "Medium", "High"];
   function clTag(c) { return '<span class="cf cf' + c + '">' + (c === 1 ? '<span class="hs">Medium</span><span class="ss">Med</span>' : CL[c]) + "</span>"; }
   function scoreConf(o) { var a = Math.abs(o); return a <= 5 ? 2 : a <= 15 ? 1 : 0; }
@@ -1093,11 +1101,11 @@
       var p = pv == null ? null : pc == null ? pv : (pv + pc) / 2;
       var cc = o === 0 ? null : chanceConf(o, pv, pc, stale), sc = scoreConf(o), conf = cc == null ? sc : Math.min(sc, cc);
       var tipTxt = o === 0 ? "" : "<span class='tt-h'>" + (o < 0 ? "Trades at or below " : "Trades at or above ") + usd(P) + " within " + W + " days</span>" +
-        "Volatility model: <b>" + (pv == null ? "n/a" : Math.round(pv) + "%") + "</b><br>Cycle model: <b>" + (pc == null ? "n/a" : Math.round(pc) + "%") + "</b><br>Blend: <b>" + (p == null ? "n/a" : Math.round(p) + "% · " + phia(p)) + "</b>" +
+        "Volatility model: <b>" + (pv == null ? "n/a" : Math.round(pv) + "%") + "</b><br>Cycle model: <b>" + (pc == null ? "n/a" : Math.round(pc) + "%") + "</b><br>Blend: <b>" + (p == null ? "n/a" : Math.round(p) + "% · " + chWord(p)) + "</b>" +
         "<span class='tt-m'>Score confidence: " + CL[sc] + " (" + Math.abs(o) + "% from today's price). Chance confidence: " + CL[cc] + (pv != null && pc != null ? " (models " + Math.round(Math.abs(pv - pc)) + " points apart)" : "") + (stale ? "; daily data out of date" : "") + ". The table shows the lower of the two.</span>";
       h += '<tr class="' + (o === 0 ? "now" : "") + '"><td class="mono">' + usd(P) + '<span class="ss muted"> ' + (o === 0 ? "now" : (o > 0 ? "+" : "−") + Math.abs(o) + "%") + '</span></td><td class="r mono hs">' + (o === 0 ? "now" : (o > 0 ? "+" : "−") + Math.abs(o) + "%") + '</td><td class="r mono"><span class="ss sw" style="background:' + bandCol(s) + ';width:10px;height:10px;margin-right:6px"></span>' + Math.round(s) + '</td><td class="hs"><span style="display:inline-flex;align-items:center;gap:7px"><span class="sw" style="background:' + bandCol(s) + '"></span>' + bandName(s) + "</span></td>" +
         (o === 0 ? '<td class="muted">today’s price</td><td>' + clTag(sc) + "</td>" :
-          '<td><span class="tip ch" tabindex="0" data-tip="' + tipTxt.replace(/"/g, "&quot;") + '">' + (p == null ? "—" : phia(p) + ' <span class="mono muted">' + Math.round(p) + "%</span>") + '</span></td><td>' + clTag(conf) + "</td>") + "</tr>";
+          '<td><span class="tip ch" tabindex="0" data-tip="' + tipTxt.replace(/"/g, "&quot;") + '">' + (p == null ? "—" : chWord(p) + ' <span class="mono muted">' + Math.round(p) + "%</span>") + '</span></td><td>' + clTag(conf) + "</td>") + "</tr>";
     });
     $("p2s").innerHTML = h;
     // explainer
@@ -1107,7 +1115,7 @@
       "<p><b>Chance.</b> The chance that BTC trades at that price at least once in the next " + W + " days (a touch, as a limit order would fill). It is the average of two models:</p><ul>" +
       "<li><b>Volatility model</b>: BTC's own recent swings (" + (sig ? Math.round(sig * 100) + "% a year, the average of its 30-, 90- and 365-day volatility" : "not available") + "), with no trend up or down. It treats big crashes as rare, so it can understate deep falls.</li>" +
       "<li><b>Cycle model</b>: every day in the 2014–15, 2018 and 2022 bear markets (top to 180 days after the low) when MVRV was close to today's (" + (m ? m.toFixed(2) : "—") + " ± 0.06). It counts how often price touched each level within " + W + " days. " + (cyc && cyc.ok ? "Matching days: " + cn + "." : "Not enough matching days right now, so only the volatility model is used.") + "</li></ul>" +
-      "<p><b>Words.</b> We use the UK intelligence probability yardstick: Remote chance (under 5%), Highly unlikely (10–20%), Unlikely (25–35%), Realistic possibility (40–50%), Likely (55–75%), Highly likely (80–90%), Almost certain (over 95%). Values in the gaps go to the nearer word.</p>" +
+      "<p><b>Words.</b> Each chance is also given in words: Remote chance (under 5%), Highly unlikely (10–20%), Unlikely (25–35%), Realistic possibility (40–50%), Likely (55–75%), Highly likely (80–90%), Almost certain (over 95%). Values in the gaps go to the nearer word.</p>" +
       "<p><b>Confidence.</b> For the chance: <b>High</b> when the two models agree within 15 points and the level is within 10% of today's price; <b>Medium</b> when they agree within 25 points and the level is within 20%; <b>Low</b> otherwise. One step lower when the daily data is more than two days old. The table shows the lower of the score and chance confidence. Hover a chance for both model results.</p>" +
       "<p class='muted'>Only three past cycles to learn from. These are estimates, not forecasts of what will happen. Not financial advice.</p></details>";
     var px = $("p2s-x"), od = px.querySelector("details");
@@ -1115,7 +1123,7 @@
     Array.prototype.forEach.call(document.querySelectorAll("#win button"), function (b) { b.setAttribute("aria-pressed", +b.getAttribute("data-w") === W ? "true" : "false"); });
   }
   TIPS["p2s-score"] = "<span class='tt-h'>Projected value score</span>The value score at that price if the on-chain lines stay as they are today. Likely too low for falls, because loss-taking and fear usually rise as price falls.";
-  TIPS["p2s-chance"] = "<span class='tt-h'>Chance</span>The chance that BTC trades at that price at least once in the window, in UK intelligence yardstick words. Average of a volatility model and a cycle model. Hover a row for both results.";
+  TIPS["p2s-chance"] = "<span class='tt-h'>Chance</span>The chance that BTC trades at that price at least once in the window, in words from Remote chance to Almost certain. Average of a volatility model and a cycle model. Hover a row for both results.";
   TIPS["p2s-conf"] = "<span class='tt-h'>Confidence</span>The lower of the score confidence and the chance confidence. See 'How we got these numbers' below the table.";
   function confScore(c) {
     c = c || {}; var n = 0, t = 0;
@@ -1189,6 +1197,51 @@
     return { s: bc.raw == null ? null : bc.raw * g, raw: bc.raw, c: bc.c, x: x, vmax: vmax, vlow: vmaxLowNow(), gate: g, ld: cl.ld };
   }
   var shownBI = null;
+  // ---------- price checks: not scored. Depth, higher low, trend; with the level that undoes them ----------
+  function priceChecks() {
+    if (!S.ohlc) return null;
+    var ks = Object.keys(S.ohlc).sort(), today = utcToday(), P = liveP();
+    var done = ks.filter(function (k) { return k < today; }), closes = done.map(function (k) { return S.ohlc[k].c; }), n = closes.length;
+    if (n < 61) return null;
+    function ma(w) { var t = 0; for (var i = n - w; i < n; i++) t += closes[i]; return t / w; }
+    var c = closes[n - 1], m30 = ma(30), m60 = ma(60), cl = cycleLowNow(P), low = cl.lo, ld = cl.ld;
+    if (!low || !ld) return null;
+    // higher low: a bounce of 10%+, a pullback of 5%+ that stays above the low, then a daily close above the bounce high
+    var pk = null, pb = null, pbD = null, conf = null;
+    ks.forEach(function (k) {
+      if (k <= ld || conf) return;
+      var o = S.ohlc[k], live = k === today, cc = live && P ? P : o.c, l = live && P ? Math.min(o.l, P) : o.l;
+      if (pb == null) { if (pk == null || cc > pk) pk = cc; else if (pk >= 1.1 * low && l <= pk * 0.95) { pb = l; pbD = k; } }
+      else { if (l < pb) { pb = l; pbD = k; } if (!live && cc > pk) conf = { d: k, hl: pb, hlD: pbD }; }
+    });
+    var hl;
+    if (conf) hl = { ok: true, t: "Higher low " + usd(conf.hl) + " (" + fd(conf.hlD) + "), confirmed " + fd(conf.d) };
+    else if (pb != null) hl = { ok: false, t: "Pullback to " + usd(pb) + " is holding. Confirms on a daily close above " + usd(pk) };
+    else if (pk != null && pk >= 1.1 * low) hl = { ok: false, t: "Bounced " + Math.round((pk / low - 1) * 100) + "%. Waiting for a pullback that holds above " + usd(low) };
+    else hl = { ok: false, t: (daysBetween(ld, today) <= 1 ? "New low on " + fd(ld) + ". " : "") + "Waiting for a 10% bounce (above " + usd(low * 1.1) + ")" };
+    return { low: low, ld: ld, deep: (low / NOWC.topP - 1) * 100, hl: hl, c: c, cD: done[n - 1], m30: m30, m60: m60 };
+  }
+  function renderChecks() {
+    var el = $("bi-ev"); if (!el) return;
+    var pc = priceChecks(); if (!pc) { el.innerHTML = ""; return; }
+    function row(ok, name, tk, t) {
+      return '<div class="ev-r"><span class="ev-i ' + (ok ? "ok" : "no") + '" aria-label="' + (ok ? "Yes" : "Not yet") + '">' + (ok ? "✓" : "✗") + '</span><span class="n"><span class="tip" tabindex="0" data-tipk="' + tk + '">' + esc(name) + '</span></span><span class="t">' + esc(t) + "</span></div>";
+    }
+    var tr = CLK.fall.trend, t1 = pc.c > pc.m30, t2 = pc.m30 > pc.m60;
+    el.innerHTML = '<div class="ev-h"><span class="tip" tabindex="0" data-tipk="ev">Price checks</span><span class="sub">not scored</span></div>' +
+      row(pc.deep <= tr, "Depth", "ev-depth", "−" + Math.abs(pc.deep).toFixed(1) + "% at the " + fd(pc.ld) + " low. Past lows −77% to −87%, trend −" + Math.abs(tr) + "%") +
+      row(pc.hl.ok, "Higher low", "ev-hl", pc.hl.t) +
+      row(t1, "Close above 30-day average", "ev-trend", "Close " + usd(pc.c) + " (" + fd(pc.cD) + "), 30-day " + usd(pc.m30)) +
+      row(t2, "30-day above 60-day average", "ev-trend", "30-day " + usd(pc.m30) + ", 60-day " + usd(pc.m60)) +
+      '<div class="ev-f">Fails if price trades below <b class="mono">' + usd(pc.low) + "</b> (a new low resets the checks).</div>";
+  }
+  // which of the four Value / Bottom in combinations we are in now
+  function renderIntro(biS) {
+    var P = liveP(), v = S.latest ? (P ? scoreAt(P) : closeParts().total) : null;
+    if (v == null || biS == null) return;
+    var q = (v >= 60 ? "h" : "l") + (biS >= 50 ? "h" : "l");
+    Array.prototype.forEach.call(document.querySelectorAll("#quad .q"), function (e) { var on = e.getAttribute("data-q") === q; e.classList.toggle("now", on); var m = e.querySelector(".nowtag"); if (m) m.textContent = on ? "Now: Value " + Math.round(v) + " · Bottom in " + Math.round(biS) : ""; });
+  }
   function renderBI() {
     var b = biLive(); S.biNow = b; if (!b || b.s == null) return;
     var v = Math.max(0, Math.min(100, b.s));
@@ -1199,7 +1252,7 @@
     $("bi-band").textContent = biName(v) + (liveP() ? " · live" : "");
     $("bi-svg").setAttribute("aria-label", "Bottom in score " + Math.round(v) + " of 100, " + biName(v) + ".");
     var x = b.x, rd = {
-      nolow: x.dsl == null ? "—" : (x.dsl === 0 ? "new low " : x.dsl + " d since ") + usd(x.low) + " " + fd(b.ld),
+      nolow: x.dsl == null ? "—" : (x.dsl === 0 ? "new low " : x.dsl + " d since ") + fd(b.ld),
       rise: x.low ? (x.p / x.low).toFixed(2) + "× low" : "—",
       sth: x.sth == null ? "—" : x.sth.toFixed(2) + "×",
       mayer: x.mayer == null ? "—" : x.mayer.toFixed(2) + "×",
@@ -1212,8 +1265,9 @@
       return '<div class="bi-r"><span class="n"><span class="tip" tabindex="0" data-tipk="bic-' + bi.k + '">' + esc(bi.name) + '</span></span><span class="rd mono">' + esc(rd[bi.k]) + '</span><span class="bar"><i style="width:' + w.toFixed(0) + "%;background:" + (val == null ? "var(--surf2)" : smoothCol(val)) + '"></i></span><span class="v">' + (val == null ? "—" : Math.round(val)) + "</span></div>";
     }).join("");
     var c = (S.latest && S.latest.confirm) || {};
-    h += '<div class="sub bi-flows">Flows: ' + CONF.map(function (k) { return '<span class="tip" tabindex="0" data-tipk="conf-' + k.k + '">' + esc(k.name.replace(/, 30 days|, 10 days/, "")) + "</span> " + '<b class="mono">' + esc(k.read(c)) + "</b>"; }).join(" · ") + "</div>";
+    h += '<div class="sub bi-flows">Money flows (shown, not scored): ' + CONF.map(function (k) { return '<span class="tip" tabindex="0" data-tipk="conf-' + k.k + '">' + esc(k.name.replace(/, 30 days|, 10 days/, "")) + "</span> " + '<b class="mono">' + esc(k.read(c)) + "</b>"; }).join(" · ") + "</div>";
     $("bi-comp").innerHTML = h;
+    renderChecks(); renderIntro(b.s);
     var g = b.gate, vm = b.vmax, vl = b.vlow;
     var lowTxt = vl && vl.v > (vm || 0) + 0.5 ? " At the " + fd(vl.d) + " low (" + usd(vl.p) + ") it reached " + Math.round(vl.v) + "." : "";
     $("bi-gate").innerHTML = '<span class="tip" tabindex="0" data-tipk="gate">Deep-value check</span>: ' + (g >= 1 ? "passed. The value score reached " + Math.round(vm) + " in this bear market." : "value peak this bear market " + (vm == null ? "—" : Math.round(vm)) + " at a daily close (" + bandName(vm) + "), below 75." + esc(lowTxt) + " Raw reading " + Math.round(b.raw) + ", held at " + Math.round(g * 100) + "%.");
@@ -1505,6 +1559,7 @@
 
   // ---------- start ----------
   applySkin();
+  (function () { var d = $("intro"); if (!d) return; try { if (localStorage.getItem("bbm.intro") === "0") d.open = false; } catch (e) {} d.addEventListener("toggle", function () { try { localStorage.setItem("bbm.intro", d.open ? "1" : "0"); } catch (e) {} }); })();
   // pull every source now; the page works out all scores from them in the browser
   S.dataAt = Date.now();
   fetchPrice(); fetchHourly(); fetchDaily(); loadData(); loadHist(); loadRecent();
