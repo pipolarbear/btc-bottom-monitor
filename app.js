@@ -621,7 +621,7 @@
   }
   function libState() { var b = S.base; if (b && b.libD) return { ok: true, asOf: b.libD }; var r = lastRec(); return r ? { ok: true, asOf: addDays(r.date, -2) } : null; }
   function renderHeader() {
-    $("hdr-sub").textContent = "Public view · indicators only · " + (S.mode === "live" ? "live data, worked out in your browser" : "daily readings from " + fd(S.latest.date) + (S.latest.rec && S.latest.rec.asOf ? ", " + S.latest.rec.asOf : ""));
+    $("hdr-sub").textContent = "Public view · indicators only · " + (S.mode === "live" ? "live data, worked out in your browser" : !S.src.cm ? "loading live data…" : "daily readings from " + fd(S.latest.date) + (S.latest.rec && S.latest.rec.asOf ? ", " + S.latest.rec.asOf : ""));
     var bad = 0, old = 0, h = "";
     SRC.forEach(function (s) {
       var st = srcState(s); if (st.cls === "bad") bad++; if (st.cls === "old") old++;
@@ -629,7 +629,8 @@
     });
     $("src-line").innerHTML = '<span class="tip src-h" tabindex="0" data-tipk="src">Data</span>' + h;
     var dot = $("fresh-dot"), t = $("fresh-t");
-    if (S.mode !== "live") { dot.style.background = "var(--down)"; t.textContent = "Live sources not reached · daily readings"; }
+    if (S.mode !== "live" && !S.src.cm) { dot.style.background = "#E0A23C"; t.textContent = "Loading live data…"; }
+    else if (S.mode !== "live") { dot.style.background = "var(--down)"; t.textContent = "Live sources not reached · daily readings"; }
     else if (bad || old) { dot.style.background = "#E0A23C"; t.textContent = "Live data · " + (bad + old) + " source" + (bad + old > 1 ? "s" : "") + " late"; }
     else { dot.style.background = "var(--up)"; t.textContent = "Live data up to date"; }
   }
@@ -979,7 +980,7 @@
     if (S.mode === "live") {
       note = "Each column is the daily close (UTC), worked out from the sources in your browser. The reading column and the Live column use the live price. ";
       if (libD && libD < S.base.d) note += "LookIntoBitcoin lines (holder costs, CVDD, balanced price, addresses in loss, SOPR, reserve risk) are to " + fd(libD) + "; later columns divide them into each day's price. ";
-    } else note = "Live sources not reached: columns are the daily task's readings, with price-linked signals moved to the price each reading recorded. ";
+    } else note = !S.src.cm ? "Live data still loading: for now the columns are the daily task's readings. " : "Live sources not reached: columns are the daily task's readings, with price-linked signals moved to the price each reading recorded. ";
     $("sig-note").textContent = (D.miss.length ? "No reading on " + D.miss.map(fd).join(", ") + ": the heat map and line blend across the gap. " : "") + note + "Scores use " + (S.lv === "adj" ? "small-cycle" : "classic") + " levels.";
     $("bands").innerHTML = BANDS.map(function (b, i) { return '<span class="tip" tabindex="0" data-tipk="band-' + i + '"><span class="sw" style="background:var(--b' + i + ')"></span>' + (i === 5 ? "90+" : b.lo + "–" + b.hi) + " " + b.name + "</span>"; }).join("");
     var sc = document.querySelector(".sig-scroll"); if (sc && window.innerWidth < 700) sc.scrollLeft = sc.scrollWidth;
