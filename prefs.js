@@ -6,7 +6,7 @@
   function put(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
 
   // ----- setup link: #setup=<base64url JSON> copies someone's layout, colours and settings into this browser -----
-  var SETUP_KEYS = { l: "bbm.layout", o: "bbm.order", p: "bbm.pal", c: "bbm.cw", s: "bbm.skin", v: "bbm.levels", b: "bbm.cb", w: "bbm.since" };
+  var SETUP_KEYS = { l: "bbm.layout", o: "bbm.order", p: "bbm.pal", c: "bbm.cw", s: "bbm.skin", v: "bbm.levels", b: "bbm.cb", w: "bbm.since", k: "bbm.cards" };
   function b64e(s) { return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
   function b64d(s) { s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "="; return decodeURIComponent(escape(atob(s))); }
   function setupLink() {
