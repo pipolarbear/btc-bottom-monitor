@@ -25,6 +25,8 @@
       root.setAttribute("data-cb", get("bbm.cb") === "1" ? "1" : "0");
     }
   } catch (e) {}
+  // a setup link pasted into a tab that already shows the page changes only the #: load the page again to apply it
+  window.addEventListener("hashchange", function () { if (/#setup=/.test(location.hash)) location.reload(); });
 
   // ----- colour maths: sRGB <-> OKLab -----
   function hex2rgb(h) { h = String(h).replace("#", ""); if (h.length === 3) h = h.replace(/./g, "$&$&"); return [0, 2, 4].map(function (i) { return parseInt(h.substr(i, 2), 16) / 255; }); }
@@ -74,7 +76,7 @@
   var PRESETS = [
     { id: "default", name: "Red to blue", note: "The default. Warm for not cheap, cool for cheap.", dark: ["#E5484D", "#F08A6C", "#F2C6A9", "#A9CFEF", "#5FA8EA", "#2F7FE0"], light: ["#C62F2C", "#E3755B", "#EDB89E", "#9DC3E6", "#4A8ED2", "#1C5DAD"] },
     { id: "cb", name: "Colour-blind safe", note: "Purple to green (viridis). Safe for all common colour blindness. Same as the eye button.", dark: ["#46337E", "#365C8D", "#277F8E", "#1FA187", "#4AC16D", "#9FDA3A"], light: ["#46337E", "#365C8D", "#277F8E", "#1FA187", "#4AC16D", "#9FDA3A"] },
-    { id: "teal", name: "Orange to teal", note: "Warm to cool with a soft middle. Colour-blind friendly.", dark: ["#F2711C", "#F79D5C", "#F6CDA8", "#A6DCD3", "#46C1AE", "#13A08E"], light: ["#C2410C", "#E0762F", "#E2AA80", "#80C4B9", "#2A9A89", "#0B7A6E"] },
+    { id: "teal", name: "Orange to teal", note: "Warm to cool with a soft middle.", dark: ["#F2711C", "#F79D5C", "#F6CDA8", "#A6DCD3", "#46C1AE", "#13A08E"], light: ["#C2410C", "#E0762F", "#E2AA80", "#80C4B9", "#2A9A89", "#0B7A6E"] },
     { id: "pink", name: "Magenta to green", note: "Classic map pairing (PiYG). Strong ends, easy to tell apart.", dark: ["#E0408A", "#EB7FB0", "#F1BED5", "#BCE2A4", "#86C760", "#58A632"], light: ["#B8165F", "#D45A8E", "#DDA0BC", "#97C67C", "#5FA63F", "#3A7D1F"] },
     { id: "earth", name: "Brown to teal", note: "Earthy and calm (BrBG). Good on paper and print.", dark: ["#D08A3A", "#E0AE6A", "#ECD4A8", "#A8DCD2", "#52B5A8", "#1F8F83"], light: ["#8C510A", "#B97A2A", "#D2B07A", "#7FC4B8", "#35978F", "#01665E"] },
     { id: "mono", name: "Grey to blue", note: "One colour. The deeper the blue, the cheaper. Calm, no red.", dark: ["#6F7785", "#7E8EA6", "#8DA6C8", "#7FB0EE", "#4E95EF", "#2F7FE0"], light: ["#9AA1AC", "#8697B1", "#6F8EBF", "#4F86CF", "#2C6CC8", "#1C5DAD"] },
