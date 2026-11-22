@@ -10,8 +10,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..700&family=Space+Grotesk:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="skins.css?v=7">
-<link rel="stylesheet" href="app.css?v=7">
+<link rel="stylesheet" href="skins.css?v=8">
+<link rel="stylesheet" href="app.css?v=8">
+<script src="prefs.js?v=8"></script>
 <script>try { var s = new URLSearchParams(location.search), k = s.get("skin") || localStorage.getItem("bbm.skin") || "midnight"; if (k === "auto") k = matchMedia("(prefers-color-scheme: light)").matches ? "daylight" : "midnight"; document.documentElement.setAttribute("data-skin", k); document.documentElement.setAttribute("data-light", k === "daylight" || k === "paper" ? "1" : "0"); document.documentElement.setAttribute("data-cb", (s.get("cb") || localStorage.getItem("bbm.cb")) === "1" ? "1" : "0"); } catch (e) {}</script>
 </head>
 <body>
@@ -21,7 +22,7 @@
   <div class="brand">
     <h1>BTC Value Monitor</h1>
     <span class="sub" id="hdr-sub">Loading readings…</span>
-    <span class="links k-hide" data-nocap><a href="thesis.html">How the scores work</a><a href="v1.html">Version 1</a></span>
+    <span class="links k-hide" data-nocap><a href="thesis.html">How the scores work</a><a href="backtest.html">Check our homework</a><a href="v1.html">Version 1</a></span>
   </div>
   <div class="controls" data-nocap>
     <span class="pill k-hide" id="fresh"><span class="dot" id="fresh-dot" style="background:var(--muted)"></span><span id="fresh-t">Loading</span></span>
@@ -35,6 +36,7 @@
       <option value="paper">Paper</option>
     </select>
     <button type="button" class="btn k-hide ic-sm" id="cb" aria-pressed="false" aria-label="Colour-blind safe colours" title="Colour-blind safe colours"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl">Colour-blind safe</span></button>
+    <button type="button" class="btn k-hide ic-sm" id="pal-b" aria-expanded="false" aria-controls="pal" aria-label="Colours" title="Choose the score colours"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16c3.3 0 6-2.7 6-6 0-4.9-4.5-8.6-10-8.6z"/></svg><span class="lbl">Colours</span></button>
     <button type="button" class="btn k-hide ic-sm" id="save" aria-label="Save as image" title="Save as image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span class="lbl" id="save-t">Save image</span></button>
     <button type="button" class="btn k-hide ic-sm" id="arrange" aria-pressed="false" aria-label="Arrange cards" title="Arrange cards"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg><span class="lbl">Arrange</span></button>
     <button type="button" class="btn k-hide ic-sm" id="reset-layout" hidden aria-label="Reset layout" title="Put the cards back in the default layout"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg><span class="lbl" id="reset-t">Reset layout</span></button>
@@ -42,6 +44,7 @@
     <button type="button" class="btn" id="exit-kiosk"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>Exit full screen</button>
   </div>
 </header>
+<div class="pop" id="pal" hidden role="dialog" aria-label="Colours" data-nocap></div>
 
 <div class="board" id="board">
 
@@ -65,6 +68,7 @@
   <div class="vd" id="vd-value"><span class="q">Is BTC cheap?</span><span class="a" id="vd-value-a">—</span><span class="vd-s" id="vd-value-s"></span></div>
   <div class="vd" id="vd-bi"><span class="q">Bottom in? · timing check</span><span class="a" id="vd-bi-a">—</span></div>
   <div class="vd" id="vd-clock"><span class="q">Cycle clock</span><span class="a" id="vd-clock-a">—</span></div>
+  <div class="vd-week" id="vd-week"><label for="since-sel">Since</label><select id="since-sel" class="sel-sm" data-nocap><option value="7">7 days ago</option><option value="thu">last Thursday</option><option value="28">4 weeks ago</option></select><span class="muted mono" id="since-d"></span><span id="since-t"></span></div>
 </section>
 
 <div class="cardwrap" data-card="intro" data-name="How to read the two scores">
@@ -78,7 +82,7 @@
       <div class="q" role="listitem" data-q="ll"><b>Value low · Bottom in low</b><span>Not cheap, and still falling.</span><em class="nowtag"></em></div>
       <div class="q" role="listitem" data-q="lh"><b>Value low · Bottom in high</b><span>Recovered. No longer cheap.</span><em class="nowtag"></em></div>
     </div>
-    <div class="cscale" aria-hidden="true"><span>Score colours</span><i style="background:var(--b0)"></i><i style="background:var(--b1)"></i><i style="background:var(--b2)"></i><i style="background:var(--b3)"></i><i style="background:var(--b4)"></i><i style="background:var(--b5)"></i><span>red low, blue high</span></div>
+    <div class="cscale" aria-hidden="true"><span>Score colours</span><i style="background:var(--b0)"></i><i style="background:var(--b1)"></i><i style="background:var(--b2)"></i><i style="background:var(--b3)"></i><i style="background:var(--b4)"></i><i style="background:var(--b5)"></i><span>not cheap → cheap</span></div>
     <p class="sub">"High" means Value 60+ (Cheap or better) and Bottom in? 50+ (Likely in or Confirmed). Both are scores, not probabilities.</p>
   </div>
 </details>
@@ -107,7 +111,6 @@
     </div>
     <div class="chips" id="chips"></div>
     <div class="next" id="next"></div>
-    <div class="cw" id="cw" aria-label="Cheap window"></div>
     <div class="rc" id="val-rc">
       <div class="rc-h"><b id="val-rc-t">How the value score is made</b><button type="button" class="qi" data-tipk="val-rc" aria-label="About how the value score is made">?</button></div>
       <div class="stack" id="val-stack" aria-hidden="true"></div>
@@ -144,6 +147,21 @@
     </div>
     <div class="cbbi-comp" id="cbbi-comp"><span class="sub">Loading…</span></div>
     <p class="sub" style="margin:0" id="cbbi-note">Cross-check only. Source: <a href="https://colintalkscrypto.com/cbbi/" target="_blank" rel="noopener">colintalkscrypto.com</a></p>
+  </section>
+
+  <section class="card cw-card" data-card="cw" data-name="Cheap window" aria-labelledby="cw-h">
+    <div class="card-h" style="align-items:center">
+      <div class="hstack"><h2 id="cw-h">Cheap window <button type="button" class="qi" data-tipk="cw" aria-label="About the cheap window">?</button></h2><span class="sub" id="cw-sub">Week by week, against past cycles</span></div>
+      <button type="button" class="btn sm" id="cw-set-b" aria-expanded="false" aria-controls="cw-set" data-nocap>Settings</button>
+    </div>
+    <div class="cw-set" id="cw-set" hidden data-nocap>
+      <label class="cw-ctl"><span>Cheap means Value of at least <output id="cw-thr-o">60</output></span><input type="range" id="cw-thr" min="40" max="90" step="5" value="60"></label>
+      <label class="cw-ctl"><span>A window ends after <output id="cw-gap-o">12 weeks</output> below that line</span><input type="range" id="cw-gap" min="1" max="26" step="1" value="12"></label>
+      <div class="cw-ctl"><span>Past cycles</span><div class="seg seg-sm" role="group" aria-label="Past-cycle data" id="cw-past"><button type="button" data-p="daily">Daily (rebuilt)</button><button type="button" data-p="weekly">Weekly (backtest)</button></div></div>
+      <div class="cw-ctl"><span>Levels</span><div class="seg seg-sm" role="group" aria-label="Levels" id="cw-lv"><button type="button" data-l="adj">Small-cycle</button><button type="button" data-l="classic">Classic</button></div></div>
+      <div class="cw-ctl cw-ctl-f"><button type="button" class="btn sm" id="cw-def">Back to default</button><span class="sub">Kept in this browser. Default: 60, 12 weeks, daily, small-cycle.</span></div>
+    </div>
+    <div class="cw" id="cw" aria-live="polite"></div>
   </section>
 
   <section class="card checks-card" data-card="checks" data-name="Price checks" aria-labelledby="ev-h">
@@ -233,14 +251,14 @@
 
 </div>
 
-<div class="arr-bar" id="arr-bar" data-nocap role="region" aria-label="Arrange cards"><span id="arr-tx">Drag a card anywhere.</span><span class="arr-btns"><button type="button" class="btn" id="arr-tidy" hidden>Tidy up</button><button type="button" class="btn" id="arr-reset">Reset layout</button><button type="button" class="btn primary" id="arr-done">Done</button></span></div>
+<div class="arr-bar" id="arr-bar" data-nocap role="region" aria-label="Arrange cards"><span id="arr-tx">Drag a card anywhere.</span><span class="arr-btns"><button type="button" class="btn" id="arr-tidy" hidden>Tidy up</button><button type="button" class="btn" id="arr-link">Copy setup link</button><button type="button" class="btn" id="arr-reset">Reset layout</button><button type="button" class="btn primary" id="arr-done">Done</button></span></div>
 
 <footer class="foot k-hide">
   <span>Live price: Bybit (Coinbase, Kraken or OKX if Bybit fails). Daily readings: Coin Metrics, LookIntoBitcoin, alternative.me, CoinGlass, DefiLlama, TradingView. CBBI: colintalkscrypto.com.</span>
-  <span><a href="https://github.com/pixelmango47/btc-bottom-monitor">Source on GitHub</a> · MIT licence · Not financial advice.</span>
+  <span><a href="backtest.html">Backtest data</a> · <a href="https://github.com/pixelmango47/btc-bottom-monitor">Source on GitHub</a> · MIT licence · Not financial advice.</span>
 </footer>
 
 </div>
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
