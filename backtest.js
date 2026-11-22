@@ -208,7 +208,7 @@
     });
     $("b-cw").innerHTML = '<div class="ctls"><label class="ctl">Value at least <select id="cw-t" class="sel-sm">' + [40, 50, 60, 70, 75, 80, 90].map(function (t) { return '<option value="' + t + '"' + (t === CWT ? " selected" : "") + ">" + t + "</option>"; }).join("") + '</select></label><label class="ctl">Ends after <select id="cw-g" class="sel-sm">' + [1, 2, 4, 8, 12, 16, 20, 26].map(function (t) { return '<option value="' + t + '"' + (t === CWG ? " selected" : "") + ">" + t + " weeks below</option>"; }).join("") + "</select></label></div>" +
       tbl(["Bear market", "Window", { t: "Weeks", r: 1 }, { t: "Weeks at the line", r: 1 }, { t: "First close", r: 1 }, { t: "Fell after", r: 1 }, { t: "Low came", r: 1 }], rows, "sm") +
-      '<p class="note">Weekly readings, small-cycle levels. The monitor rebuilds past cycles day by day for its cheap-window card, so its weeks and prices can differ a little from this table.</p>';
+      '<p class="note">Weekly readings, small-cycle levels. The monitor rebuilds past cycles day by day for its cheap-window card. On Mondays its scores match these, but daily closes catch days that Mondays miss, so its windows can start earlier or end later than in this table, sometimes by several weeks.</p>';
   }
 
   // ---------- 8. leave one cycle out ----------
