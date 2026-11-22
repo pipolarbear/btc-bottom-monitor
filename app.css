@@ -1,4 +1,4 @@
-/* BTC Bottom Monitor v3: page styles */
+/* BTC Value Monitor v5: page styles */
 header.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
 .brand { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .brand .links { font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
@@ -31,7 +31,8 @@ header.top { display: flex; flex-wrap: wrap; align-items: center; justify-conten
 
 /* top row: value, bottom in, CBBI */
 .hstack { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.row.toprow > .score-card, .row.toprow > .bi-card { flex: 1 1 380px; }
+.row.toprow > .score-card { flex: 1.25 1 400px; }
+.row.toprow > .bi-card { flex: 1 1 360px; }
 .row.toprow > .cbbi-card { flex: 1 1 290px; min-width: 260px; }
 .seg.seg-sm button { height: 34px; min-width: 0; padding: 0 10px; font-size: 12.5px; }
 .bi-comp { display: flex; flex-direction: column; gap: 6px; }
@@ -228,7 +229,49 @@ body.kiosk #exit-kiosk { display: inline-flex; }
 .src-line .src b { font-weight: 600; color: var(--ink); font-family: var(--mono); font-size: 12px; }
 .src-line .src i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; }
 .src-line .src.ok i { background: var(--up); }
-.src-line .src.old i { background: var(--b2); }
+.src-line .src.old i { background: #E0A23C; }
 .src-line .src.bad i { background: var(--down); }
 .src-line .src.bad b { color: var(--down); }
 @media (max-width: 560px) { .src-line { gap: 3px 10px; font-size: 12px; } }
+/* v5: read-together panel, price checks, Value first */
+.verdict #vd-value .a { font-size: 19px; }
+.verdict #vd-value .q { color: var(--ink); }
+.intro { padding: 0; }
+.intro > summary { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 14px 18px; }
+.intro > summary::-webkit-details-marker { display: none; }
+.intro > summary::before { content: "▸"; color: var(--muted); font-size: 12px; transition: transform .15s; }
+.intro[open] > summary::before { transform: rotate(90deg); }
+.intro .intro-h { font-family: var(--head); font-weight: var(--hw); font-size: 16px; }
+.intro-b { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 12px; }
+.intro-b p { margin: 0; line-height: 1.55; max-width: 980px; }
+.quad { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-width: 980px; }
+.quad .q { border: 1px solid var(--line); border-radius: var(--rs); padding: 9px 12px; display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; background: var(--surf2); }
+.quad .q b { font-size: 13px; letter-spacing: .02em; }
+.quad .q span { color: var(--muted); }
+.quad .q[data-q="hl"], .quad .q[data-q="hh"] { border-left: 4px solid var(--b4); }
+.quad .q[data-q="ll"], .quad .q[data-q="lh"] { border-left: 4px solid var(--b1); }
+.quad .q.now { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink) inset; }
+.quad .q.now span { color: var(--ink); }
+.quad .q .nowtag { font-style: normal; font-size: 12px; font-weight: 650; color: var(--ink); font-family: var(--mono); }
+.quad .q .nowtag:empty { display: none; }
+.cscale { display: flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+.cscale span:first-child { margin-right: 6px; }
+.cscale span:last-child { margin-left: 6px; }
+.cscale i { width: 26px; height: 10px; border-radius: 2px; display: inline-block; flex: 0 0 26px; }
+.bi-ev { border-top: 1px solid var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.bi-ev:empty { display: none; }
+.ev-h { display: flex; align-items: baseline; gap: 8px; font-weight: 650; font-size: 13.5px; }
+.ev-h .sub { font-weight: 400; }
+.ev-r { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 1px 8px; align-items: baseline; font-size: 13px; }
+.ev-r .t { grid-column: 2; }
+.ev-r .t { color: var(--muted); font-size: 12.5px; }
+.ev-i { font-weight: 700; text-align: center; }
+.ev-i.ok { color: var(--b5); }
+.ev-i.no { color: var(--b0); }
+.ev-f { font-size: 12.5px; color: var(--muted); }
+.ev-f b { color: var(--ink); }
+@media (max-width: 560px) {
+  .quad { grid-template-columns: 1fr; }
+  .intro > summary { padding: 12px 14px; }
+  .intro-b { padding: 0 14px 14px; }
+}
