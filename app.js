@@ -1,4 +1,4 @@
-/* BTC Value Monitor v5 */
+/* BTC Value Monitor v6 */
 (function () {
   "use strict";
   // ---------- helpers ----------
@@ -660,6 +660,7 @@
     $("lg-daily").textContent = dl + " " + Math.round(daily) + " · " + bandName(daily);
     renderChips(liveS, daily, isLive);
     renderNext(liveS, P || d.price);
+    renderValRc(P);
     renderMoved(P);
     renderTitle(liveS, P);
     renderSigLive(P);
@@ -1228,8 +1229,7 @@
       return '<div class="ev-r"><span class="ev-i ' + (ok ? "ok" : "no") + '" aria-label="' + (ok ? "Yes" : "Not yet") + '">' + (ok ? "✓" : "✗") + '</span><span class="n"><span class="tip" tabindex="0" data-tipk="' + tk + '">' + esc(name) + '</span></span><span class="t">' + esc(t) + "</span></div>";
     }
     var tr = CLK.fall.trend, t1 = pc.c > pc.m30, t2 = pc.m30 > pc.m60;
-    el.innerHTML = '<div class="ev-h"><span class="tip" tabindex="0" data-tipk="ev">Price checks</span><span class="sub">not scored</span></div>' +
-      row(pc.deep <= tr, "Depth", "ev-depth", "−" + Math.abs(pc.deep).toFixed(1) + "% at the " + fd(pc.ld) + " low. Past lows −77% to −87%, trend −" + Math.abs(tr) + "%") +
+    el.innerHTML = row(pc.deep <= tr, "Depth", "ev-depth", "−" + Math.abs(pc.deep).toFixed(1) + "% at the " + fd(pc.ld) + " low. Past lows −77% to −87%, trend −" + Math.abs(tr) + "%") +
       row(pc.hl.ok, "Higher low", "ev-hl", pc.hl.t) +
       row(t1, "Close above 30-day average", "ev-trend", "Close " + usd(pc.c) + " (" + fd(pc.cD) + "), 30-day " + usd(pc.m30)) +
       row(t2, "30-day above 60-day average", "ev-trend", "30-day " + usd(pc.m30) + ", 60-day " + usd(pc.m60)) +
@@ -1241,6 +1241,44 @@
     if (v == null || biS == null) return;
     var q = (v >= 60 ? "h" : "l") + (biS >= 50 ? "h" : "l");
     Array.prototype.forEach.call(document.querySelectorAll("#quad .q"), function (e) { var on = e.getAttribute("data-q") === q; e.classList.toggle("now", on); var m = e.querySelector(".nowtag"); if (m) m.textContent = on ? "Now: Value " + Math.round(v) + " · Bottom in " + Math.round(biS) : ""; });
+  }
+  // ---------- how each score is made: points that add up ----------
+  function rcRow(name, tipk, tipHtml, rd, pts, max, maxAll, mark) {
+    var tw = Math.max(8, max / maxAll * 100), fw = pts == null ? 0 : Math.max(0, Math.min(100, pts / max * 100));
+    var tipA = tipk ? 'data-tipk="' + tipk + '"' : 'data-tip="' + String(tipHtml || "").replace(/"/g, "&quot;") + '"';
+    return '<div class="rc-r"><span class="n"><span class="tip" tabindex="0" ' + tipA + ">" + esc(name) + '</span><span class="rd">' + esc(rd || "—") + '</span></span><span class="tw"><span class="trk" style="width:' + tw.toFixed(0) + '%"><i style="width:' + fw.toFixed(0) + "%;background:" + (mark == null ? "var(--surf2)" : smoothCol(mark)) + '"></i></span></span><span class="pt"><b>' + (pts == null ? "—" : pts.toFixed(1)) + "</b><span> / " + Math.round(max) + "</span></span></div>";
+  }
+  // the price (or time) at which each Bottom-in sign starts and fills
+  function biRaise(b) {
+    var x = b.x, P = x.p, out = [];
+    if (x.sth) { var sc = P / x.sth; out.push("Above recent buyers' cost: starts above " + usd(sc * 0.85) + ", full at " + usd(sc * 1.05)); }
+    if (x.mayer) { var ma = P / x.mayer; out.push("Above the 200-day average: starts above " + usd(ma * 0.8) + ", full at " + usd(ma * 1.1)); }
+    if (x.low) out.push("Bounce from the low: full at " + usd(x.low * 1.5) + " (1.5× the low)");
+    if (b.ld) out.push("No new low: full on " + fd(addDays(b.ld, 120)) + " if price stays above " + usd(x.low));
+    out.push("Selling at a profit: starts when SOPR rises above −0.005");
+    out.push("Miners recovered: full when hash rate recovers after the low");
+    return '<div class="rc-up"><span class="rc-k">What would raise it</span><ul>' + out.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul></div>";
+  }
+  // Value: a bar of 16 pieces sized by points, the top contributors and gaps, and the full sum
+  function renderValRc(P) {
+    if (!$("val-rc") || !S.latest) return;
+    var live = !!P, raw = live ? liveRaw(S.latest, P) : (S.mode === "live" && S.base ? rowRaw(S.base) : S.latest.raw || {});
+    var pa = live ? parts(S.latest, raw) : closeParts(), sw = pa.sw || 100, tot = pa.total; if (tot == null) return;
+    var items = IND.map(function (d) { var m = pa.p[d.k], max = d.w / sw * 100; return { d: d, m: m, max: max, pts: m == null ? null : m * d.w / sw, rd: d.read(raw) }; });
+    $("val-rc-t").textContent = "How we got " + Math.round(tot) + (live ? " (live)" : "");
+    $("val-stack").innerHTML = items.map(function (it) {
+      if (!it.pts) return "";
+      var t = "<span class='tt-h'>" + esc(it.d.name) + "</span>" + it.pts.toFixed(1) + " of " + Math.round(it.max) + " points · mark " + Math.round(it.m) + " · reading " + esc(it.rd);
+      return '<span class="tip" tabindex="0" data-tip="' + t.replace(/"/g, "&quot;") + '" style="flex:0 1 ' + it.pts.toFixed(2) + "%;background:" + smoothCol(it.m) + '"></span>';
+    }).join("") + '<span class="miss" style="flex:1 1 ' + Math.max(0, 100 - tot).toFixed(2) + '%"></span>';
+    var have = items.filter(function (it) { return it.pts != null; });
+    $("val-top").innerHTML = have.slice().sort(function (a, b) { return b.pts - a.pts; }).slice(0, 4).map(function (it) { return '<li><span class="tip" tabindex="0" data-tipk="ind-' + it.d.k + '">' + esc(it.d.name) + '</span> <b class="mono">' + it.pts.toFixed(1) + '</b><span class="muted mono"> / ' + Math.round(it.max) + "</span></li>"; }).join("");
+    $("val-gap").innerHTML = have.slice().sort(function (a, b) { return (b.max - b.pts) - (a.max - a.pts); }).slice(0, 4).map(function (it) { return '<li><span class="tip" tabindex="0" data-tipk="ind-' + it.d.k + '">' + esc(it.d.name) + '</span> <b class="mono">−' + (it.max - it.pts).toFixed(1) + "</b></li>"; }).join("");
+    var maxAll = Math.max.apply(null, items.map(function (it) { return it.max; }));
+    var miss = items.filter(function (it) { return it.pts == null; }).length;
+    $("val-rows").innerHTML = items.map(function (it) { return rcRow(it.d.name, "ind-" + it.d.k, null, it.rd, it.pts, it.max, maxAll, it.m); }).join("") +
+      (miss ? '<div class="rc-sum"><span>' + miss + " signal" + (miss > 1 ? "s" : "") + " missing: the others are scaled up to 100</span><b></b></div>" : "") +
+      '<div class="rc-tot"><span>Value score: the points added up</span><b>' + tot.toFixed(1) + " → " + Math.round(tot) + "</b></div>";
   }
   function renderBI() {
     var b = biLive(); S.biNow = b; if (!b || b.s == null) return;
@@ -1260,17 +1298,19 @@
       hash: x.hcap ? "capitulating" : x.recAfterLow == null ? "—" : x.recAfterLow ? "recovered" : "not since low",
       flows: b.c.flows == null ? "—" : Math.round(b.c.flows) + "/100"
     };
-    var h = BI.map(function (bi) {
-      var val = b.c[bi.k], w = val == null ? 0 : val;
-      return '<div class="bi-r"><span class="n"><span class="tip" tabindex="0" data-tipk="bic-' + bi.k + '">' + esc(bi.name) + '</span></span><span class="rd mono">' + esc(rd[bi.k]) + '</span><span class="bar"><i style="width:' + w.toFixed(0) + "%;background:" + (val == null ? "var(--surf2)" : smoothCol(val)) + '"></i></span><span class="v">' + (val == null ? "—" : Math.round(val)) + "</span></div>";
-    }).join("");
+    // receipt: each sign's points (weight scaled to 100 × mark), the raw score, the deep-value check, the score
+    var sw = 0; BI.forEach(function (bi) { if (b.c[bi.k] != null) sw += bi.w; });
+    var bis = BI.slice().sort(function (p1, p2) { return p2.w - p1.w; }), maxAll = bis[0].w / (sw || 1) * 100, g = b.gate, vm = b.vmax;
+    var h = '<p class="rc-x">Six recovery signs that showed up after past cycle lows. Each earns points up to its maximum. The points add up to the raw score. The deep-value check then sets how much of it counts.</p><div class="rc-rows">' +
+      bis.map(function (bi) { var val = b.c[bi.k], max = bi.w / (sw || 1) * 100; return rcRow(bi.name, "bic-" + bi.k, null, rd[bi.k], val == null ? null : val * max / 100, max, maxAll, val); }).join("") + "</div>" +
+      '<div class="rc-sum"><span>Raw score: the points added up</span><b>' + b.raw.toFixed(1) + " / 100</b></div>" +
+      '<div class="rc-sum"><span><span class="tip" tabindex="0" data-tipk="gate">Deep-value check</span>: ' + (g >= 1 ? "value reached 75 this bear market, so all of it counts" : "value peak " + (vm == null ? "—" : Math.round(vm)) + " at a daily close" + (b.vlow && b.vlow.v > (vm || 0) + 0.5 ? " (" + Math.round(b.vlow.v) + " at the " + fd(b.vlow.d) + " low)" : "") + ", below 75, so " + Math.round(g * 100) + "% counts") + "</span><b>× " + g + "</b></div>" +
+      '<div class="rc-tot"><span>Bottom in?</span><b>' + Math.round(b.s) + " · " + esc(biName(b.s)) + "</b></div>" + biRaise(b);
     var c = (S.latest && S.latest.confirm) || {};
     h += '<div class="sub bi-flows">Money flows (shown, not scored): ' + CONF.map(function (k) { return '<span class="tip" tabindex="0" data-tipk="conf-' + k.k + '">' + esc(k.name.replace(/, 30 days|, 10 days/, "")) + "</span> " + '<b class="mono">' + esc(k.read(c)) + "</b>"; }).join(" · ") + "</div>";
     $("bi-comp").innerHTML = h;
     renderChecks(); renderIntro(b.s);
-    var g = b.gate, vm = b.vmax, vl = b.vlow;
-    var lowTxt = vl && vl.v > (vm || 0) + 0.5 ? " At the " + fd(vl.d) + " low (" + usd(vl.p) + ") it reached " + Math.round(vl.v) + "." : "";
-    $("bi-gate").innerHTML = '<span class="tip" tabindex="0" data-tipk="gate">Deep-value check</span>: ' + (g >= 1 ? "passed. The value score reached " + Math.round(vm) + " in this bear market." : "value peak this bear market " + (vm == null ? "—" : Math.round(vm)) + " at a daily close (" + bandName(vm) + "), below 75." + esc(lowTxt) + " Raw reading " + Math.round(b.raw) + ", held at " + Math.round(g * 100) + "%.");
+    var gEl = $("bi-gate"); if (gEl) gEl.textContent = "";
   }
   CONF.forEach(function (c) { TIPS["conf-" + c.k] = "<span class='tt-h'>" + esc(c.name) + "</span>" + esc(c.tip); });
 
@@ -1559,6 +1599,72 @@
 
   // ---------- start ----------
   applySkin();
+  // ---------- arrange: every card can be moved; the order is kept in this browser ----------
+  (function () {
+    var board = $("board"); if (!board) return;
+    var KEY = "bbm.order";
+    function cards() { return Array.prototype.filter.call(board.children, function (e) { return e.hasAttribute("data-card"); }); }
+    function idOf(c) { return c.getAttribute("data-card"); }
+    var DEF = cards().map(idOf);
+    function order(ids) {
+      var m = {}; cards().forEach(function (c) { m[idOf(c)] = c; });
+      var list = ids.filter(function (id) { return m[id]; });
+      DEF.forEach(function (id, i) { if (list.indexOf(id) < 0) list.splice(Math.min(i, list.length), 0, id); });
+      list.forEach(function (id) { board.appendChild(m[id]); });
+    }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(cards().map(idOf))); } catch (e) {} }
+    function after() { clearTimeout(after.t); after.t = setTimeout(function () { renderHistory(); if (S.tab === "cyc" && S.hist) renderCycChart(); }, 60); }
+    cards().forEach(function (c) {
+      var nm = c.getAttribute("data-name") || idOf(c), bar = document.createElement("div");
+      bar.className = "mv-bar"; bar.setAttribute("data-nocap", "");
+      bar.innerHTML = '<span class="mv-h" aria-hidden="true" title="Drag to move">⠿</span><span class="mv-n">' + esc(nm) + '</span><button type="button" class="mv-b" data-d="-1" aria-label="Move ' + esc(nm) + ' up">↑</button><button type="button" class="mv-b" data-d="1" aria-label="Move ' + esc(nm) + ' down">↓</button>';
+      c.appendChild(bar);
+    });
+    try { var sv = JSON.parse(localStorage.getItem(KEY) || "null"); if (Array.isArray(sv)) order(sv); } catch (e) {}
+    function setArr(on) {
+      document.body.classList.toggle("arrange", on); $("arrange").setAttribute("aria-pressed", on ? "true" : "false");
+      if (!on) after();
+    }
+    $("arrange").addEventListener("click", function () { setArr(!document.body.classList.contains("arrange")); });
+    $("arr-done").addEventListener("click", function () { setArr(false); });
+    $("arr-reset").addEventListener("click", function () { try { localStorage.removeItem(KEY); } catch (e) {} order(DEF); after(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.body.classList.contains("arrange")) setArr(false); });
+    board.addEventListener("click", function (e) {
+      var bt = e.target.closest && e.target.closest(".mv-b"); if (!bt) return;
+      e.preventDefault();
+      var c = bt.closest("[data-card]"), d = +bt.getAttribute("data-d"), sib = d < 0 ? c.previousElementSibling : c.nextElementSibling;
+      while (sib && !sib.hasAttribute("data-card")) sib = d < 0 ? sib.previousElementSibling : sib.nextElementSibling;
+      if (!sib) return;
+      board.insertBefore(c, d < 0 ? sib : sib.nextSibling); save(); after();
+      bt.focus(); c.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+    // drag by the handle (mouse, pen or touch)
+    var dr = null;
+    board.addEventListener("pointerdown", function (e) {
+      var h = e.target.closest && e.target.closest(".mv-h"); if (!h || !document.body.classList.contains("arrange")) return;
+      e.preventDefault();
+      dr = { c: h.closest("[data-card]"), h: h, x: e.clientX, y: e.clientY };
+      dr.c.classList.add("dragging"); document.body.classList.add("dragging-on");
+      try { h.setPointerCapture(e.pointerId); } catch (er) {}
+    });
+    function overCard(x, y) {
+      var els = document.elementsFromPoint(x, y);
+      for (var i = 0; i < els.length; i++) { var c = els[i].closest && els[i].closest("[data-card]"); if (c && c !== dr.c && c.parentNode === board) return c; }
+      return null;
+    }
+    document.addEventListener("pointermove", function (e) {
+      if (!dr) return;
+      if (e.clientY < 70) window.scrollBy(0, -16); else if (e.clientY > window.innerHeight - 70) window.scrollBy(0, 16);
+      var t = overCard(e.clientX, e.clientY); if (!t) return;
+      var r = t.getBoundingClientRect(), side = r.width < board.clientWidth * 0.7;
+      var before = side ? e.clientX < r.left + r.width / 2 : e.clientY < r.top + r.height / 2;
+      var ref = before ? t : t.nextSibling;
+      if (ref === dr.c || (before ? t.previousElementSibling === dr.c : t.nextElementSibling === dr.c)) return;
+      board.insertBefore(dr.c, ref);
+    });
+    function endDrag() { if (!dr) return; dr.c.classList.remove("dragging"); document.body.classList.remove("dragging-on"); dr = null; save(); after(); }
+    document.addEventListener("pointerup", endDrag); document.addEventListener("pointercancel", endDrag);
+  })();
   (function () { var d = $("intro"); if (!d) return; try { if (localStorage.getItem("bbm.intro") === "0") d.open = false; } catch (e) {} d.addEventListener("toggle", function () { try { localStorage.setItem("bbm.intro", d.open ? "1" : "0"); } catch (e) {} }); })();
   // pull every source now; the page works out all scores from them in the browser
   S.dataAt = Date.now();
