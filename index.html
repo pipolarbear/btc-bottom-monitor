@@ -11,8 +11,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..700&family=Space+Grotesk:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="skins.css?v=8">
-<link rel="stylesheet" href="app.css?v=8">
-<script src="prefs.js?v=8.1"></script>
+<link rel="stylesheet" href="app.css?v=9">
+<script src="prefs.js?v=9"></script>
 <script>try { var s = new URLSearchParams(location.search), k = s.get("skin") || localStorage.getItem("bbm.skin") || "midnight"; if (k === "auto") k = matchMedia("(prefers-color-scheme: light)").matches ? "daylight" : "midnight"; document.documentElement.setAttribute("data-skin", k); document.documentElement.setAttribute("data-light", k === "daylight" || k === "paper" ? "1" : "0"); document.documentElement.setAttribute("data-cb", (s.get("cb") || localStorage.getItem("bbm.cb")) === "1" ? "1" : "0"); } catch (e) {}</script>
 </head>
 <body>
@@ -21,26 +21,27 @@
 <header class="top">
   <div class="brand">
     <h1>BTC Value Monitor</h1>
-    <span class="sub" id="hdr-sub">Loading readings…</span>
-    <span class="links k-hide" data-nocap><a href="thesis.html">How the scores work</a><a href="backtest.html">Check our homework</a><a href="v1.html">Version 1</a></span>
+    <span class="brand-s"><span class="sub" id="hdr-sub">Loading readings…</span><span class="links k-hide" data-nocap><a href="thesis.html">How the scores work</a><a href="backtest.html">Check our homework</a><a href="v1.html">Version 1</a></span></span>
   </div>
   <div class="controls" data-nocap>
     <span class="pill k-hide" id="fresh"><span class="dot" id="fresh-dot" style="background:var(--muted)"></span><span id="fresh-t">Loading</span></span>
-    <label for="skin" class="k-hide">Skin</label>
-    <select id="skin" class="btn k-hide">
-      <option value="auto">Auto (match system)</option>
+    <select id="skin" class="btn tb-sel k-hide" aria-label="Skin" title="Skin">
+      <option value="auto">Auto skin</option>
       <option value="midnight">Midnight</option>
       <option value="daylight">Daylight</option>
       <option value="terminal">Terminal</option>
       <option value="ocean">Ocean</option>
       <option value="paper">Paper</option>
     </select>
-    <button type="button" class="btn k-hide ic-sm" id="cb" aria-pressed="false" aria-label="Colour-blind safe colours" title="Colour-blind safe colours"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl">Colour-blind safe</span></button>
-    <button type="button" class="btn k-hide ic-sm" id="pal-b" aria-expanded="false" aria-controls="pal" aria-label="Colours" title="Choose the score colours"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16c3.3 0 6-2.7 6-6 0-4.9-4.5-8.6-10-8.6z"/></svg><span class="lbl">Colours</span></button>
-    <button type="button" class="btn k-hide ic-sm" id="save" aria-label="Save as image" title="Save as image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span class="lbl" id="save-t">Save image</span></button>
-    <button type="button" class="btn k-hide ic-sm" id="arrange" aria-pressed="false" aria-label="Arrange cards" title="Arrange cards"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg><span class="lbl">Arrange</span></button>
-    <button type="button" class="btn k-hide ic-sm" id="reset-layout" hidden aria-label="Reset layout" title="Put the cards back in the default layout"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg><span class="lbl" id="reset-t">Reset layout</span></button>
-    <button type="button" class="btn icon k-hide" id="kiosk" aria-label="Full screen" title="Full screen"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+    <div class="seg seg-xs k-hide" role="group" aria-label="Show all cards as" id="view-all">
+      <button type="button" data-st="full" aria-label="All cards: full" title="All cards: full"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2"/><path d="M4.5 5.5h7M4.5 8h7M4.5 10.5h5"/></svg></button><button type="button" data-st="sum" aria-label="All cards: summary" title="All cards: summary"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="4" width="13" height="8" rx="2"/><path d="M4.5 8h7"/></svg></button><button type="button" data-st="title" aria-label="All cards: titles only" title="All cards: titles only"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="6" width="13" height="4" rx="1.5"/></svg></button>
+    </div>
+    <button type="button" class="btn tb k-hide" id="cb" aria-pressed="false" aria-label="Colour-blind safe colours" title="Colour-blind safe colours"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl">Colour-blind safe</span></button>
+    <button type="button" class="btn tb k-hide" id="pal-b" aria-expanded="false" aria-controls="pal" aria-label="Colours" title="Choose the score colours"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16c3.3 0 6-2.7 6-6 0-4.9-4.5-8.6-10-8.6z"/></svg><span class="lbl">Colours</span></button>
+    <button type="button" class="btn tb k-hide" id="save" aria-label="Save as image" title="Save as image"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span class="lbl" id="save-t">Save image</span></button>
+    <button type="button" class="btn tb k-hide" id="arrange" aria-pressed="false" aria-label="Arrange cards" title="Arrange cards"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M15 19l-3 3-3-3"/><path d="M19 9l3 3-3 3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg><span class="lbl">Arrange</span></button>
+    <button type="button" class="btn tb tb-l k-hide" id="reset-layout" hidden aria-label="Reset layout" title="Put the cards back in the default layout"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg><span class="lbl" id="reset-t">Reset layout</span></button>
+    <button type="button" class="btn tb k-hide" id="kiosk" aria-label="Full screen" title="Full screen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
     <button type="button" class="btn" id="exit-kiosk"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>Exit full screen</button>
   </div>
 </header>
@@ -48,32 +49,29 @@
 
 <div class="board" id="board">
 
-<section class="card pricebar" data-card="price" data-name="Live price" aria-label="Live price">
-  <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
-    <span class="eyebrow" id="p-src">BTC / USD · live</span>
-    <div style="display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px">
-      <span class="p" id="p">—</span>
-      <span class="chg tip" id="p-chg" tabindex="0" data-tipk="chg24"></span>
+<section class="card top-card" data-card="price" data-name="Price and summary" aria-label="Price and summary">
+  <div class="card-h tc-h">
+    <div class="tc-p">
+      <span class="eyebrow" id="p-src">BTC / USD · live</span>
+      <div class="tc-pr"><span class="p" id="p">—</span><span class="chg tip" id="p-chg" tabindex="0" data-tipk="chg24"></span></div>
     </div>
+    <div class="spark">
+      <svg viewBox="0 0 200 40" preserveAspectRatio="none" role="img" id="spark-svg" aria-label="Price over the last 24 hours"><polyline id="spark" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" points=""/></svg>
+      <div class="lh"><span id="p-lo">24h low —</span><span id="p-hi">high —</span></div>
+    </div>
+    <span class="live" id="live"><span class="dot" id="live-dot"></span><span id="live-t" class="tip" tabindex="0" data-tipk="live">Connecting…</span></span>
   </div>
-  <div class="spark">
-    <svg viewBox="0 0 200 40" preserveAspectRatio="none" role="img" id="spark-svg" aria-label="Price over the last 24 hours"><polyline id="spark" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" points=""/></svg>
-    <div class="lh"><span id="p-lo">24h low —</span><span id="p-hi">high —</span></div>
+  <div class="verdict s-keep" id="verdict" aria-live="polite" aria-label="Summary">
+    <div class="vd" id="vd-value"><span class="q">Is BTC cheap?</span><span class="a" id="vd-value-a">—</span><span class="vd-s" id="vd-value-s"></span></div>
+    <div class="vd" id="vd-bi"><span class="q">Bottom in? · timing check</span><span class="a" id="vd-bi-a">—</span></div>
+    <div class="vd" id="vd-clock"><span class="q">Cycle clock</span><span class="a" id="vd-clock-a">—</span></div>
   </div>
-  <span class="live" id="live"><span class="dot" id="live-dot"></span><span id="live-t" class="tip" tabindex="0" data-tipk="live">Connecting…</span></span>
+  <div class="vd-week" id="vd-week"><label for="since-sel">Since</label><select id="since-sel" class="sel-sm" data-nocap><option value="7">7 days ago</option><option value="thu">last Thursday</option><option value="28">4 weeks ago</option></select><span class="muted mono" id="since-d"></span><span id="since-t"></span></div>
   <p class="src-line" id="src-line" aria-live="off"><span class="src-h">Data</span><span class="src wait"><i></i>Loading the sources…</span></p>
 </section>
 
-<section class="verdict" id="verdict" data-card="verdict" data-name="Summary" aria-live="polite" aria-label="Summary">
-  <div class="vd" id="vd-value"><span class="q">Is BTC cheap?</span><span class="a" id="vd-value-a">—</span><span class="vd-s" id="vd-value-s"></span></div>
-  <div class="vd" id="vd-bi"><span class="q">Bottom in? · timing check</span><span class="a" id="vd-bi-a">—</span></div>
-  <div class="vd" id="vd-clock"><span class="q">Cycle clock</span><span class="a" id="vd-clock-a">—</span></div>
-  <div class="vd-week" id="vd-week"><label for="since-sel">Since</label><select id="since-sel" class="sel-sm" data-nocap><option value="7">7 days ago</option><option value="thu">last Thursday</option><option value="28">4 weeks ago</option></select><span class="muted mono" id="since-d"></span><span id="since-t"></span></div>
-</section>
-
-<div class="cardwrap" data-card="intro" data-name="How to read the two scores">
-<details class="card intro" id="intro" open>
-  <summary><span class="intro-h">How to read the two scores</span><span class="sub">Value is the main score. Bottom in? is the timing check.</span></summary>
+<section class="card intro" data-card="intro" data-name="How to read the two scores" data-def="title" aria-labelledby="intro-h">
+  <div class="card-h"><div class="hstack"><h2 id="intro-h">How to read the two scores</h2><span class="sub">Value is the main score. Bottom in? is the timing check.</span></div></div>
   <div class="intro-b">
     <p><b>Value</b> (0–100) shows how cheap BTC is against past cycle lows. <b>Bottom in?</b> (0–100) shows whether the fall has stopped. Read them together. Each card shows how its score is made: points that add up to the number. <b>Value alone acts too early:</b> in 2022 it first read Cheap in June at about $22,300, then price fell a further 31% to $15,479. <b>Bottom in? alone acts too late:</b> it reached 50 two to three months after each past low, when price was already 27–90% above it.</p>
     <div class="quad" id="quad" role="list" aria-label="What the two scores mean together">
@@ -85,10 +83,9 @@
     <div class="cscale" aria-hidden="true"><span>Score colours</span><i style="background:var(--b0)"></i><i style="background:var(--b1)"></i><i style="background:var(--b2)"></i><i style="background:var(--b3)"></i><i style="background:var(--b4)"></i><i style="background:var(--b5)"></i><span>not cheap → cheap</span></div>
     <p class="sub">"High" means Value 60+ (Cheap or better) and Bottom in? 50+ (Likely in or Confirmed). Both are scores, not probabilities.</p>
   </div>
-</details>
-</div>
+</section>
 
-  <section class="card score-card" data-card="value" data-name="Value" aria-labelledby="score-h">
+  <section class="card score-card" data-grp="g1" data-card="value" data-name="Value" aria-labelledby="score-h">
     <div class="card-h" style="align-items:center">
       <div class="hstack"><h2 id="score-h">Value <button type="button" class="qi" data-tipk="score" aria-label="About the value score">?</button></h2><span class="sub">Is BTC cheap? · main score · 16 signals</span></div>
       <div class="seg seg-sm" role="group" aria-label="Levels" id="lv" data-nocap><button type="button" data-l="adj" class="tip" data-tipk="lv-adj">Small-cycle</button><button type="button" data-l="classic" class="tip" data-tipk="lv-classic">Classic</button></div>
@@ -119,7 +116,7 @@
     </div>
   </section>
 
-  <section class="card bi-card" data-card="bi" data-name="Bottom in?" aria-labelledby="bi-h">
+  <section class="card bi-card" data-grp="g1" data-card="bi" data-name="Bottom in?" aria-labelledby="bi-h">
     <div class="card-h"><div class="hstack"><h2 id="bi-h">Bottom in? <button type="button" class="qi" data-tipk="bi" aria-label="About the Bottom in score">?</button></h2><span class="sub">Timing check · has the fall stopped? · 6 recovery signs</span></div></div>
     <div class="gauge">
       <svg viewBox="0 0 400 240" role="img" id="bi-svg" aria-label="Bottom in score">
@@ -135,7 +132,7 @@
     <div class="bi-comp" id="bi-comp"><span class="sub">Loading…</span></div>
   </section>
 
-  <section class="card cbbi-card" data-card="cbbi" data-name="CBBI" aria-labelledby="cbbi-h">
+  <section class="card cbbi-card" data-grp="g1" data-card="cbbi" data-name="CBBI" aria-labelledby="cbbi-h">
     <div class="card-h"><h2 id="cbbi-h">CBBI <button type="button" class="qi" data-tipk="cbbi" aria-label="About the CBBI">?</button></h2><span class="sub">Colin's Bull Run Index</span></div>
     <div class="cbbi-dial">
       <svg viewBox="0 0 240 140" role="img" id="cbbi-svg" aria-label="CBBI">
@@ -223,21 +220,21 @@
   </div>
 </section>
 
-  <section class="card moved-card k-hide" data-card="moved" data-name="What moved" aria-labelledby="moved-h">
+  <section class="card moved-card k-hide" data-grp="g2" data-card="moved" data-name="What moved" aria-labelledby="moved-h">
     <div class="card-h"><h2 id="moved-h">What moved <button type="button" class="qi" data-tipk="moved" aria-label="About what moved">?</button></h2><span class="sub">points of value score</span></div>
     <div class="mv" id="mv-live"></div>
     <div class="mv" id="mv-day"></div>
   </section>
-  <section class="card p2s-card k-hide" data-card="p2s" data-name="Price to value score" aria-labelledby="p2s-h">
-    <div class="card-h" style="align-items:center"><div style="display:flex;flex-direction:column;gap:2px"><h2 id="p2s-h">Price to value score</h2><span class="sub">with the chance of each price</span></div>
+  <section class="card p2s-card k-hide" data-grp="g2" data-card="p2s" data-name="Price to value score" aria-labelledby="p2s-h">
+    <div class="card-h" style="align-items:center"><div class="hstack"><h2 id="p2s-h">Price to value score</h2><span class="sub">with the chance of each price</span></div>
       <div class="seg" role="group" aria-label="Time window for the chance" id="win" data-nocap><button type="button" data-w="30" aria-pressed="true">30 days</button><button type="button" data-w="90">90 days</button></div></div>
     <div class="tscroll"><table class="t p2s"><thead id="p2s-head"><tr><th>BTC price</th><th class="r">Change</th><th class="r">Score</th><th>Band</th><th>Chance</th><th>Confidence</th></tr></thead><tbody id="p2s"></tbody></table></div>
     <div id="p2s-x"></div>
   </section>
 
-<div class="cardwrap k-hide" data-card="how" data-name="How the scores work">
-<details class="card how">
-  <summary>How the scores work</summary>
+<section class="card how k-hide" data-card="how" data-name="How the scores work" data-def="title" aria-labelledby="how-h">
+  <div class="card-h"><h2 id="how-h">How the scores work</h2></div>
+  <div class="how-b">
   <p><b>Value</b> is the main score. It answers one question: is BTC cheap against past cycle lows? Each of 16 signals gets a score from 0 to 100. The score goes up as the signal gets closer to the level it reached at past lows. The value score is the weighted average. If a reading is missing, its weight goes to the others.</p>
   <p><b>Small-cycle levels.</b> Each past low was less deep than the one before. For six signals, the full-score level moves with that trend. Switch to Classic to see the score with the old, fixed levels.</p>
   <p><b>Bottom in?</b> is the timing check. It asks a different question: has the fall stopped? It looks for six signs that only come after a low: no new low for weeks, a bounce, price back above recent buyers' cost and the 200-day average, selling at a profit again, and miners recovered. It stays low until the value score has reached 75 at least once in this bear market, because no past low came before that. Money flows are shown but not scored. The price checks under it (depth, higher low, trend) are not scored either: they show what has improved and the price that would undo it.</p>
@@ -246,8 +243,8 @@
   <p>Live: the page pulls the data from the sources each time it opens and works out the scores in your browser. The line under the price shows how fresh each source is.</p>
   <p><a href="thesis.html">Read the full method, with the backtest results.</a></p>
   <p>Information only. Not financial advice. Past lows do not promise future lows.</p>
-</details>
-</div>
+  </div>
+</section>
 
 </div>
 
@@ -259,6 +256,6 @@
 </footer>
 
 </div>
-<script src="app.js?v=8.1"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
