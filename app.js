@@ -1,4 +1,4 @@
-/* BTC Value Monitor v8 */
+/* BTC Value Monitor v8.1 */
 (function () {
   "use strict";
   // ---------- helpers ----------
@@ -62,7 +62,7 @@
       score: function (r, d, m) { return L2(r, "sth", d, m); }, read: function (r) { return f2(r.sth) + "×"; } },
     { k: "fg", w: 3, name: "Fear & Greed, 7-day", hits: "2 of 2", prec: 19, up: 61, full: "10", what: "The Crypto Fear & Greed Index, 7-day average.", why: "Extreme fear comes at lows, but also in many corrections, so its weight is low.",
       score: function (r) { return lin(r.fg7d, 50, 10); }, read: function (r) { return r.fg7d == null ? "—" : r.fg7d.toFixed(0); } },
-    { k: "hash", w: 3, name: "Hash ribbons", hits: "3 of 3", prec: 14, up: 86, full: "0–30 days after a recovery", what: "30-day against 60-day average hash rate. A recovery after miner capitulation is the buy signal.", why: "Recoveries came after past lows, but also many other times, so its weight is low.",
+    { k: "hash", w: 3, name: "Hash ribbons", hits: "3 of 3", prec: 14, up: 86, full: "0–30 days after a recovery", what: "30-day against 60-day average hash rate. A recovery after miner capitulation is the signal.", why: "Recoveries came after past lows, but also many other times, so its weight is low.",
       score: function (r, date) { if (r.hashCapitulating === true) return 50; if (!r.hashLastRecovery) return r.hashCapitulating === false ? 0 : null; var d = daysBetween(r.hashLastRecovery, date); return d <= 30 ? 100 : d <= 60 ? 100 - (d - 30) / 30 * 100 : 0; }, read: function (r) { return r.hashCapitulating ? "capitulating" : (r.hashLastRecovery ? "rec. " + fd(r.hashLastRecovery) : "—"); } },
     { k: "mayer", w: 3, name: "Mayer multiple", lv: "mayer", hits: "3 of 3", prec: 39, up: 81, full: "0.60", what: "Price divided by the 200-day moving average.", why: "Deep readings mark oversold markets. It overlaps with the 200-week line, so its weight is low.",
       score: function (r, d, m) { return L2(r, "mayer", d, m); }, read: function (r) { return f2(r.mayer); } },
@@ -1399,7 +1399,8 @@
     S.pastD = S.pastD || {}; if (S.pastD[c.id] && S.pastD[c.id].key === key) return S.pastD[c.id].rows;
     var X = cmPre(), cm = S.cm, end = addDays(c.low, 365), rows = [];
     var wk = S.histW.filter(function (o) { return o.d >= addDays(c.top, -14) && o.d <= addDays(end, 14); }).map(function (o) {
-      return { t: dnum(o.d), sthP: o.sth ? o.p / o.sth : null, lthP: o.lth ? o.p / o.lth : null, cvddP: o.cvdd ? o.p / o.cvdd : null, balP: o.bal ? o.p / o.bal : null, loss: o.loss, sopr: o.sopr, rr: o.rr, pL: o.p, fg: o.fg };
+      return { t: dnum(o.d), d: o.d, sthP: o.sth ? o.p / o.sth : null, lthP: o.lth ? o.p / o.lth : null, cvddP: o.cvdd ? o.p / o.cvdd : null, balP: o.bal ? o.p / o.bal : null, loss: o.loss, sopr: o.sopr, rr: o.rr, pL: o.p, fg: o.fg,
+        w200L: o.w200 ? o.p / o.w200 : null, mayL: o.mayer ? o.p / o.mayer : null, pi: o.pi, puell: o.puell, dsr: o.dsr };
     });
     if (wk.length < 2) return null;
     var wi = 0;
@@ -1414,6 +1415,13 @@
       r.pi = X.emaAll[j] && s471 ? X.emaAll[j] / (0.745 * s471) : null;
       r.puell = i365 ? X.iss[j] / i365 : null; r.hcap = X.hc[j]; r.dsr = X.rec[j] ? daysBetween(X.rec[j], d) : null;
       r.dsp = daysBetween(X.athA[j][1], d);
+      // The daily data starts in June 2013, too late for the long averages in 2014-15 (200 weeks, 471 days, 365 days)
+      // and for the last hash-ribbon recovery. There, use the weekly reading, drawn the same way as the cost lines.
+      if (r.w200 == null) { var wL = ip("w200L"); r.w200 = wL ? p / wL : null; }
+      if (r.mayer == null) { var mL = ip("mayL"); r.mayer = mL ? p / mL : null; }
+      if (r.pi == null) r.pi = ip("pi");
+      if (r.puell == null) r.puell = ip("puell");
+      if (r.dsr == null && a.dsr != null && t >= a.t) r.dsr = a.dsr + daysBetween(a.d, d);
       var sthP = ip("sthP"), lthP = ip("lthP"), cvddP = ip("cvddP"), balP = ip("balP"), rr = ip("rr"), pL = ip("pL");
       r.sth = sthP ? p / sthP : null; r.lth = lthP ? p / lthP : null; r.cvdd = cvddP ? p / cvddP : null; r.bal = balP ? p / balP : null;
       r.loss = ip("loss"); r.sopr = ip("sopr"); r.rr = rr != null && pL ? rr * p / pL : null;
@@ -1463,7 +1471,7 @@
   TIPS.cw = function () {
     var c = S.cwc;
     return "<span class='tt-h'>Cheap window</span>The weeks from the first close with Value " + c.thr + "+ to the last one. A gap below " + c.thr + " of up to " + c.gap + " week" + (c.gap > 1 ? "s" : "") + " does not end a window. <b>Fell after</b> is the fall from that first close to the lowest price after it (for past cycles, the final low). The score can stop saying Cheap before the low is in: in 2022 it was below 60 for three weeks in August, three months before the November low. With three past cycles, compare them. Do not read them as a countdown." +
-      "<span class='tt-m'>Past cycles: " + (c.past === "daily" ? "daily closes, rebuilt from Coin Metrics daily data and the weekly LookIntoBitcoin lines (drawn straight between weekly readings)" : "one reading a week (Monday close), as in the backtest") + ", from the top to one year after the low. This cycle: daily closes. A week counts as cheap if any close in it was " + c.thr + "+. Uses the levels selected (small-cycle or classic). Change the rules with Settings.</span>";
+      "<span class='tt-m'>Past cycles: " + (c.past === "daily" ? "daily closes, rebuilt from Coin Metrics daily data and the weekly LookIntoBitcoin lines (drawn straight between weekly readings). For 2014–15 the 200-week average also comes from the weekly readings, because the daily data starts in 2013" : "one reading a week (Monday close), as in the backtest") + ", from the top to one year after the low. This cycle: daily closes. A week counts as cheap if any close in it was " + c.thr + "+. Uses the levels selected (small-cycle or classic). Change the rules with Settings.</span>";
   };
   function cwPct(v) { return v == null ? "—" : v > -0.05 ? "0%" : "−" + Math.abs(v).toFixed(0) + "%"; }
   function renderWin() {
