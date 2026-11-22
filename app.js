@@ -1,4 +1,4 @@
-/* BTC Value Monitor v8.1 */
+/* BTC Value Monitor v9 */
 (function () {
   "use strict";
   // ---------- helpers ----------
@@ -647,9 +647,9 @@
   }
   // data status: when each source last updated
   var SRC = [
-    { k: "price", n: "Price", live: true }, { k: "ohlc", n: "Daily highs/lows", live: true }, { k: "cm", n: "Coin Metrics", max: 2 },
+    { k: "price", n: "Price", live: true }, { k: "ohlc", n: "Highs/lows", live: true }, { k: "cm", n: "Coin Metrics", max: 2 },
     { k: "lib", n: "LookIntoBitcoin", max: 3 }, { k: "fng", n: "Fear & Greed", max: 2 }, { k: "lev", n: "Funding & OI", live: true },
-    { k: "stable", n: "Stablecoins", max: 2 }, { k: "cbp", n: "Coinbase premium", live: true }, { k: "task", n: "ETF & USDT.D (daily task)", max: 2 }
+    { k: "stable", n: "Stablecoins", max: 2 }, { k: "cbp", n: "Coinbase premium", live: true }, { k: "task", n: "ETF & USDT.D", max: 2 }
   ];
   function srcState(s) {
     var o = s.k === "price" ? (S.lastOk ? { ok: Date.now() - S.lastOk < 120e3, asOf: S.lastOk } : S.src.price) : s.k === "lib" ? libState() : S.src[s.k];
@@ -1510,7 +1510,9 @@
       h += '<div class="cw-r' + (w.on ? " on" : "") + '" tabindex="0" data-tip="' + attrHtml(tip) + '"><span class="cw-l">' + esc(r.lab) + '</span><span class="cw-s" style="--n:' + maxW + '">' + cells + '</span><span class="r mono">' + (w.on ? "wk " + w.weeks : w.weeks + " wk") + '</span><span class="r mono">' + (w.lowFirst ? "low first" : cwPct(w.fall)) + (now ? '<small class="muted">so far</small>' : "") + "</span></div>";
     });
     h += "</div>";
-    h += '<div class="cw-k"><span><i class="ch" style="background:var(--b3)"></i>Value ' + thr + '+</span><span><i></i>Below ' + thr + '</span><span><i class="low"></i>Week of the low (lowest so far)</span></div>';
+    var key = "";
+    for (var bi = bandIdx(thr); bi < BANDS.length; bi++) { var lo2 = Math.max(thr, BANDS[bi].lo); key += '<span><i style="background:var(--b' + bi + ')"></i>' + (bi === BANDS.length - 1 ? lo2 + "+" : lo2 + "–" + BANDS[bi].hi) + " " + esc(BANDS[bi].name) + "</span>"; }
+    h += '<div class="cw-k" role="note" aria-label="Key"><span class="cw-k-t">Key</span>' + key + '<span><i></i>Below ' + thr + '</span><span><i class="low"></i>Week of the low</span><span><i class="cur-k"></i>This week</span><span class="cw-k-n">One square is one week, coloured by its highest Value.</span></div>';
     var ok = W.past.filter(function (w) { return !w.none; }), lens = ok.map(function (w) { return w.weeks; });
     var lw = W.past.map(function (w) { var y = w.cyc.low.slice(0, 4); return w.none ? y + ": no window" : w.lowFirst ? y + ": before the window" : y + ": week " + w.lowWk; });
     if (lens.length) h += '<p class="cw-f">Not a countdown. Past windows lasted ' + (lens.length > 1 ? Math.min.apply(null, lens) + " to " + Math.max.apply(null, lens) : lens[0]) + " weeks. The low came in " + lw.join(", ") + ".</p>";
@@ -1941,7 +1943,7 @@
   if (qs.get("kiosk") === "1") document.body.classList.add("kiosk");
   function loadScript(src) { return new Promise(function (res, rej) { var s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
   $("save").addEventListener("click", function () {
-    var t = $("save-t"); t.textContent = "Saving…";
+    var t = $("save-t"); t.textContent = "Saving…"; $("save").classList.add("show-lbl");
     var p = window.htmlToImage ? Promise.resolve() : loadScript("https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js");
     p.then(function () {
       var opts = { pixelRatio: 2, backgroundColor: css("--bg"), filter: function (n) { return !(n.hasAttribute && n.hasAttribute("data-nocap")); } };
@@ -1949,7 +1951,7 @@
     }).then(function (url) {
       var a = document.createElement("a"); a.href = url; a.download = "btc-bottom-monitor-" + todayCbr() + ".png"; document.body.appendChild(a); a.click(); a.remove();
       t.textContent = "Saved";
-    }).catch(function () { t.textContent = "Save failed: use a screenshot"; }).then(function () { setTimeout(function () { t.textContent = "Save image"; }, 2500); });
+    }).catch(function () { t.textContent = "Save failed: use a screenshot"; }).then(function () { setTimeout(function () { t.textContent = "Save image"; $("save").classList.remove("show-lbl"); }, 2500); });
   });
   var rz; window.addEventListener("resize", function () { clearTimeout(rz); rz = setTimeout(function () { renderHistory(); if (S.tab === "cyc" && S.hist) renderCycChart(); }, 150); });
   function refreshAll() { S.dataAt = Date.now(); loadData(); fetchDaily(); fetchPremium(); fetchFng(); fetchStable(); fetchLev(); fetchCM(); }
@@ -1957,9 +1959,192 @@
 
   // ---------- start ----------
   applySkin();
+  // ---------- card views: full, summary, title only ----------
+  // Each card can show everything, a short summary, or its title only. The choice is kept in this browser (bbm.cards).
+  // When cards change size the board closes the gaps, and cards that share a row move compact ones to a row of their own.
+  var CV = { st: {} };
+  try { var cvo = JSON.parse(sget("bbm.cards") || "null"); if (cvo && typeof cvo === "object" && !Array.isArray(cvo)) CV.st = cvo; } catch (e) {}
+  var CV_V = ["full", "sum", "title"];
+  var CV_LBL = { full: "Show all", sum: "Show a summary", title: "Show the title only" };
+  var CV_ICON = {
+    full: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="2"/><path d="M4.5 5.5h7M4.5 8h7M4.5 10.5h5"/></svg>',
+    sum: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="4" width="13" height="8" rx="2"/><path d="M4.5 8h7"/></svg>',
+    title: '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><rect x="1.5" y="6" width="13" height="4" rx="1.5"/></svg>'
+  };
+  function cvCards() { var b = $("board"); return b ? Array.prototype.filter.call(b.children, function (e) { return e.hasAttribute("data-card"); }) : []; }
+  function cvDef(c) { return c.getAttribute("data-def") || "full"; }
+  function cvGet(c) { var v = CV.st[c.getAttribute("data-card")]; return CV_V.indexOf(v) >= 0 ? v : cvDef(c); }
+  function cvSave() { try { if (Object.keys(CV.st).length) localStorage.setItem("bbm.cards", JSON.stringify(CV.st)); else localStorage.removeItem("bbm.cards"); } catch (e) {} }
+  function cvSet(c, v) { var id = c.getAttribute("data-card"); if (v === cvDef(c)) delete CV.st[id]; else CV.st[id] = v; cvApply(c); }
+  function cvApply(c) {
+    var v = cvGet(c); c.setAttribute("data-st", v);
+    Array.prototype.forEach.call(c.querySelectorAll(".cst button"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-v") === v ? "true" : "false"); });
+    var x = c.querySelector(".cx"); if (x) { var l = (v === "full" ? "Show the title only: " : "Show all: ") + (c.getAttribute("data-name") || ""); x.setAttribute("aria-expanded", v === "full" ? "true" : "false"); x.setAttribute("aria-label", l); x.title = v === "full" ? "Collapse" : "Expand"; }
+  }
+  function cvSyncAll() {
+    var vs = cvCards().filter(function (c) { return c.offsetParent !== null; }).map(cvGet), one = vs.length && vs.every(function (v) { return v === vs[0]; }) ? vs[0] : null;
+    Array.prototype.forEach.call(document.querySelectorAll("#view-all button"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-st") === one ? "true" : "false"); });
+  }
+  function cvAfter() {
+    cvSave(); cvSyncAll(); flowFix(); renderMinis();
+    clearTimeout(cvAfter.t); cvAfter.t = setTimeout(function () { try { renderHistory(); if (S.tab === "cyc" && S.hist) renderCycChart(); } catch (e) {} }, 60);
+  }
+  // cards that share a row (data-grp): if some are compact and some are not, the compact ones move to a row of their own above
+  function flowFix() {
+    var board = $("board"); if (!board) return;
+    var list = cvCards(), on = !board.classList.contains("free") && board.clientWidth >= 760;
+    list.forEach(function (c, i) { c.style.order = on ? String(i * 10) : ""; c.classList.remove("grp-c"); });
+    Array.prototype.forEach.call(board.querySelectorAll(".grp-br"), function (b) { b.hidden = true; });
+    if (!on) return;
+    for (var i = 0; i < list.length;) {
+      var g = list[i].getAttribute("data-grp"); if (!g) { i++; continue; }
+      var j = i; while (j + 1 < list.length && list[j + 1].getAttribute("data-grp") === g) j++;
+      var run = list.slice(i, j + 1).filter(function (c) { return c.offsetParent !== null; }), comp = run.filter(function (c) { return cvGet(c) !== "full"; });
+      if (comp.length && comp.length === run.length) run.forEach(function (c) { c.classList.add("grp-c"); });
+      else if (comp.length) {
+        // the compact ones go first, in a row of their own; the full ones share the row below
+        comp.forEach(function (c) { c.style.order = String(i * 10 - 6); c.classList.add("grp-c"); });
+        var br = board.querySelector('.grp-br[data-g="' + g + '"]');
+        if (!br) { br = document.createElement("div"); br.className = "grp-br"; br.setAttribute("data-g", g); br.setAttribute("aria-hidden", "true"); br.setAttribute("data-nocap", ""); board.appendChild(br); }
+        br.hidden = false; br.style.order = String(i * 10 - 5);
+      }
+      i = j + 1;
+    }
+  }
+  // ----- the summary line of each card -----
+  function mBar(v, cuts, col) {
+    var h = '<span class="mg" aria-hidden="true">';
+    for (var i = 0; i < cuts.length - 1; i++) h += '<i style="flex:' + (cuts[i + 1] - cuts[i]) + ";background:var(--b" + col(i) + ')"></i>';
+    if (v != null) h += '<u style="left:' + Math.max(0, Math.min(100, v)).toFixed(1) + '%"></u>';
+    return h + "</span>";
+  }
+  function mTxt(e) { return e ? e.textContent.replace(/\?/g, "").replace(/\s+/g, " ").trim() : ""; }
+  var MINI = {
+    intro: function () {
+      var q = document.querySelector("#quad .q.now"); if (!q) return "";
+      return "<span>Now: <b>" + esc(mTxt(q.querySelector("b"))) + "</b>. " + esc(mTxt(q.querySelector("span"))) + "</span>";
+    },
+    value: function () {
+      if (!S.latest) return "";
+      var P = liveP(), d = closeParts().total, v = P ? scoreAt(P) : d, nx = $("next") && $("next").querySelector("span");
+      return '<span class="big">' + Math.round(v) + "</span><span><b>" + esc(bandName(v)) + "</b>" + (P ? " · live · close " + Math.round(d) : "") + "</span>" +
+        mBar(v, [0, 20, 40, 60, 75, 90, 100], function (i) { return i; }) + (nx ? "<span>" + esc(mTxt(nx)) + "</span>" : "");
+    },
+    bi: function () {
+      var b = S.biNow; if (!b || b.s == null) return "";
+      return '<span class="big">' + Math.round(b.s) + "</span><span><b>" + esc(biName(b.s)) + "</b>" + (b.raw != null ? " · raw " + b.raw.toFixed(1) + " × " + b.gate + " deep-value check" : "") + "</span>" +
+        mBar(b.s, [0, 25, 50, 75, 100], function (i) { return BIB[i].col; });
+    },
+    cbbi: function () {
+      var c = S.cbbi; if (!c) return "";
+      return '<span class="big">' + Math.round(c.v) + "</span><span><b>" + esc(cbbiZone(c.v)) + "</b> · " + fd(c.asOf) + (c.v30 != null ? " · 30 days ago " + Math.round(c.v30) : "") + "</span>" +
+        mBar(c.v, [0, 20, 40, 60, 80, 100], function (i) { return cbbiColIdx(i * 20 + 1); });
+    },
+    cw: function () {
+      var W = S.cw; if (!W || !W.past || !W.past.length) return "";
+      var cur = W.cur, last = W.now[W.now.length - 1], ok = W.past.filter(function (w) { return !w.none; });
+      var h = cur ? '<span class="big">Week ' + cur.weeks + "</span><span>of this cheap window, since " + fd(cur.start) + "</span>"
+        : last ? "<span><b>Not in a cheap window</b> · the last one ended " + fd(addDays(last.last, W.gap * 7 + 1)) + "</span>" : "<span><b>No cheap window yet</b></span>";
+      if (ok.length) h += "<span>Past windows: " + ok.map(function (w) { return w.cyc.low.slice(0, 4) + " <b>" + w.weeks + " wk</b>" + (w.lowFirst || w.fall == null ? "" : ", fell " + Math.round(Math.abs(w.fall)) + "% more"); }).join(" · ") + "</span>";
+      return h;
+    },
+    checks: function () {
+      var rs = document.querySelectorAll("#bi-ev .ev-r"); if (!rs.length) return "";
+      var ok = []; Array.prototype.forEach.call(rs, function (r) { if (r.querySelector(".ev-i.ok")) ok.push(mTxt(r.querySelector(".n"))); });
+      var f = document.querySelector("#bi-ev .ev-f");
+      return '<span class="big">' + ok.length + " of " + rs.length + "</span><span>checks met" + (ok.length ? ": " + esc(ok.join(", ")) : "") + "</span>" + (f ? "<span>" + esc(mTxt(f)) + "</span>" : "");
+    },
+    clock: function () {
+      var out = []; Array.prototype.forEach.call(document.querySelectorAll("#clocks .clk"), function (k) { out.push("<span>" + esc(mTxt(k.querySelector(".clk-l"))) + ' <b class="mono">' + esc(mTxt(k.querySelector(".clk-v"))) + "</b></span>"); });
+      return out.join("");
+    },
+    hist: function () {
+      var se = series().slice(-120); if (se.length < 2) return "";
+      var pts = se.map(function (q, i) { return (i / (se.length - 1) * 160).toFixed(1) + "," + (26 - Math.max(0, Math.min(100, q.s)) / 100 * 24).toFixed(1); }).join(" ");
+      var hi = Math.max.apply(null, se.map(function (q) { return q.s; })), lo = Math.min.apply(null, se.map(function (q) { return q.s; }));
+      var ch = Array.prototype.map.call(document.querySelectorAll("#chips .chip"), function (c) { return esc(mTxt(c.querySelector(".k"))) + ' <b class="mono">' + esc(mTxt(c.querySelector(".v"))) + "</b>"; }).join(" · ");
+      return '<svg class="msp" viewBox="0 0 160 28" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="160" y1="' + (26 - 0.6 * 24).toFixed(1) + '" y2="' + (26 - 0.6 * 24).toFixed(1) + '" stroke="var(--line)" stroke-dasharray="3 3"/><polyline fill="none" stroke="var(--accent)" stroke-width="1.8" vector-effect="non-scaling-stroke" points="' + pts + '"/></svg>' +
+        "<span>Last " + se.length + " readings: now <b class=\"mono\">" + Math.round(se[se.length - 1].s) + "</b>, high <b class=\"mono\">" + Math.round(hi) + "</b>, low <b class=\"mono\">" + Math.round(lo) + "</b></span>" + (ch ? "<span>" + ch + "</span>" : "");
+    },
+    sig: function () {
+      if (!S.latest) return "";
+      var pd = closeParts(), rows = IND.map(function (d) { return { n: d.name, m: pd.p[d.k] }; }).filter(function (r) { return r.m != null; });
+      if (!rows.length) return "";
+      var n60 = rows.filter(function (r) { return r.m >= 60; }).length; rows.sort(function (a, b) { return b.m - a.m; });
+      function li(a) { return a.map(function (r) { return esc(r.n) + ' <b class="mono">' + Math.round(r.m) + "</b>"; }).join(", "); }
+      return '<span class="big">' + n60 + " of " + rows.length + "</span><span>signals score 60+ at the close</span><span>Highest: " + li(rows.slice(0, 3)) + "</span><span>Lowest: " + li(rows.slice(-2).reverse()) + "</span>";
+    },
+    moved: function () {
+      var out = [];
+      ["mv-live", "mv-day"].forEach(function (id) {
+        var e = $(id); if (!e || e.style.display === "none") return;
+        var h = e.querySelector(".mv-h"), r = e.querySelector(".mv-r"); if (!h) return;
+        out.push("<span>" + esc(mTxt(h.children[0])) + ' <b class="mono">' + esc(mTxt(h.children[1])) + "</b>" + (r ? " · most: " + esc(mTxt(r.querySelector(".n"))) + ' <b class="mono">' + esc(mTxt(r.querySelector(".v"))) + "</b>" : "") + "</span>");
+      });
+      return out.join("");
+    },
+    p2s: function () {
+      if (!S.latest) return "";
+      var P0 = liveP() || S.latest.price, v = scoreAt(P0), out = [];
+      [60, 75, 90].forEach(function (t) {
+        if (v >= t) return;
+        var P = findPrice(P0, t, -1);
+        out.push("<span>" + t + " (" + esc(bandName(t)) + ")" + (P ? ' at <b class="mono">' + usd(Math.round(P / 50) * 50) + '</b> <span class="mono">−' + Math.abs((P / P0 - 1) * 100).toFixed(1) + "%</span>" : ": a lower price alone does not get there") + "</span>");
+      });
+      return out.join("") || "<span>Already in the top band.</span>";
+    },
+    how: function () { return "<span><b>Value</b>: is BTC cheap against past lows? <b>Bottom in?</b>: has the fall stopped? <b>Cycle clock</b>: where this cycle is in time and depth.</span>"; }
+  };
+  function renderMinis() {
+    cvCards().forEach(function (c) {
+      if (cvGet(c) !== "sum") return;
+      var el = c.querySelector(".c-sum"), f = MINI[c.getAttribute("data-card")]; if (!el || !f) return;
+      var h = ""; try { h = f() || ""; } catch (e) { h = ""; }
+      if (!h) h = '<span>Loading…</span>';
+      if (el._h !== h) { el._h = h; el.innerHTML = h; }
+    });
+  }
+  (function () {
+    var board = $("board"); if (!board) return;
+    // on a phone the price card starts as a summary (price and the three answers)
+    var tc0 = board.querySelector(".top-card"); if (tc0 && window.innerWidth <= 560) tc0.setAttribute("data-def", "sum");
+    cvCards().forEach(function (c) {
+      var hd = c.querySelector(".card-h"); if (!hd || hd.parentNode !== c) return;
+      var nm = esc(c.getAttribute("data-name") || c.getAttribute("data-card")), top = c.classList.contains("top-card");
+      var g = document.createElement("div"); g.className = "cst"; g.setAttribute("role", "group"); g.setAttribute("aria-label", "View of " + nm); g.setAttribute("data-nocap", "");
+      g.innerHTML = CV_V.map(function (v) { return '<button type="button" data-v="' + v + '" title="' + CV_LBL[v] + '" aria-label="' + CV_LBL[v] + ": " + nm + '">' + CV_ICON[v] + "</button>"; }).join("");
+      hd.appendChild(g);
+      var t = hd.querySelector("h2");
+      if (t && !top) { var x = document.createElement("button"); x.type = "button"; x.className = "cx"; x.setAttribute("data-nocap", ""); x.innerHTML = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>'; t.insertBefore(x, t.firstChild); }
+      if (!top) { var sm = document.createElement("div"); sm.className = "c-sum"; c.insertBefore(sm, hd.nextSibling); }
+      cvApply(c);
+    });
+    board.addEventListener("click", function (e) {
+      if (document.body.classList.contains("arrange")) return;
+      var t = e.target, c;
+      var b = t.closest(".cst button");
+      if (b) { c = b.closest("[data-card]"); cvSet(c, b.getAttribute("data-v")); cvAfter(); return; }
+      var x = t.closest(".cx");
+      if (x) { c = x.closest("[data-card]"); cvSet(c, cvGet(c) === "full" ? "title" : "full"); cvAfter(); return; }
+      var hd = t.closest(".card-h, .c-sum"); if (!hd || !hd.parentNode || hd.parentNode.parentNode !== board) return;
+      c = hd.parentNode; if (c.classList.contains("top-card") || cvGet(c) === "full") return;
+      if (t.closest("button, a, input, select, label, .seg, .tip, [data-tip], [data-tipk]")) return;
+      cvSet(c, "full"); cvAfter();
+    });
+    var va = $("view-all");
+    if (va) va.addEventListener("click", function (e) { var b = e.target.closest("button"); if (!b) return; var v = b.getAttribute("data-st"); cvCards().forEach(function (c) { cvSet(c, v); }); cvAfter(); });
+    var mT = 0;
+    if (window.MutationObserver) new MutationObserver(function (ms) {
+      for (var i = 0; i < ms.length; i++) {
+        var n = ms[i].target, e = n.nodeType === 1 ? n : n.parentNode;
+        if (e && e.closest && !e.closest(".c-sum, .tc-h, #tip, #cyc-tip, .arr-cb")) { clearTimeout(mT); mT = setTimeout(renderMinis, 300); return; }
+      }
+    }).observe(board, { childList: true, subtree: true, characterData: true });
+    cvSyncAll(); flowFix();
+  })();
   // ---------- arrange ----------
   // Wide screens: the cards sit on a 12-column grid and can go anywhere. Drag a card to move it; drag its corner (or use − +)
-  // to change its width. Cards never overlap: a card in the way moves down. "Tidy up" closes the gaps.
+  // to change its width. Cards never overlap: a card in the way moves down, and cards move up to close gaps.
   // Narrow screens: one column, in the same order (drag ⠿ or use ↑ ↓). The layout is kept in this browser.
   (function () {
     var board = $("board"); if (!board) return;
@@ -2052,9 +2237,19 @@
       });
       return out;
     }
+    // then close the gaps: in reading order, each card moves up as far as the cards above it allow
+    function compact(P, Y) {
+      var list = ids().sort(function (a, b) { return Y[a] - Y[b] || P[a].x - P[b].x; }), out = {}, done = [];
+      list.forEach(function (id) {
+        var p = P[id], y = 0;
+        done.forEach(function (q) { var o = P[q]; if (p.x < o.x + o.w && o.x < p.x + p.w) y = Math.max(y, out[q] + H[q] + GAP); });
+        out[id] = y; done.push(id);
+      });
+      return out;
+    }
     function place(P, fixed) {
       if (!free) return;
-      measure(P); R = resolve(P, fixed);
+      measure(P); R = compact(P, resolve(P, fixed));
       var m = byId(), st = step(), bottom = 0;
       ids().forEach(function (id) {
         if (!drag || drag.id !== id) { m[id].style.top = R[id] + "px"; m[id].style.left = (P[id].x * st) + "px"; }
@@ -2070,9 +2265,9 @@
         if (!on) { cards().forEach(function (c) { c.style.left = c.style.top = c.style.width = ""; }); board.style.height = ""; }
       }
       if (free) { fill(); place(L); setOrder(readingOrder(L)); } else setOrder(flowOrder());
-      var tx = $("arr-tx"); if (tx) tx.textContent = free ? "Drag a card anywhere. Drag its corner, or use − +, to change its width. Cards in the way move down." : "Drag a card by ⠿, or use ↑ ↓. On a wider screen you can place cards anywhere.";
-      var td = $("arr-tidy"); if (td) td.hidden = !free;
-      syncReset();
+      var tx = $("arr-tx"); if (tx) tx.textContent = free ? "Drag a card anywhere. Drag its corner, or use − +, to change its width. Cards move to make room and close up gaps." : "Drag a card by ⠿, or use ↑ ↓. On a wider screen you can place cards anywhere.";
+      var td = $("arr-tidy"); if (td) td.hidden = true;
+      syncReset(); flowFix();
     }
     var raf = 0;
     function relayout() { if (!free || drag || sz) return; cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { place(L); }); }
@@ -2242,7 +2437,6 @@
     apply();
     if (qs.get("debug") === "1") window.__arr = { apply: apply, get L() { return L; }, get R() { return R; }, get H() { return H; }, get free() { return free; } };
   })();
-  (function () { var d = $("intro"); if (!d) return; try { if (localStorage.getItem("bbm.intro") === "0") d.open = false; } catch (e) {} d.addEventListener("toggle", function () { try { localStorage.setItem("bbm.intro", d.open ? "1" : "0"); } catch (e) {} }); })();
   // pull every source now; the page works out all scores from them in the browser
   S.dataAt = Date.now();
   fetchPrice(); fetchHourly(); fetchDaily(); loadData(); loadHist(); loadRecent();
