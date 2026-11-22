@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>How the scores work | BTC Bottom Monitor</title>
-<meta name="description" content="How the BTC Bottom Monitor answers three questions: is BTC cheap, is the bottom in, and where are we in the cycle. Weights, small-cycle levels and backtest results.">
+<title>How the scores work | BTC Value Monitor</title>
+<meta name="description" content="How the BTC Value Monitor answers three questions: is BTC cheap, has the fall stopped, and where are we in the cycle. Weights, small-cycle levels and backtest results.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..700&family=Space+Grotesk:wght@500;600;700&display=swap">
@@ -53,16 +53,26 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
   <a class="back" href="./">← Back to the live monitor</a>
   <header style="display:flex;flex-direction:column;gap:8px">
     <h1>How the scores work</h1>
-    <p class="lede">The monitor answers three separate questions. Each has its own score, because the answers often differ. This page explains the method behind each one, with the backtest results.</p>
+    <p class="lede">The monitor's main question is: is BTC cheap? It also asks whether the fall has stopped, and where we are in the cycle. Each has its own score, because the answers often differ. This page explains the method behind each one, with the backtest results and how far to trust them.</p>
   </header>
 
   <section class="card" aria-labelledby="h-q">
     <h2 id="h-q">Three questions</h2>
     <div class="qs">
       <div><b>Value: is BTC cheap?</b><span>16 signals against the readings seen at past cycle lows. The main score.</span></div>
-      <div><b>Bottom in? Has the low passed?</b><span>7 signs that only show after a low. It comes late by design.</span></div>
+      <div><b>Bottom in? Has the fall stopped?</b><span>The timing check. 6 signs that only show after a low. It comes late by design.</span></div>
       <div><b>Cycle clock: where are we?</b><span>Time and depth now, against the 2015, 2018 and 2022 lows.</span></div>
     </div>
+    <p><b>Read them together.</b> Value alone acts too early: in 2022 it first read Cheap in June at about $22,300, then price fell a further 31% to $15,479 in November. Bottom in? alone acts too late: it reached 50 two to three months after each past low, when price was already 27–90% above it (+90% in 2015, +27% in 2019, +37% in 2023). Value says the price is good. Bottom in? says whether the fall has stopped. Both are scores, not probabilities.</p>
+    <div class="tscroll"><table class="t">
+      <thead><tr><th>Value</th><th>Bottom in?</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td>High (60+)</td><td>Low (below 50)</td><td>Cheap, but the fall may not be over</td></tr>
+        <tr><td>High (60+)</td><td>High (50+)</td><td>Cheap and recovering: the mix seen after past lows</td></tr>
+        <tr><td>Low (below 60)</td><td>Low (below 50)</td><td>Not cheap, and still falling</td></tr>
+        <tr><td>Low (below 60)</td><td>High (50+)</td><td>Recovered. No longer cheap</td></tr>
+      </tbody>
+    </table></div>
     <p><b>Why two scores?</b> Cheap is not the same as the low. In the weekly backtest, when the value score was 60–74 (Cheap), price was within 30% of that cycle's final low in only about a third to a half of the weeks. But BTC was higher one year later in 100% of those weeks. The value score is good at "is this a good price for a long hold?". It is weak at "is this the exact low?". Bottom in? fills that gap, but it only turns up weeks after the low.</p>
   </section>
 
@@ -124,15 +134,14 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
   </section>
 
   <section class="card" aria-labelledby="h-bi">
-    <h2 id="h-bi">Bottom in? Has the low passed?</h2>
-    <p>A low can only be seen after it has passed. This score looks for seven signs that came after past lows, and stays low until they show.</p>
+    <h2 id="h-bi">Bottom in? Has the fall stopped?</h2>
+    <p>The timing check. A low can only be seen after it has passed. This score looks for six signs that came after past lows, and stays low until they show.</p>
     <div class="tscroll"><table class="t">
       <thead><tr><th>Sign</th><th class="r">Weight</th><th>Zero at</th><th>Full at</th></tr></thead>
       <tbody>
         <tr><td>No new low: days since the lowest price of the bear market (intraday low)</td><td class="r">25</td><td>0 days</td><td>120 days</td></tr>
         <tr><td>Above recent buyers' cost: price ÷ short-term holder cost</td><td class="r">20</td><td>0.85×</td><td>1.05×</td></tr>
         <tr><td>Above the 200-day average (Mayer multiple)</td><td class="r">15</td><td>0.80×</td><td>1.10×</td></tr>
-        <tr><td>Money coming back: ETF flows, Coinbase premium, stablecoins, USDT dominance</td><td class="r">15</td><td colspan="2">average of the four flow signs (live data only)</td></tr>
         <tr><td>Bounce from the low: price ÷ lowest price</td><td class="r">10</td><td>1.0×</td><td>1.5×</td></tr>
         <tr><td>Selling at a profit: SOPR, 7-day</td><td class="r">10</td><td>−0.005</td><td>+0.004</td></tr>
         <tr><td>Miners recovered: hash ribbons recovery after the low</td><td class="r">5</td><td>capitulating</td><td>recovered</td></tr>
@@ -140,15 +149,15 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
     </table></div>
     <p><b>Deep-value check.</b> No past low came before the value score (small-cycle levels) had reached 75 in that bear market. Until it has, Bottom in? is held at 40% of its raw reading (value peak below 60) or 50% (value peak 60–74). Without this check, the September–October 2026 rally to $81,000 would have read as a likely low. Price then fell below the June low in November.</p>
     <div class="tscroll"><table class="t">
-      <thead><tr><th>Band</th><th class="r">Weeks</th><th class="r">Low already passed</th></tr></thead>
+      <thead><tr><th>Band</th><th>In the 2015, 2018 and 2022 bear markets</th><th class="r">Weekly readings</th><th class="r">Low already passed</th></tr></thead>
       <tbody>
-        <tr><td><span class="sw" style="background:var(--b1)"></span> 0–24 Not yet</td><td class="r">138</td><td class="r">12%</td></tr>
-        <tr><td><span class="sw" style="background:var(--b2)"></span> 25–49 Early signs</td><td class="r">59</td><td class="r">31%</td></tr>
-        <tr><td><span class="sw" style="background:var(--b3)"></span> 50–74 Likely in</td><td class="r">30</td><td class="r">93%</td></tr>
-        <tr><td><span class="sw" style="background:var(--b5)"></span> 75+ Confirmed</td><td class="r">94</td><td class="r">100%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b1)"></span> 0–24 Not yet</td><td>Mostly before the low, in all three</td><td class="r">138</td><td class="r">12%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b2)"></span> 25–49 Early signs</td><td>On both sides of the low, in all three</td><td class="r">59</td><td class="r">31%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b3)"></span> 50–74 Likely in</td><td>After the low in 2015 and 2018; in 2022, 2 of its 7 weeks came before the final (FTX) low</td><td class="r">30</td><td class="r">93%</td></tr>
+        <tr><td><span class="sw" style="background:var(--b5)"></span> 75+ Confirmed</td><td>Only after the low, in all three</td><td class="r">94</td><td class="r">100%</td></tr>
       </tbody>
     </table></div>
-    <p><b>How late it comes.</b> Weeks from each cycle top to one year after its low, in 2014–15, 2018 and 2022 (321 weeks, about half before the low). Lows are the lowest intraday price (Bitstamp BTC/USD). Bottom in? first reached 50 at 54, 93 and 56 days after the low, and 75 at 152, 114 and 56 days after. In 2022 it reached 63 before the final low: the June low held for five months, then the FTX collapse took price lower in November. Expect it to confirm a low two to three months after the fact. The money-flow sign has no data before 2024, so the backtest leaves it out.</p>
+    <p><b>How late it comes.</b> Weeks from each cycle top to one year after its low, in 2014–15, 2018 and 2022 (321 weeks, about half before the low). Lows are the lowest intraday price (Bitstamp BTC/USD). Bottom in? first reached 50 at 54, 93 and 56 days after the low, and 75 at 152, 114 and 56 days after. In 2022 it reached 63 before the final low: the June low held for five months, then the FTX collapse took price lower in November. Expect it to confirm a low two to three months after the fact. Money flows (ETF net flow, Coinbase premium, stablecoin supply, USDT dominance) have no data before 2024, so they cannot be backtested. The monitor shows them next to the score but does not score them, so the live score is the same model as the backtest.</p>
   </section>
 
   <section class="card" aria-labelledby="h-clock">
@@ -188,12 +197,33 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
     <p class="note">A line under the price shows when each source last updated. If the live sources cannot be reached, the page falls back to the daily task's readings and says so. Bottom in? uses the live price for the low, the bounce, recent buyers' cost and the 200-day average. The low is the lowest intraday price since the top, so a short drop below the old low counts as a new low.</p>
   </section>
 
+  <section class="card" aria-labelledby="h-trust">
+    <h2 id="h-trust">How far to trust the backtest</h2>
+    <ol class="pts">
+      <li><b>Three bottoms, not hundreds of tests.</b> The Bottom in? backtest covers the 2015, 2018 and 2022 bear markets. Its band figures count weekly readings, and neighbouring weeks are nearly the same reading. "93% of 30 weeks" rests on three bear markets, so the monitor also says what happened in each one.</li>
+      <li><b>Scores, not probabilities.</b> A Bottom in? reading of 70 does not mean a 70% chance that the low is in. Both scores are weighted checklists, set against past cycles.</li>
+      <li><b>The live score is the tested model.</b> Money flows are shown but not scored, because they have no data before 2024.</li>
+      <li><b>Price checks give false starts on their own.</b> The monitor also shows three plain price checks under Bottom in?: depth, a confirmed higher low, and trend (daily close above the 30-day average, 30-day above the 60-day). They are not scored. They show what has improved and the price that would undo it. Bitstamp daily data:</li>
+    </ol>
+    <div class="tscroll"><table class="t">
+      <thead><tr><th>Price check</th><th class="r">2014–15</th><th class="r">2018</th><th class="r">2022</th><th class="r">This cycle so far</th></tr></thead>
+      <tbody>
+        <tr><td>Trend turned on (5+ days) before the final low</td><td class="r">5 times</td><td class="r">3 times</td><td class="r">3 times</td><td class="r">5 times</td></tr>
+        <tr><td>Further fall after those false starts</td><td class="r">59–82%</td><td class="r">58–78%</td><td class="r">34–76%</td><td class="r">15–40%</td></tr>
+        <tr><td>Confirmed higher lows that then failed</td><td class="r">3</td><td class="r">3</td><td class="r">4</td><td class="r">3</td></tr>
+        <tr><td>Higher low confirmed after the final low</td><td class="r">4 days</td><td class="r">70 days</td><td class="r">51 days</td><td class="r">—</td></tr>
+        <tr><td>Trend on after the final low</td><td class="r">50 days</td><td class="r">77 days</td><td class="r">46 days</td><td class="r">—</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Higher low: after the cycle low, a bounce of at least 10%, a pullback of at least 5% that stays above the low, then a daily close above the bounce high. A new low resets it. This is why the monitor leads with Value: price checks say what price is doing, Value says whether the price is good. Both are needed.</p>
+  </section>
+
   <section class="card" aria-labelledby="h-limits">
     <h2 id="h-limits">Limits</h2>
     <ol class="pts">
       <li>There are only three full cycle lows to test on (2015, 2018, 2022). Small samples can mislead.</li>
       <li>The small-cycle levels come from a line through three points. The deep-value check was set after this cycle's false start. Both are fitted to the same history they are tested on.</li>
-      <li>The leverage signal has no backtest. Its weight is a judgment. The money-flow sign in Bottom in? has no backtest either.</li>
+      <li>The leverage signal has no backtest. Its weight is a judgment. Money flows cannot be backtested, so they are shown but not scored.</li>
       <li>ETFs and company treasuries now hold a large share of coins. Holder behaviour may change, so the deep on-chain readings of past lows may not come back.</li>
       <li>Data providers can revise past values. LookIntoBitcoin lines arrive one to two days late, and its charts do not all update at the same time. Between updates the page divides the last line into the current price.</li>
       <li>The CBBI on the monitor is a separate index by Colin Talks Crypto. It is a cross-check and is not part of these scores.</li>
