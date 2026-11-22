@@ -1,4 +1,4 @@
-/* BTC Value Monitor v6 */
+/* BTC Value Monitor v7 */
 (function () {
   "use strict";
   // ---------- helpers ----------
@@ -160,24 +160,24 @@
   var TIPS = {
     score: "<span class='tt-h'>Value: is BTC cheap?</span>The main score. 16 signals, each scored 0–100 by how close it is to the reading seen at past cycle lows, then averaged by weight. It says how cheap BTC is. It does not say the low is in: read it with Bottom in?. Red is low, blue is high. A score, not a probability. Hover the coloured arcs to see what each band has meant in the past.",
     bi: "<span class='tt-h'>Bottom in? Has the fall stopped?</span>The timing check. Six signs that only show after a low: no new low, a bounce, price back above recent buyers' cost and the 200-day average, selling at a profit, and miners recovered. In past cycles it reached 50 two to three months after the low, when price was already 27–90% above it. It is held down until the value score has reached 75 in this bear market. A score, not a probability. Money flows are shown but not scored, because they have no data before 2024.",
-    ev: "<span class='tt-h'>Price checks</span>Plain checks on price. They are not part of either score. They show what has improved and the level that would undo it. In the 2015, 2018 and 2022 bear markets they gave many false starts: the trend check turned on 3 to 5 times before the final low, and price then fell a further 34–82%; 3 to 4 confirmed higher lows failed in each. Read them with Value.",
+    ev: "<span class='tt-h'>Price checks</span>Plain checks on price. They are not part of either score. They show what has improved and the price that would undo it. In the 2015, 2018 and 2022 bear markets they gave many false starts: the trend check turned on 3 to 5 times before the final low, and price then fell a further 34–82%; 3 to 4 confirmed higher lows failed in each. Read them with Value.",
     "ev-depth": "<span class='tt-h'>Depth</span>The deepest fall from the all-time high close ($124,824) to the lowest price so far. Ticks when it reaches the trend of past lows (−73%). Past lows: −86.6% (2015), −84.1% (2018), −77.1% (2022).",
     "ev-hl": "<span class='tt-h'>Higher low</span>After the cycle low: a bounce of at least 10%, then a pullback of at least 5% that stays above the low, then a daily close above the bounce high. A new low resets it. After past final lows it confirmed 4 days (2015), 70 days (2019) and 51 days (2023) later.",
     "ev-trend": "<span class='tt-h'>Trend</span>Daily close above its 30-day average, and the 30-day average above the 60-day. After past final lows, both held for five days running 50 days (2015), 77 days (2019) and 46 days (2023) later.",
-    clocks: "<span class='tt-h'>Cycle clock</span>Where this cycle is in time and depth, against the 2015, 2018 and 2022 lows. Time clocks say when a low has come before. Depth clocks say how deep past lows went.",
+    clocks: "<span class='tt-h'>Cycle clock</span>Where this cycle is in time and depth, against the 2015, 2018 and 2022 lows. Time clocks say when a low has come before. Depth clocks say how deep past lows went.<span class='tt-m'>Ticks mark the readings at the 2015, 2018 and 2022 lows. The green arc spans them. The diamond is where the trend of past lows points for this cycle. The orange dot is now. Hover a clock's name for its numbers.</span>",
     "lv-adj": "<span class='tt-h'>Small-cycle levels</span>Each past low was less deep than the one before. For MVRV, long-term holder cost, balanced price, Mayer multiple, addresses in loss and short-term holder cost, the full-score level moves one step along the trend of the 2015, 2018 and 2022 lows. See the method page for the numbers.",
     "lv-classic": "<span class='tt-h'>Classic levels</span>Fixed full-score levels: the readings that all three past lows reached. Use this view to compare with older screenshots.",
-    moved: "<span class='tt-h'>What moved</span>The signals that changed the value score most, in points of the 0–100 score. The top part is the effect of the live price against the last daily close. The lower part is the change between the last two daily closes.",
+    moved: "<span class='tt-h'>What moved</span>The signals that changed the value score most, in points of the 0–100 score. The top part is the effect of the live price against the last daily close. The lower part is the change between the last two daily closes.<span class='tt-m'>Price-linked signals follow the live price. On-chain lines update once a day at the source.</span>",
     gate: "<span class='tt-h'>Deep-value check</span>No past low came before the value score (small-cycle levels) had reached 75. Until it has done so in this bear market, Bottom in is held at 40% (value peak below 60) or 50% (value peak 60–74) of its raw reading. The peak counts daily closes and the live price, as in the backtest (weekly closes). This stopped a false start in September–October 2026.",
     chg24: "<span class='tt-h'>24-hour change</span>Change in price over the last 24 hours on the exchange shown.",
     live: "<span class='tt-h'>Live data</span>Each time the page opens, it pulls the data from the sources and works out the scores in your browser: price every 15 seconds (Bybit; Coinbase, Kraken or OKX if Bybit fails), daily highs and lows, funding and open interest (Bybit), Coin Metrics, Fear & Greed, stablecoin supply and the Coinbase premium. LookIntoBitcoin, ETF flows and USDT dominance block direct access from a web page, so the daily task reads them each morning.",
     src: "<span class='tt-h'>Data status</span>When each source last updated. Green: up to date. Amber: older than expected. Price-linked lines (realized price, holder costs, CVDD, balanced price, moving averages) are divided into the live price, so they follow every price move.",
-    cbbi: "<span class='tt-h'>CBBI: Colin's Bitcoin Bull Run Index</span>A separate index by Colin Talks Crypto that blends nine cycle signals into one 0–100 number. Low numbers have come near cycle lows; 90+ near cycle tops. Shown here as a cross-check. It is not part of the scores on this page.",
+    cbbi: "<span class='tt-h'>CBBI: Colin's Bitcoin Bull Run Index</span>A separate index by Colin Talks Crypto that blends nine cycle signals into one 0–100 number. 0 is the cycle bottom zone, 100 the cycle top zone. Low numbers have come near cycle lows; 90+ near cycle tops. Shown here as a cross-check. It is not part of the scores on this page.",
     "chip-live": "<span class='tt-h'>Live vs last close</span>How much the live price moves the value score compared with the last daily close (UTC).",
     "chip-prev": "<span class='tt-h'>Day before</span>Change in the value score between the last two daily closes.",
     "chip-7": "<span class='tt-h'>7 days</span>Change in the value score at the daily close over the last 7 days.",
     "chip-30": "<span class='tt-h'>30 days</span>Change in the value score at the daily close over the last 30 days.",
-    next: "<span class='tt-h'>Next band</span>The BTC price at which the live value score reaches the next band, if the on-chain lines stay as they are today. When price falls, loss-taking and fear usually rise too, so the real score is likely to get there sooner.",
+    next: "<span class='tt-h'>Next band</span>The BTC price at which the live value score reaches the next band, if the on-chain lines stay as they are today. When price falls, loss-taking and fear usually rise too, so the real score is likely to get there sooner. The second figure is the price above which the score drops back to the band below.",
     hlow: "<span class='tt-h'>Value at the low</span>The shaded band reaches up to the value score at the lowest price of each day (each week before Sep 2025). It shows how cheap BTC got during the day, not only at the close."
   };
   var CBBI_TIPS = {
@@ -214,6 +214,15 @@
   BI.forEach(function (b) { TIPS["bic-" + b.k] = "<span class='tt-h'>" + esc(b.name) + " · weight " + b.w + "</span>" + esc(b.tip); });
   CONF.forEach(function (c) { TIPS["conf-" + c.k] = "<span class='tt-h'>" + esc(c.name) + "</span>" + esc(c.tip); });
   Object.keys(CBBI_TIPS).forEach(function (k) { TIPS["cb-" + k] = esc(CBBI_TIPS[k]); });
+  // "?" buttons: the detail sits in a hover (or tap) tip, not on the card
+  function attrHtml(h) { return String(h == null ? "" : h).replace(/&/g, "&amp;").replace(/"/g, "&quot;"); }
+  function qi(k, label) { return '<button type="button" class="qi" data-tipk="' + k + '" aria-label="About ' + esc(label || "this") + '">?</button>'; }
+  function qiH(h, label) { return '<button type="button" class="qi" data-tip="' + attrHtml(h) + '" aria-label="About ' + esc(label || "this") + '">?</button>'; }
+  TIPS["val-rc"] = "<span class='tt-h'>How the value score is made</span>16 signals. Each gets a mark from 0 to 100 for how close it is to its reading at past cycle lows. Weight × mark ÷ 100 = points. The points add up to the score.<span class='tt-m'>The bar has one coloured piece per signal, sized by its points: hover a piece. The hatched part is the points still missing. Open the full sum for each signal's reading (its ? button).</span>";
+  TIPS["bi-rc"] = "<span class='tt-h'>How the Bottom in score is made</span>Six recovery signs that showed up after past cycle lows. Each earns points up to its maximum (weights 25, 20, 15, 10, 10 and 5, scaled to 100). The points add up to the raw score. The deep-value check then sets how much of it counts.<span class='tt-m'>Each row's ? button gives the reading now and the price that would raise it.</span>";
+  TIPS.flows = "<span class='tt-h'>Money flows</span>ETF net flow, Coinbase premium, stablecoin supply and USDT dominance. Shown, not scored: there is no data before 2024, so they cannot be backtested.";
+  TIPS.cw = "<span class='tt-h'>Cheap window</span>The weeks from the first close with Value 60+ (Cheap or better) to the last one. A gap of up to 12 weeks below 60 does not end a window. <b>Fell after</b> is the fall from that first Cheap close to the lowest price after it (for past cycles, the final low). The score can stop saying Cheap before the low is in: in 2022 it was below 60 for three weeks in August, three months before the November low. With three past cycles, compare them. Do not read them as a countdown.<span class='tt-m'>Past cycles: one reading a week (Monday close), from the top to one year after the low. This cycle: daily closes; a week counts as Cheap if any close in it was 60+. Uses the levels selected above (small-cycle or classic). Hover a row for its dates and prices.</span>";
+  TIPS.sig = "<span class='tt-h'>Signals</span>Each signal scored 0–100, heaviest weight first. Hover a name to see why it matters. The small button next to a name changes the view for that signal only.";
 
   var tt = document.createElement("div"); tt.id = "tt"; tt.setAttribute("role", "tooltip"); document.body.appendChild(tt);
   var ttEl = null;
@@ -679,6 +688,7 @@
     renderChips(liveS, daily, isLive);
     renderNext(liveS, P || d.price);
     renderValRc(P);
+    renderWin();
     renderMoved(P);
     renderTitle(liveS, P);
     renderSigLive(P);
@@ -746,12 +756,12 @@
     var i = bandIdx(liveS), h = "";
     if (i < 5) {
       var target = CUTS[i + 1], P = findPrice(P0, target, -1);
-      if (P) h += '<span><strong class="tip" tabindex="0" data-tipk="next" style="font-weight:650">Next band:</strong> ' + bandName(target) + " (" + target + ') at about <span class="mono" style="font-weight:600">' + usd(Math.round(P / 50) * 50) + '</span> <span class="muted">(' + Math.abs((P / P0 - 1) * 100).toFixed(1) + "% lower)</span></span>";
-      else h += '<span><strong class="tip" tabindex="0" data-tipk="next" style="font-weight:650">Next band:</strong> ' + bandName(target) + " (" + target + ") needs more than a lower price. Loss-taking and leverage signals must rise too.</span>";
-    } else h += '<span><strong style="font-weight:650">Top band:</strong> Extreme value.</span>';
+      if (P) h += '<span><strong style="font-weight:650">Next band</strong> ' + bandName(target) + " (" + target + ') at <span class="mono" style="font-weight:600">' + usd(Math.round(P / 50) * 50) + '</span> <span class="muted mono">−' + Math.abs((P / P0 - 1) * 100).toFixed(1) + "%</span> " + qi("next", "the next band") + "</span>";
+      else h += '<span><strong style="font-weight:650">Next band</strong> ' + bandName(target) + " (" + target + ") needs more than a lower price " + qi("next", "the next band") + "</span>";
+    } else h += '<span><strong style="font-weight:650">Top band:</strong> Extreme value</span>';
     if (i > 0) {
       var lo = CUTS[i], Pu = findPrice(P0, lo, 1);
-      if (Pu) h += '<span class="s">Back to ' + bandName(lo - 1) + " (below " + lo + ") above about " + usd(Math.round(Pu / 50) * 50) + ". Assumes the on-chain lines stay as they are today.</span>";
+      if (Pu) h += '<span class="s">Below ' + lo + " above " + usd(Math.round(Pu / 50) * 50) + "</span>";
     }
     $("next").innerHTML = h;
   }
@@ -998,7 +1008,8 @@
       note = "Each column is the daily close (UTC), worked out from the sources in your browser. The reading column and the Live column use the live price. ";
       if (libD && libD < S.base.d) note += "LookIntoBitcoin lines (holder costs, CVDD, balanced price, addresses in loss, SOPR, reserve risk) are to " + fd(libD) + "; later columns divide them into each day's price. ";
     } else note = !S.src.cm ? "Live data still loading: for now the columns are the daily task's readings. " : "Live sources not reached: columns are the daily task's readings, with price-linked signals moved to the price each reading recorded. ";
-    $("sig-note").textContent = (D.miss.length ? "No reading on " + D.miss.map(fd).join(", ") + ": the heat map and line blend across the gap. " : "") + note + "Scores use " + (S.lv === "adj" ? "small-cycle" : "classic") + " levels.";
+    var snT = (D.miss.length ? "No reading on " + D.miss.map(fd).join(", ") + ": the heat map and line blend across the gap. " : "") + note + "Scores use " + (S.lv === "adj" ? "small-cycle" : "classic") + " levels.";
+    $("sig-note").innerHTML = "<span>About the columns</span> " + qiH("<span class='tt-h'>About the columns</span>" + esc(snT), "the columns");
     $("bands").innerHTML = BANDS.map(function (b, i) { return '<span class="tip" tabindex="0" data-tipk="band-' + i + '"><span class="sw" style="background:var(--b' + i + ')"></span>' + (i === 5 ? "90+" : b.lo + "–" + b.hi) + " " + b.name + "</span>"; }).join("");
     var sc = document.querySelector(".sig-scroll"); if (sc && window.innerWidth < 700) sc.scrollLeft = sc.scrollWidth;
   }
@@ -1138,7 +1149,7 @@
       "<p><b>Confidence.</b> For the chance: <b>High</b> when the two models agree within 15 points and the level is within 10% of today's price; <b>Medium</b> when they agree within 25 points and the level is within 20%; <b>Low</b> otherwise. One step lower when the daily data is more than two days old. The table shows the lower of the score and chance confidence. Hover a chance for both model results.</p>" +
       "<p class='muted'>Only three past cycles to learn from. These are estimates, not forecasts of what will happen. Not financial advice.</p></details>";
     var px = $("p2s-x"), od = px.querySelector("details");
-    if (S.p2sX !== x) { S.p2sX = x; px.innerHTML = od && !od.open ? x.replace("<details class=\"p2s-x\" open>", "<details class=\"p2s-x\">") : x; }
+    if (S.p2sX !== x) { S.p2sX = x; px.innerHTML = od && od.open ? x : x.replace("<details class=\"p2s-x\" open>", "<details class=\"p2s-x\">"); }
     Array.prototype.forEach.call(document.querySelectorAll("#win button"), function (b) { b.setAttribute("aria-pressed", +b.getAttribute("data-w") === W ? "true" : "false"); });
   }
   TIPS["p2s-score"] = "<span class='tt-h'>Projected value score</span>The value score at that price if the on-chain lines stay as they are today. Likely too low for falls, because loss-taking and fear usually rise as price falls.";
@@ -1243,14 +1254,15 @@
   function renderChecks() {
     var el = $("bi-ev"); if (!el) return;
     var pc = priceChecks(); if (!pc) { el.innerHTML = ""; return; }
-    function row(ok, name, tk, t) {
-      return '<div class="ev-r"><span class="ev-i ' + (ok ? "ok" : "no") + '" aria-label="' + (ok ? "Yes" : "Not yet") + '">' + (ok ? "✓" : "✗") + '</span><span class="n"><span class="tip" tabindex="0" data-tipk="' + tk + '">' + esc(name) + '</span></span><span class="t">' + esc(t) + "</span></div>";
+    function row(ok, name, tk, t, more) {
+      var th = (typeof TIPS[tk] === "function" ? TIPS[tk]() : TIPS[tk]) + (more ? "<span class='tt-m'>" + esc(more) + "</span>" : "");
+      return '<div class="ev-r"><span class="ev-i ' + (ok ? "ok" : "no") + '" aria-label="' + (ok ? "Yes" : "Not yet") + '">' + (ok ? "✓" : "✗") + '</span><span class="n">' + esc(name) + " " + qiH(th, name) + '</span><span class="t mono">' + esc(t) + "</span></div>";
     }
     var tr = CLK.fall.trend, t1 = pc.c > pc.m30, t2 = pc.m30 > pc.m60;
-    el.innerHTML = row(pc.deep <= tr, "Depth", "ev-depth", "−" + Math.abs(pc.deep).toFixed(1) + "% at the " + fd(pc.ld) + " low. Past lows −77% to −87%, trend −" + Math.abs(tr) + "%") +
+    el.innerHTML = row(pc.deep <= tr, "Depth", "ev-depth", "−" + Math.abs(pc.deep).toFixed(1) + "% · trend −" + Math.abs(tr) + "%", "Now: −" + Math.abs(pc.deep).toFixed(1) + "% at the " + fd(pc.ld) + " low. Past lows −77% to −87%; trend of past lows −" + Math.abs(tr) + "%.") +
       row(pc.hl.ok, "Higher low", "ev-hl", pc.hl.t) +
-      row(t1, "Close above 30-day average", "ev-trend", "Close " + usd(pc.c) + " (" + fd(pc.cD) + "), 30-day " + usd(pc.m30)) +
-      row(t2, "30-day above 60-day average", "ev-trend", "30-day " + usd(pc.m30) + ", 60-day " + usd(pc.m60)) +
+      row(t1, "Close above 30-day avg", "ev-trend", usd(pc.c) + " vs " + usd(pc.m30), "Close " + usd(pc.c) + " (" + fd(pc.cD) + "), 30-day average " + usd(pc.m30) + ".") +
+      row(t2, "30-day above 60-day avg", "ev-trend", usd(pc.m30) + " vs " + usd(pc.m60), "30-day average " + usd(pc.m30) + ", 60-day average " + usd(pc.m60) + ".") +
       '<div class="ev-f">Fails if price trades below <b class="mono">' + usd(pc.low) + "</b> (a new low resets the checks).</div>";
   }
   // which of the four Value / Bottom in combinations we are in now
@@ -1261,21 +1273,21 @@
     Array.prototype.forEach.call(document.querySelectorAll("#quad .q"), function (e) { var on = e.getAttribute("data-q") === q; e.classList.toggle("now", on); var m = e.querySelector(".nowtag"); if (m) m.textContent = on ? "Now: Value " + Math.round(v) + " · Bottom in " + Math.round(biS) : ""; });
   }
   // ---------- how each score is made: points that add up ----------
-  function rcRow(name, tipk, tipHtml, rd, pts, max, maxAll, mark) {
+  function rcRow(name, tipHtml, rd, pts, max, maxAll, mark, more) {
     var tw = Math.max(8, max / maxAll * 100), fw = pts == null ? 0 : Math.max(0, Math.min(100, pts / max * 100));
-    var tipA = tipk ? 'data-tipk="' + tipk + '"' : 'data-tip="' + String(tipHtml || "").replace(/"/g, "&quot;") + '"';
-    return '<div class="rc-r"><span class="n"><span class="tip" tabindex="0" ' + tipA + ">" + esc(name) + '</span><span class="rd">' + esc(rd || "—") + '</span></span><span class="tw"><span class="trk" style="width:' + tw.toFixed(0) + '%"><i style="width:' + fw.toFixed(0) + "%;background:" + (mark == null ? "var(--surf2)" : smoothCol(mark)) + '"></i></span></span><span class="pt"><b>' + (pts == null ? "—" : pts.toFixed(1)) + "</b><span> / " + Math.round(max) + "</span></span></div>";
+    var th = tipHtml + "<span class='tt-m'>Now: <b>" + esc(rd || "no reading") + "</b> · mark " + (mark == null ? "—" : Math.round(mark)) + " of 100 · " + (pts == null ? "no points (no reading)" : pts.toFixed(1) + " of " + Math.round(max) + " points") + "</span>" + (more ? "<span class='tt-m'>" + esc(more) + "</span>" : "");
+    return '<div class="rc-r"><span class="n"><span class="nm">' + esc(name) + "</span>" + qiH(th, name) + '</span><span class="tw"><span class="trk" style="width:' + tw.toFixed(0) + '%"><i style="width:' + fw.toFixed(0) + "%;background:" + (mark == null ? "var(--surf2)" : smoothCol(mark)) + '"></i></span></span><span class="pt"><b>' + (pts == null ? "—" : pts.toFixed(1)) + "</b><span> / " + Math.round(max) + "</span></span></div>";
   }
   // the price (or time) at which each Bottom-in sign starts and fills
   function biRaise(b) {
-    var x = b.x, P = x.p, out = [];
-    if (x.sth) { var sc = P / x.sth; out.push("Above recent buyers' cost: starts above " + usd(sc * 0.85) + ", full at " + usd(sc * 1.05)); }
-    if (x.mayer) { var ma = P / x.mayer; out.push("Above the 200-day average: starts above " + usd(ma * 0.8) + ", full at " + usd(ma * 1.1)); }
-    if (x.low) out.push("Bounce from the low: full at " + usd(x.low * 1.5) + " (1.5× the low)");
-    if (b.ld) out.push("No new low: full on " + fd(addDays(b.ld, 120)) + " if price stays above " + usd(x.low));
-    out.push("Selling at a profit: starts when SOPR rises above −0.005");
-    out.push("Miners recovered: full when hash rate recovers after the low");
-    return '<div class="rc-up"><span class="rc-k">What would raise it</span><ul>' + out.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ul></div>";
+    var x = b.x, P = x.p, o = {};
+    if (x.sth) { var sc = P / x.sth; o.sth = "To raise it: starts above " + usd(sc * 0.85) + ", full at " + usd(sc * 1.05) + "."; }
+    if (x.mayer) { var ma = P / x.mayer; o.mayer = "To raise it: starts above " + usd(ma * 0.8) + ", full at " + usd(ma * 1.1) + "."; }
+    if (x.low) o.rise = "To raise it: full at " + usd(x.low * 1.5) + " (1.5× the low of " + usd(x.low) + ").";
+    if (b.ld) o.nolow = "To raise it: full on " + fd(addDays(b.ld, 120)) + " if price stays above " + usd(x.low) + ".";
+    o.sopr = "To raise it: starts when SOPR rises above −0.005.";
+    o.hash = "To raise it: full when hash rate recovers after the low.";
+    return o;
   }
   // Value: a bar of 16 pieces sized by points, the top contributors and gaps, and the full sum
   function renderValRc(P) {
@@ -1294,7 +1306,7 @@
     $("val-gap").innerHTML = have.slice().sort(function (a, b) { return (b.max - b.pts) - (a.max - a.pts); }).slice(0, 4).map(function (it) { return '<li><span class="tip" tabindex="0" data-tipk="ind-' + it.d.k + '">' + esc(it.d.name) + '</span> <b class="mono">−' + (it.max - it.pts).toFixed(1) + "</b></li>"; }).join("");
     var maxAll = Math.max.apply(null, items.map(function (it) { return it.max; }));
     var miss = items.filter(function (it) { return it.pts == null; }).length;
-    $("val-rows").innerHTML = items.map(function (it) { return rcRow(it.d.name, "ind-" + it.d.k, null, it.rd, it.pts, it.max, maxAll, it.m); }).join("") +
+    $("val-rows").innerHTML = items.map(function (it) { return rcRow(it.d.name, TIPS["ind-" + it.d.k](), it.rd, it.pts, it.max, maxAll, it.m); }).join("") +
       (miss ? '<div class="rc-sum"><span>' + miss + " signal" + (miss > 1 ? "s" : "") + " missing: the others are scaled up to 100</span><b></b></div>" : "") +
       '<div class="rc-tot"><span>Value score: the points added up</span><b>' + tot.toFixed(1) + " → " + Math.round(tot) + "</b></div>";
   }
@@ -1319,18 +1331,116 @@
     // receipt: each sign's points (weight scaled to 100 × mark), the raw score, the deep-value check, the score
     var sw = 0; BI.forEach(function (bi) { if (b.c[bi.k] != null) sw += bi.w; });
     var bis = BI.slice().sort(function (p1, p2) { return p2.w - p1.w; }), maxAll = bis[0].w / (sw || 1) * 100, g = b.gate, vm = b.vmax;
-    var h = '<p class="rc-x">Six recovery signs that showed up after past cycle lows. Each earns points up to its maximum. The points add up to the raw score. The deep-value check then sets how much of it counts.</p><div class="rc-rows">' +
-      bis.map(function (bi) { var val = b.c[bi.k], max = bi.w / (sw || 1) * 100; return rcRow(bi.name, "bic-" + bi.k, null, rd[bi.k], val == null ? null : val * max / 100, max, maxAll, val); }).join("") + "</div>" +
-      '<div class="rc-sum"><span>Raw score: the points added up</span><b>' + b.raw.toFixed(1) + " / 100</b></div>" +
-      '<div class="rc-sum"><span><span class="tip" tabindex="0" data-tipk="gate">Deep-value check</span>: ' + (g >= 1 ? "value reached 75 this bear market, so all of it counts" : "value peak " + (vm == null ? "—" : Math.round(vm)) + " at a daily close" + (b.vlow && b.vlow.v > (vm || 0) + 0.5 ? " (" + Math.round(b.vlow.v) + " at the " + fd(b.vlow.d) + " low)" : "") + ", below 75, so " + Math.round(g * 100) + "% counts") + "</span><b>× " + g + "</b></div>" +
-      '<div class="rc-tot"><span>Bottom in?</span><b>' + Math.round(b.s) + " · " + esc(biName(b.s)) + "</b></div>" + biRaise(b);
+    var up = biRaise(b);
+    var gTxt = "<span class='tt-h'>Deep-value check</span>" + (g >= 1 ? "Value reached 75 in this bear market, so all of the raw score counts." : "Value peak " + (vm == null ? "—" : Math.round(vm)) + " at a daily close" + (b.vlow && b.vlow.v > (vm || 0) + 0.5 ? " (" + Math.round(b.vlow.v) + " at the " + fd(b.vlow.d) + " low)" : "") + ". That is below 75, so " + Math.round(g * 100) + "% of the raw score counts.") + "<span class='tt-m'>" + TIPS.gate.replace(/^<span class='tt-h'>[^<]*<\/span>/, "") + "</span>";
+    var h = '<div class="rc-h"><b>How we got ' + Math.round(b.s) + "</b>" + qi("bi-rc", "how Bottom in is made") + '</div><div class="rc-rows">' +
+      bis.map(function (bi) { var val = b.c[bi.k], max = bi.w / (sw || 1) * 100; return rcRow(bi.name, TIPS["bic-" + bi.k], rd[bi.k], val == null ? null : val * max / 100, max, maxAll, val, up[bi.k]); }).join("") + "</div>" +
+      '<div class="rc-sum"><span>Raw score</span><b>' + b.raw.toFixed(1) + " / 100</b></div>" +
+      '<div class="rc-sum"><span>Deep-value check ' + qiH(gTxt, "the deep-value check") + "</span><b>× " + g + "</b></div>" +
+      '<div class="rc-tot"><span>Bottom in?</span><b>' + Math.round(b.s) + " · " + esc(biName(b.s)) + "</b></div>";
     var c = (S.latest && S.latest.confirm) || {};
-    h += '<div class="sub bi-flows">Money flows (shown, not scored): ' + CONF.map(function (k) { return '<span class="tip" tabindex="0" data-tipk="conf-' + k.k + '">' + esc(k.name.replace(/, 30 days|, 10 days/, "")) + "</span> " + '<b class="mono">' + esc(k.read(c)) + "</b>"; }).join(" · ") + "</div>";
+    h += '<div class="sub bi-flows"><span class="bf-h">Money flows, not scored ' + qi("flows", "money flows") + "</span> " + CONF.map(function (k) { return '<span class="tip" tabindex="0" data-tipk="conf-' + k.k + '">' + esc(k.name.replace(/, 30 days|, 10 days/, "")) + "</span> " + '<b class="mono">' + esc(k.read(c)) + "</b>"; }).join(" · ") + "</div>";
     $("bi-comp").innerHTML = h;
     renderChecks(); renderIntro(b.s);
     var gEl = $("bi-gate"); if (gEl) gEl.textContent = "";
   }
   CONF.forEach(function (c) { TIPS["conf-" + c.k] = "<span class='tt-h'>" + esc(c.name) + "</span>" + esc(c.tip); });
+
+  // ---------- cheap windows ----------
+  // A window runs from the first close with Value 60+ to the last one. A gap of up to 12 weeks below 60 does not end it.
+  // Past cycles: weekly closes (Mondays), from the top to one year after the low. This cycle: daily closes.
+  var CW_GAP = 84;
+  function cwFind(rows, mode) {
+    var ws = [], cur = null;
+    rows.forEach(function (o) {
+      var v = histVal(o, mode); if (v == null || v < 60) return;
+      if (cur && daysBetween(cur.last, o.d) <= CW_GAP) cur.last = o.d;
+      else { cur = { start: o.d, p0: o.p, last: o.d }; ws.push(cur); }
+    });
+    return ws;
+  }
+  // one cell per week from the start: the highest close in that week
+  function cwCells(w, rows, mode, endD) {
+    var n = Math.floor(daysBetween(w.start, endD) / 7) + 1, a = [], i;
+    for (i = 0; i < n; i++) a.push(null);
+    rows.forEach(function (o) {
+      if (o.d < w.start || o.d > endD) return;
+      var k = Math.floor(daysBetween(w.start, o.d) / 7), v = histVal(o, mode);
+      if (v != null && (a[k] == null || v > a[k])) a[k] = v;
+    });
+    return a;
+  }
+  function cheapWindows(mode) {
+    if (!S.hist) return null;
+    mode = mode || S.lv;
+    var rows = S.hist.rows, today = utcToday(), out = { past: [], now: [] };
+    CYCLES.forEach(function (c) {
+      var end = c.low ? addDays(c.low, 365) : today;
+      var rs = rows.filter(function (o) { return o.d >= c.top && o.d <= end; });
+      var ws = cwFind(rs, mode);
+      if (c.low) {
+        // the window around the cycle low (else the first one)
+        var w = ws.filter(function (x) { return x.start <= c.low && addDays(x.last, 7) >= c.low; })[0] || ws[0];
+        if (!w) return;
+        w.cyc = c; w.cells = cwCells(w, rs, mode, w.last); w.weeks = w.cells.length;
+        w.lowP = c.lowP; w.lowD = c.low; w.fall = (c.lowP / w.p0 - 1) * 100;
+        w.lowWk = Math.floor(daysBetween(w.start, c.low) / 7) + 1;
+        out.past.push(w);
+      } else {
+        var P = liveP();
+        ws.forEach(function (w, i) {
+          w.cyc = c; w.on = i === ws.length - 1 && daysBetween(w.last, today) <= CW_GAP;
+          w.cells = cwCells(w, rs, mode, w.on ? today : w.last); w.weeks = w.cells.length;
+          // the lowest price after the first Cheap close (intraday lows, and the live price)
+          var lo = null, ld = null;
+          rs.forEach(function (o) { if (o.d <= w.start) return; var l = o.lo != null ? o.lo : o.p; if (lo == null || l < lo) { lo = l; ld = o.d; } });
+          if (P && (lo == null || P < lo)) { lo = P; ld = today; }
+          w.lowP = lo; w.lowD = ld; w.fall = lo ? Math.min(0, (lo / w.p0 - 1) * 100) : null;
+          w.lowWk = ld && lo < w.p0 ? Math.floor(daysBetween(w.start, ld) / 7) + 1 : null;
+          out.now.push(w);
+        });
+      }
+    });
+    out.cur = out.now.filter(function (w) { return w.on; })[0] || null;
+    return out;
+  }
+  function cwPct(v) { return v == null ? "—" : v > -0.05 ? "0%" : "−" + Math.abs(v).toFixed(0) + "%"; }
+  function renderWin() {
+    var el = $("cw"); if (!el) return;
+    var W = cheapWindows(); S.cw = W;
+    if (!W || !W.past.length) { el.innerHTML = ""; return; }
+    var today = utcToday(), cur = W.cur, last = W.now[W.now.length - 1];
+    var rows = W.past.map(function (w) { return { w: w, lab: w.lowD.slice(0, 4) }; });
+    W.now.forEach(function (w) { rows.push({ w: w, lab: w.on ? "Now" : MON[+w.start.slice(5, 7) - 1] + " ’" + w.start.slice(2, 4) }); });
+    var maxW = Math.max(20, Math.max.apply(null, rows.map(function (r) { return r.w.weeks; })));
+    var head;
+    if (cur) head = '<b class="cw-wk">Week ' + cur.weeks + '</b><span>of this cheap window · since ' + fd(cur.start) + (cur.last < addDays(today, -1) ? " · last Cheap close " + fd(cur.last) : "") + "</span>";
+    else if (last) head = '<b class="cw-wk cw-no">Not in a cheap window</b><span>The last one ended ' + fdy(last.last) + "</span>";
+    else head = '<b class="cw-wk cw-no">No cheap window yet</b><span>in this bear market</span>';
+    var h = '<div class="cw-h"><span class="rc-k">Cheap window</span>' + qi("cw", "the cheap window") + '</div><div class="cw-now">' + head + "</div>";
+    h += '<div class="cw-t"><div class="cw-r cw-hd"><span></span><span>Week by week</span><span class="r">Lasted</span><span class="r">Fell after</span></div>';
+    rows.forEach(function (r) {
+      var w = r.w, now = !w.cyc.low, cells = "";
+      w.cells.forEach(function (v, i) {
+        var cls = v == null ? "na" : v >= 60 ? "ch" : "";
+        if (w.lowWk === i + 1) cls += " low";
+        if (w.on && i === w.cells.length - 1) cls += " cur";
+        cells += '<i class="' + cls + '"' + (v != null && v >= 60 ? ' style="background:' + bandCol(v) + '"' : "") + "></i>";
+      });
+      var cheapN = w.cells.filter(function (v) { return v != null && v >= 60; }).length;
+      var tip = "<span class='tt-h'>" + (now ? (w.on ? "This cheap window" : "Earlier window, this bear market") : esc(w.cyc.name) + " bear market") + "</span>" +
+        fdy(w.start) + (w.on ? " to now" : " to " + fdy(w.last)) + ": " + (w.on ? "week " + w.weeks : w.weeks + " week" + (w.weeks > 1 ? "s" : "")) + ", Cheap or better in " + cheapN + " of them." +
+        "<br>First Cheap close: <b>" + usd(w.p0) + "</b> (" + fd(w.start) + ")." +
+        (now ? "<br>Lowest price since: <b>" + usd(w.lowP) + "</b>" + (w.lowD ? " (" + fd(w.lowD) + ")" : "") + ", " + (w.fall < -0.05 ? Math.abs(w.fall).toFixed(1) + "% lower so far." : "no lower so far.")
+             : "<br>Cycle low: <b>" + usd(w.lowP) + "</b> on " + fdy(w.lowD) + ", week " + w.lowWk + " of the window: " + Math.abs(w.fall).toFixed(1) + "% below the first Cheap close.");
+      h += '<div class="cw-r' + (w.on ? " on" : "") + '" tabindex="0" data-tip="' + attrHtml(tip) + '"><span class="cw-l">' + esc(r.lab) + '</span><span class="cw-s" style="--n:' + maxW + '">' + cells + '</span><span class="r mono">' + (w.on ? "wk " + w.weeks : w.weeks + " wk") + '</span><span class="r mono">' + cwPct(w.fall) + (now ? '<small class="muted">so far</small>' : "") + "</span></div>";
+    });
+    h += "</div>";
+    var lens = W.past.map(function (w) { return w.weeks; }), lw = W.past.map(function (w) { return w.lowWk; });
+    h += '<div class="cw-k"><span><i class="ch" style="background:var(--b3)"></i>Cheap or better</span><span><i></i>Below 60</span><span><i class="low"></i>Week of the low (lowest so far)</span></div>';
+    h += '<p class="cw-f">Not a countdown: past windows lasted ' + Math.min.apply(null, lens) + " to " + Math.max.apply(null, lens) + " weeks, and the low came in week " + lw.slice(0, -1).join(", ") + " and " + lw[lw.length - 1] + ".</p>";
+    el.innerHTML = h;
+  }
 
   // ---------- cycle clock ----------
   var CLK = {
@@ -1410,6 +1520,8 @@
     $("vd-value-a").innerHTML = '<span class="pip" style="background:' + bandCol(v) + '"></span>' + esc(yes) + " · " + esc(bandName(v)) + ' <span class="mono">' + Math.round(v) + "</span>";
     $("vd-bi-a").innerHTML = b && b.s != null ? '<span class="pip" style="background:' + biCol(b.s) + '"></span>' + esc(biName(b.s)) + ' <span class="mono">' + Math.round(b.s) + "</span>" : "—";
     $("vd-clock-a").innerHTML = "Day " + c.dTop + " since the top · past lows came on days 364–406";
+    var cw = S.cw && S.cw.cur, vs = $("vd-value-s");
+    if (vs) vs.textContent = cw ? "Week " + cw.weeks + " of this cheap window · past ones lasted " + S.cw.past.map(function (w) { return w.weeks; }).join(", ") + " weeks" : "";
   }
 
   // ---------- signals tabs ----------
@@ -1617,71 +1729,289 @@
 
   // ---------- start ----------
   applySkin();
-  // ---------- arrange: every card can be moved; the order is kept in this browser ----------
+  // ---------- arrange ----------
+  // Wide screens: the cards sit on a 12-column grid and can go anywhere. Drag a card to move it; drag its corner (or use − +)
+  // to change its width. Cards never overlap: a card in the way moves down. "Tidy up" closes the gaps.
+  // Narrow screens: one column, in the same order (drag ⠿ or use ↑ ↓). The layout is kept in this browser.
   (function () {
     var board = $("board"); if (!board) return;
-    var KEY = "bbm.order";
+    var KEY_L = "bbm.layout", KEY_O = "bbm.order", COLS = 12, GAP = 16, SNAP = 8, MINW = 3, WIDE = 880, MAG = 14;
+    var body = document.body;
     function cards() { return Array.prototype.filter.call(board.children, function (e) { return e.hasAttribute("data-card"); }); }
     function idOf(c) { return c.getAttribute("data-card"); }
+    function byId() { var m = {}; cards().forEach(function (c) { m[idOf(c)] = c; }); return m; }
+    function lim(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function copy(o) { return JSON.parse(JSON.stringify(o)); }
+    function readJ(k) { try { return JSON.parse(sget(k) || "null"); } catch (e) { return null; } }
     var DEF = cards().map(idOf);
-    function order(ids) {
-      var m = {}; cards().forEach(function (c) { m[idOf(c)] = c; });
-      var list = ids.filter(function (id) { return m[id]; });
-      DEF.forEach(function (id, i) { if (list.indexOf(id) < 0) list.splice(Math.min(i, list.length), 0, id); });
-      list.forEach(function (id) { board.appendChild(m[id]); });
+    var L = null, ORD = null, saved = false, dirty = false;
+    var sl = readJ(KEY_L); if (sl && sl.v === 1 && sl.c && typeof sl.c === "object") { L = sl.c; saved = true; }
+    var so = readJ(KEY_O); if (Array.isArray(so)) ORD = so;
+    var undo = null, undoAt = 0;
+    function store() {
+      try {
+        if (L) localStorage.setItem(KEY_L, JSON.stringify({ v: 1, c: L })); else localStorage.removeItem(KEY_L);
+        if (ORD) localStorage.setItem(KEY_O, JSON.stringify(ORD)); else localStorage.removeItem(KEY_O);
+      } catch (e) {}
+      saved = !!L; syncReset();
     }
-    function save() { try { localStorage.setItem(KEY, JSON.stringify(cards().map(idOf))); } catch (e) {} }
-    function after() { clearTimeout(after.t); after.t = setTimeout(function () { renderHistory(); if (S.tab === "cyc" && S.hist) renderCycChart(); }, 60); }
+    function arranging() { return body.classList.contains("arrange"); }
+    function wide() { return board.clientWidth >= WIDE && !body.classList.contains("kiosk"); }
+    function step() { return (board.clientWidth + GAP) / COLS; }
+    function after() { clearTimeout(after.t); after.t = setTimeout(function () { renderHistory(); if (S.tab === "cyc" && S.hist) renderCycChart(); }, 80); }
+
+    // controls on each card (shown in arrange mode only)
     cards().forEach(function (c) {
-      var nm = c.getAttribute("data-name") || idOf(c), bar = document.createElement("div");
-      bar.className = "mv-bar"; bar.setAttribute("data-nocap", "");
-      bar.innerHTML = '<span class="mv-h" aria-hidden="true" title="Drag to move">⠿</span><span class="mv-n">' + esc(nm) + '</span><button type="button" class="mv-b" data-d="-1" aria-label="Move ' + esc(nm) + ' up">↑</button><button type="button" class="mv-b" data-d="1" aria-label="Move ' + esc(nm) + ' down">↓</button>';
+      var nm = esc(c.getAttribute("data-name") || idOf(c)), bar = document.createElement("div");
+      bar.className = "arr-cb"; bar.setAttribute("data-nocap", "");
+      bar.innerHTML = '<button type="button" class="arr-h" aria-label="Move ' + nm + '. Arrow keys move it; Shift with left or right changes its width." title="Drag to move">⠿</button><span class="arr-n">' + nm + "</span>" +
+        '<button type="button" class="arr-b arr-o" data-d="-1" aria-label="Move ' + nm + ' up">↑</button><button type="button" class="arr-b arr-o" data-d="1" aria-label="Move ' + nm + ' down">↓</button>' +
+        '<button type="button" class="arr-b arr-w" data-w="-1" aria-label="Make ' + nm + ' narrower" title="Narrower">−</button><button type="button" class="arr-b arr-w" data-w="1" aria-label="Make ' + nm + ' wider" title="Wider">+</button>';
       c.appendChild(bar);
+      var rs = document.createElement("span"); rs.className = "arr-rs"; rs.setAttribute("data-nocap", ""); rs.setAttribute("aria-hidden", "true"); rs.title = "Drag to change the width"; c.appendChild(rs);
     });
-    try { var sv = JSON.parse(localStorage.getItem(KEY) || "null"); if (Array.isArray(sv)) order(sv); } catch (e) {}
+    var ph = document.createElement("div"); ph.className = "arr-ph"; ph.setAttribute("aria-hidden", "true"); ph.setAttribute("data-nocap", ""); board.appendChild(ph);
+
+    // ----- order (narrow screens, and the reading order of a free layout) -----
+    function setOrder(ids) {
+      var m = byId(), list = ids.filter(function (id) { return m[id]; });
+      DEF.forEach(function (id, i) { if (list.indexOf(id) < 0) list.splice(Math.min(i, list.length), 0, id); });
+      list.forEach(function (id) { board.insertBefore(m[id], ph); });
+    }
+    function readingOrder(P) { return Object.keys(P).sort(function (a, b) { return P[a].y - P[b].y || P[a].x - P[b].x; }); }
+    function flowOrder() { return ORD || (L ? readingOrder(L) : DEF); }
+
+    // ----- free layout -----
+    var H = {}, R = {}, free = false, drag = null, sz = null, ld = null;
+    function ids() { var m = byId(); return Object.keys(L || {}).filter(function (id) { return m[id] && m[id].offsetParent !== null; }); }
+    function fill() {
+      var m = byId(), bottom = 0;
+      Object.keys(L).forEach(function (id) {
+        var p = L[id]; if (!m[id]) return;
+        p.w = lim(Math.round(+p.w) || COLS, MINW, COLS); p.x = lim(Math.round(+p.x) || 0, 0, COLS - p.w); p.y = Math.max(0, +p.y || 0);
+        bottom = Math.max(bottom, (R[id] != null ? R[id] : p.y) + (H[id] || 300) + GAP);
+      });
+      DEF.forEach(function (id) { if (m[id] && !L[id]) { L[id] = { x: 0, w: COLS, y: bottom }; bottom += 320; } });
+    }
+    function capture() {
+      var br = board.getBoundingClientRect(), st = step(), o = {};
+      cards().forEach(function (c) {
+        if (c.offsetParent === null) return;
+        var r = c.getBoundingClientRect(), w = lim(Math.round((r.width + GAP) / st), MINW, COLS), x = lim(Math.round((r.left - br.left) / st), 0, COLS - w);
+        o[idOf(c)] = { x: x, w: w, y: Math.round(r.top - br.top) };
+      });
+      return o;
+    }
+    function measure(P) {
+      var m = byId(), st = step(), list = ids();
+      list.forEach(function (id) { m[id].style.width = (P[id].w * st - GAP) + "px"; });
+      list.forEach(function (id) { H[id] = m[id].offsetHeight; });
+    }
+    // place each card where it wants to be; a card in the way moves down. `fixed` (the card being moved) goes first.
+    function resolve(P, fixed) {
+      var list = ids().sort(function (a, b) { if (a === fixed) return -1; if (b === fixed) return 1; return P[a].y - P[b].y || P[a].x - P[b].x; });
+      var done = [], out = {};
+      list.forEach(function (id) {
+        var p = P[id], y = Math.max(0, p.y), hit = true;
+        while (hit) {
+          hit = false;
+          for (var i = 0; i < done.length; i++) {
+            var q = P[done[i]], qy = out[done[i]], qh = H[done[i]];
+            if (p.x < q.x + q.w && q.x < p.x + p.w && y < qy + qh + GAP && qy < y + H[id] + GAP) { y = qy + qh + GAP; hit = true; }
+          }
+        }
+        out[id] = y; done.push(id);
+      });
+      return out;
+    }
+    function place(P, fixed) {
+      if (!free) return;
+      measure(P); R = resolve(P, fixed);
+      var m = byId(), st = step(), bottom = 0;
+      ids().forEach(function (id) {
+        if (!drag || drag.id !== id) { m[id].style.top = R[id] + "px"; m[id].style.left = (P[id].x * st) + "px"; }
+        bottom = Math.max(bottom, R[id] + H[id]);
+      });
+      board.style.height = (bottom + (arranging() ? 280 : 0)) + "px";
+    }
+    function commit() { Object.keys(R).forEach(function (k) { if (L[k]) L[k].y = R[k]; }); }
+    function apply() {
+      var on = !!L && wide();
+      if (on !== free) {
+        free = on; board.classList.toggle("free", on);
+        if (!on) { cards().forEach(function (c) { c.style.left = c.style.top = c.style.width = ""; }); board.style.height = ""; }
+      }
+      if (free) { fill(); place(L); setOrder(readingOrder(L)); } else setOrder(flowOrder());
+      var tx = $("arr-tx"); if (tx) tx.textContent = free ? "Drag a card anywhere. Drag its corner, or use − +, to change its width. Cards in the way move down." : "Drag a card by ⠿, or use ↑ ↓. On a wider screen you can place cards anywhere.";
+      var td = $("arr-tidy"); if (td) td.hidden = !free;
+      syncReset();
+    }
+    var raf = 0;
+    function relayout() { if (!free || drag || sz) return; cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { place(L); }); }
+    if (window.ResizeObserver) { var ro = new ResizeObserver(relayout); cards().forEach(function (c) { ro.observe(c); }); }
+    var rzT; window.addEventListener("resize", function () { clearTimeout(rzT); rzT = setTimeout(apply, 120); });
+    document.addEventListener("fullscreenchange", function () { setTimeout(apply, 350); });
+
+    // ----- reset, with undo for 8 seconds -----
+    function syncReset() {
+      var canUndo = !!undo && Date.now() - undoAt < 8000, custom = (!!L && saved) || !!ORD, t = canUndo ? "Undo reset" : "Reset layout";
+      var hb = $("reset-layout"), ht = $("reset-t"), ab = $("arr-reset");
+      if (ht) ht.textContent = t; if (hb) { hb.hidden = !(custom || canUndo); hb.setAttribute("aria-label", t); }
+      if (ab) { ab.textContent = t; ab.disabled = !(custom || canUndo || (L && dirty)); }
+    }
+    function reset() {
+      undo = { L: L && saved ? copy(L) : null, O: ORD ? ORD.slice() : null }; undoAt = Date.now();
+      L = null; ORD = null; dirty = false; store(); apply();
+      if (arranging() && wide()) { L = capture(); saved = false; apply(); }
+      after(); syncReset(); setTimeout(syncReset, 8100);
+    }
+    function doUndo() { var u = undo; undo = null; if (!u) return; L = u.L; ORD = u.O; dirty = true; store(); apply(); after(); }
+    function resetClick() { if (undo && Date.now() - undoAt < 8000) doUndo(); else reset(); }
+    if ($("reset-layout")) $("reset-layout").addEventListener("click", resetClick);
+    $("arr-reset").addEventListener("click", resetClick);
+
+    // ----- arrange mode on and off -----
     function setArr(on) {
-      document.body.classList.toggle("arrange", on); $("arrange").setAttribute("aria-pressed", on ? "true" : "false");
-      if (!on) after();
+      if (on && !L && wide()) { L = capture(); saved = false; dirty = false; }
+      body.classList.toggle("arrange", on); $("arrange").setAttribute("aria-pressed", on ? "true" : "false");
+      if (!on && L && !saved) L = null; // nothing changed: back to the default layout
+      apply(); after();
     }
-    $("arrange").addEventListener("click", function () { setArr(!document.body.classList.contains("arrange")); });
+    $("arrange").addEventListener("click", function () { setArr(!arranging()); });
     $("arr-done").addEventListener("click", function () { setArr(false); });
-    $("arr-reset").addEventListener("click", function () { try { localStorage.removeItem(KEY); } catch (e) {} order(DEF); after(); });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.body.classList.contains("arrange")) setArr(false); });
-    board.addEventListener("click", function (e) {
-      var bt = e.target.closest && e.target.closest(".mv-b"); if (!bt) return;
-      e.preventDefault();
-      var c = bt.closest("[data-card]"), d = +bt.getAttribute("data-d"), sib = d < 0 ? c.previousElementSibling : c.nextElementSibling;
-      while (sib && !sib.hasAttribute("data-card")) sib = d < 0 ? sib.previousElementSibling : sib.nextElementSibling;
-      if (!sib) return;
-      board.insertBefore(c, d < 0 ? sib : sib.nextSibling); save(); after();
-      bt.focus(); c.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    $("arr-tidy").addEventListener("click", function () {
+      if (!free) return;
+      commit();
+      var done = [];
+      readingOrder(L).forEach(function (id) {
+        var p = L[id], y = 0; if (H[id] == null) return;
+        done.forEach(function (q) { var o = L[q]; if (p.x < o.x + o.w && o.x < p.x + p.w) y = Math.max(y, o.y + H[q] + GAP); });
+        p.y = y; done.push(id);
+      });
+      dirty = true; place(L); commit(); store(); after();
     });
-    // drag by the handle (mouse, pen or touch)
-    var dr = null;
-    board.addEventListener("pointerdown", function (e) {
-      var h = e.target.closest && e.target.closest(".mv-h"); if (!h || !document.body.classList.contains("arrange")) return;
-      e.preventDefault();
-      dr = { c: h.closest("[data-card]"), h: h, x: e.clientX, y: e.clientY };
-      dr.c.classList.add("dragging"); document.body.classList.add("dragging-on");
-      try { h.setPointerCapture(e.pointerId); } catch (er) {}
-    });
-    function overCard(x, y) {
-      var els = document.elementsFromPoint(x, y);
-      for (var i = 0; i < els.length; i++) { var c = els[i].closest && els[i].closest("[data-card]"); if (c && c !== dr.c && c.parentNode === board) return c; }
-      return null;
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && arranging() && !drag && !sz) setArr(false); });
+
+    // ----- buttons on the cards -----
+    function nudge(id, dx, dw, dy) {
+      commit();
+      var p = L[id];
+      if (dw) { if (dw > 0 && p.x + p.w >= COLS && p.x > 0) { p.x--; p.w++; } else p.w = lim(p.w + dw, MINW, COLS - p.x); }
+      if (dx) p.x = lim(p.x + dx, 0, COLS - p.w);
+      if (dy) p.y = Math.max(0, p.y + dy);
+      place(L, id); commit(); dirty = true; store(); setOrder(readingOrder(L)); after();
     }
-    document.addEventListener("pointermove", function (e) {
-      if (!dr) return;
-      if (e.clientY < 70) window.scrollBy(0, -16); else if (e.clientY > window.innerHeight - 70) window.scrollBy(0, 16);
-      var t = overCard(e.clientX, e.clientY); if (!t) return;
-      var r = t.getBoundingClientRect(), side = r.width < board.clientWidth * 0.7;
-      var before = side ? e.clientX < r.left + r.width / 2 : e.clientY < r.top + r.height / 2;
-      var ref = before ? t : t.nextSibling;
-      if (ref === dr.c || (before ? t.previousElementSibling === dr.c : t.nextElementSibling === dr.c)) return;
-      board.insertBefore(dr.c, ref);
+    function listMove(c, d) {
+      var sib = d < 0 ? c.previousElementSibling : c.nextElementSibling;
+      while (sib && !sib.hasAttribute("data-card")) sib = d < 0 ? sib.previousElementSibling : sib.nextElementSibling;
+      if (!sib) return false;
+      board.insertBefore(c, d < 0 ? sib : sib.nextSibling); ORD = cards().map(idOf); store(); after(); return true;
+    }
+    board.addEventListener("click", function (e) {
+      var bt = e.target.closest && e.target.closest(".arr-b"); if (!bt) return;
+      e.preventDefault();
+      var c = bt.closest("[data-card]"), id = idOf(c);
+      if (bt.hasAttribute("data-w")) { if (free) nudge(id, 0, +bt.getAttribute("data-w"), 0); }
+      else if (!free && listMove(c, +bt.getAttribute("data-d"))) c.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      bt.focus();
     });
-    function endDrag() { if (!dr) return; dr.c.classList.remove("dragging"); document.body.classList.remove("dragging-on"); dr = null; save(); after(); }
-    document.addEventListener("pointerup", endDrag); document.addEventListener("pointercancel", endDrag);
+    board.addEventListener("keydown", function (e) {
+      var h = e.target.closest && e.target.closest(".arr-h"); if (!h || !arranging()) return;
+      var c = h.closest("[data-card]"), id = idOf(c), k = e.key;
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].indexOf(k) < 0) return;
+      e.preventDefault();
+      if (!free) { if (k === "ArrowUp" || k === "ArrowDown") listMove(c, k === "ArrowUp" ? -1 : 1); h.focus(); return; }
+      if (k === "ArrowLeft" || k === "ArrowRight") { var d = k === "ArrowLeft" ? -1 : 1; if (e.shiftKey) nudge(id, 0, d, 0); else nudge(id, d, 0, 0); }
+      else nudge(id, 0, 0, k === "ArrowUp" ? -(H[id] ? Math.min(H[id], 120) : 40) : 40);
+      h.focus(); c.scrollIntoView({ block: "nearest" });
+    });
+
+    // ----- pointer: move and resize -----
+    function autoScroll(e) { if (e.clientY < 70) window.scrollBy(0, -18); else if (e.clientY > window.innerHeight - 70) window.scrollBy(0, 18); }
+    function snapY(top, id, P) {
+      var y = Math.max(0, top), best = null, bd = MAG;
+      Object.keys(P).forEach(function (k) {
+        if (k === id || H[k] == null || R[k] == null) return;
+        [R[k], R[k] + H[k] + GAP].forEach(function (c) { var d = Math.abs(y - c); if (d < bd) { bd = d; best = c; } });
+      });
+      if (y < MAG) best = 0;
+      return best != null ? best : Math.round(y / SNAP) * SNAP;
+    }
+    function showPh(x, y, w, h) { var st = step(); ph.style.left = (x * st) + "px"; ph.style.top = y + "px"; ph.style.width = (w * st - GAP) + "px"; ph.style.height = h + "px"; ph.classList.add("on"); }
+    board.addEventListener("pointerdown", function (e) {
+      if (!arranging() || e.button > 0) return;
+      var t = e.target, c = t.closest && t.closest("[data-card]"); if (!c || c.parentNode !== board) return;
+      if (t.closest(".arr-rs")) {
+        if (!free) return;
+        e.preventDefault(); commit();
+        sz = { id: idOf(c), c: c, left: c.getBoundingClientRect().left, moved: false };
+        c.classList.add("sizing"); body.classList.add("dragging-on");
+        try { t.setPointerCapture(e.pointerId); } catch (er) {}
+        return;
+      }
+      if (t.closest(".arr-b")) return;
+      if (free) {
+        e.preventDefault(); commit();
+        var r = c.getBoundingClientRect(), id = idOf(c);
+        drag = { id: id, c: c, dx: e.clientX - r.left, dy: e.clientY - r.top, base: copy(L), x: L[id].x, y: L[id].y, P: null };
+        c.classList.add("dragging"); body.classList.add("dragging-on");
+        showPh(L[id].x, R[id], L[id].w, H[id]);
+        try { c.setPointerCapture(e.pointerId); } catch (er) {}
+        return;
+      }
+      if (t.closest(".arr-h")) {
+        e.preventDefault();
+        ld = { c: c }; c.classList.add("dragging"); body.classList.add("dragging-on");
+        try { t.setPointerCapture(e.pointerId); } catch (er) {}
+      }
+    });
+    document.addEventListener("pointermove", function (e) {
+      if (drag) {
+        autoScroll(e);
+        var br = board.getBoundingClientRect(), st = step(), p = drag.base[drag.id];
+        var left = e.clientX - br.left - drag.dx, top = e.clientY - br.top - drag.dy;
+        drag.c.style.left = left + "px"; drag.c.style.top = top + "px";
+        var x = lim(Math.round(left / st), 0, COLS - p.w), y = snapY(top, drag.id, drag.base);
+        if (x === drag.x && y === drag.y && drag.P) return;
+        drag.x = x; drag.y = y;
+        var P = copy(drag.base); P[drag.id].x = x; P[drag.id].y = y; drag.P = P;
+        place(P, drag.id); showPh(x, R[drag.id], p.w, H[drag.id]);
+      } else if (sz) {
+        var st2 = step(), q = L[sz.id], w = lim(Math.round((e.clientX - sz.left + GAP) / st2), MINW, COLS - q.x);
+        if (w === q.w) return;
+        q.w = w; sz.moved = true; place(L, sz.id);
+      } else if (ld) {
+        autoScroll(e);
+        var els = document.elementsFromPoint(e.clientX, e.clientY), tg = null;
+        for (var i = 0; i < els.length; i++) { var cc = els[i].closest && els[i].closest("[data-card]"); if (cc && cc !== ld.c && cc.parentNode === board) { tg = cc; break; } }
+        if (!tg) return;
+        var rr = tg.getBoundingClientRect(), side = rr.width < board.clientWidth * 0.7;
+        var before = side ? e.clientX < rr.left + rr.width / 2 : e.clientY < rr.top + rr.height / 2;
+        var ref = before ? tg : tg.nextSibling;
+        if (ref === ld.c || (before ? tg.previousElementSibling === ld.c : tg.nextElementSibling === ld.c)) return;
+        board.insertBefore(ld.c, ref);
+      }
+    });
+    function up() {
+      if (drag) {
+        var d = drag; drag = null; d.c.classList.remove("dragging"); body.classList.remove("dragging-on"); ph.classList.remove("on");
+        if (d.P && (d.P[d.id].x !== d.base[d.id].x || d.P[d.id].y !== d.base[d.id].y)) { L = d.P; place(L, d.id); commit(); dirty = true; store(); }
+        else place(L);
+        setTimeout(function () { if (free && !drag) setOrder(readingOrder(L)); }, 260);
+        after();
+      } else if (sz) {
+        var s2 = sz; sz = null; s2.c.classList.remove("sizing"); body.classList.remove("dragging-on");
+        if (s2.moved) { commit(); dirty = true; store(); }
+        after();
+      } else if (ld) {
+        ld.c.classList.remove("dragging"); body.classList.remove("dragging-on"); ld = null;
+        ORD = cards().map(idOf); store(); after();
+      }
+    }
+    document.addEventListener("pointerup", up); document.addEventListener("pointercancel", up);
+
+    apply();
+    if (qs.get("debug") === "1") window.__arr = { apply: apply, get L() { return L; }, get R() { return R; }, get H() { return H; }, get free() { return free; } };
   })();
   (function () { var d = $("intro"); if (!d) return; try { if (localStorage.getItem("bbm.intro") === "0") d.open = false; } catch (e) {} d.addEventListener("toggle", function () { try { localStorage.setItem("bbm.intro", d.open ? "1" : "0"); } catch (e) {} }); })();
   // pull every source now; the page works out all scores from them in the browser
