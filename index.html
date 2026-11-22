@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>BTC Bottom Monitor</title>
-<meta name="description" content="Live BTC Bottom Monitor: is BTC cheap, is the bottom in, and where are we in the cycle. Information only, not financial advice.">
+<title>BTC Value Monitor</title>
+<meta name="description" content="Live BTC Value Monitor: is BTC cheap against past cycles, has the fall stopped, and where are we in the cycle. Information only, not financial advice.">
 <meta name="theme-color" content="#0D1117">
 <link rel="icon" id="favicon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..700&family=Space+Grotesk:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="skins.css?v=4">
-<link rel="stylesheet" href="app.css?v=4">
+<link rel="stylesheet" href="skins.css?v=5">
+<link rel="stylesheet" href="app.css?v=5">
 <script>try { var s = new URLSearchParams(location.search), k = s.get("skin") || localStorage.getItem("bbm.skin") || "midnight"; if (k === "auto") k = matchMedia("(prefers-color-scheme: light)").matches ? "daylight" : "midnight"; document.documentElement.setAttribute("data-skin", k); document.documentElement.setAttribute("data-light", k === "daylight" || k === "paper" ? "1" : "0"); document.documentElement.setAttribute("data-cb", (s.get("cb") || localStorage.getItem("bbm.cb")) === "1" ? "1" : "0"); } catch (e) {}</script>
 </head>
 <body>
@@ -19,7 +19,7 @@
 
 <header class="top">
   <div class="brand">
-    <h1>BTC Bottom Monitor</h1>
+    <h1>BTC Value Monitor</h1>
     <span class="sub" id="hdr-sub">Loading readings…</span>
     <span class="links k-hide" data-nocap><a href="thesis.html">How the scores work</a><a href="v1.html">Version 1</a></span>
   </div>
@@ -59,14 +59,29 @@
 
 <section class="verdict" id="verdict" aria-live="polite" aria-label="Summary">
   <div class="vd" id="vd-value"><span class="q">Is BTC cheap?</span><span class="a" id="vd-value-a">—</span></div>
-  <div class="vd" id="vd-bi"><span class="q">Is the bottom in?</span><span class="a" id="vd-bi-a">—</span></div>
+  <div class="vd" id="vd-bi"><span class="q">Bottom in? · timing check</span><span class="a" id="vd-bi-a">—</span></div>
   <div class="vd" id="vd-clock"><span class="q">Cycle clock</span><span class="a" id="vd-clock-a">—</span></div>
 </section>
+
+<details class="card intro" id="intro" open>
+  <summary><span class="intro-h">How to read the two scores</span><span class="sub">Value is the main score. Bottom in? is the timing check.</span></summary>
+  <div class="intro-b">
+    <p><b>Value</b> (0–100) shows how cheap BTC is against past cycle lows. <b>Bottom in?</b> (0–100) shows whether the fall has stopped. Read them together. <b>Value alone acts too early:</b> in 2022 it first read Cheap in June at about $22,300, then price fell a further 31% to $15,479. <b>Bottom in? alone acts too late:</b> it reached 50 two to three months after each past low, when price was already 27–90% above it.</p>
+    <div class="quad" id="quad" role="list" aria-label="What the two scores mean together">
+      <div class="q" role="listitem" data-q="hl"><b>Value high · Bottom in low</b><span>Cheap, but the fall may not be over.</span><em class="nowtag"></em></div>
+      <div class="q" role="listitem" data-q="hh"><b>Value high · Bottom in high</b><span>Cheap and recovering: the mix seen after past lows.</span><em class="nowtag"></em></div>
+      <div class="q" role="listitem" data-q="ll"><b>Value low · Bottom in low</b><span>Not cheap, and still falling.</span><em class="nowtag"></em></div>
+      <div class="q" role="listitem" data-q="lh"><b>Value low · Bottom in high</b><span>Recovered. No longer cheap.</span><em class="nowtag"></em></div>
+    </div>
+    <div class="cscale" aria-hidden="true"><span>Score colours</span><i style="background:var(--b0)"></i><i style="background:var(--b1)"></i><i style="background:var(--b2)"></i><i style="background:var(--b3)"></i><i style="background:var(--b4)"></i><i style="background:var(--b5)"></i><span>red low, blue high</span></div>
+    <p class="sub">"High" means Value 60+ (Cheap or better) and Bottom in? 50+ (Likely in or Confirmed). Both are scores, not probabilities.</p>
+  </div>
+</details>
 
 <div class="row toprow">
   <section class="card score-card" aria-labelledby="score-h">
     <div class="card-h" style="align-items:center">
-      <div class="hstack"><h2 id="score-h"><span class="tip" tabindex="0" data-tipk="score">Value</span></h2><span class="sub">Is BTC cheap? · 16 signals</span></div>
+      <div class="hstack"><h2 id="score-h"><span class="tip" tabindex="0" data-tipk="score">Value</span></h2><span class="sub">Is BTC cheap? · main score · 16 signals</span></div>
       <div class="seg seg-sm" role="group" aria-label="Levels" id="lv" data-nocap><button type="button" data-l="adj" class="tip" data-tipk="lv-adj">Small-cycle</button><button type="button" data-l="classic" class="tip" data-tipk="lv-classic">Classic</button></div>
     </div>
     <div class="gauge">
@@ -90,7 +105,7 @@
   </section>
 
   <section class="card bi-card" aria-labelledby="bi-h">
-    <div class="card-h"><div class="hstack"><h2 id="bi-h"><span class="tip" tabindex="0" data-tipk="bi">Bottom in?</span></h2><span class="sub">Has the low passed? · 7 signs</span></div></div>
+    <div class="card-h"><div class="hstack"><h2 id="bi-h"><span class="tip" tabindex="0" data-tipk="bi">Bottom in?</span></h2><span class="sub">Timing check · has the fall stopped? · 6 signs</span></div></div>
     <div class="gauge">
       <svg viewBox="0 0 400 240" role="img" id="bi-svg" aria-label="Bottom in score">
         <g id="bi-bands"></g>
@@ -103,6 +118,7 @@
       <div class="num"><b id="bi-num">—</b><span id="bi-band">&nbsp;</span></div>
     </div>
     <div class="bi-comp" id="bi-comp"><span class="sub">Loading…</span></div>
+    <div class="bi-ev" id="bi-ev"></div>
     <div class="bi-gate" id="bi-gate"></div>
   </section>
 
@@ -194,11 +210,12 @@
 
 <details class="card how k-hide">
   <summary>How the scores work</summary>
-  <p><b>Value</b> answers one question: is BTC cheap against past cycle lows? Each of 16 signals gets a score from 0 to 100. The score goes up as the signal gets closer to the level it reached at past lows. The value score is the weighted average. If a reading is missing, its weight goes to the others.</p>
+  <p><b>Value</b> is the main score. It answers one question: is BTC cheap against past cycle lows? Each of 16 signals gets a score from 0 to 100. The score goes up as the signal gets closer to the level it reached at past lows. The value score is the weighted average. If a reading is missing, its weight goes to the others.</p>
   <p><b>Small-cycle levels.</b> Each past low was less deep than the one before. For six signals, the full-score level moves with that trend. Switch to Classic to see the score with the old, fixed levels.</p>
-  <p><b>Bottom in?</b> asks a different question: has the low already passed? It looks for signs that only come after a low: no new low for weeks, price back above recent buyers' cost and the 200-day average, selling at a profit again, miners and money coming back. It stays low until the value score has reached 75 at least once in this bear market, because no past low came before that.</p>
+  <p><b>Bottom in?</b> is the timing check. It asks a different question: has the fall stopped? It looks for six signs that only come after a low: no new low for weeks, a bounce, price back above recent buyers' cost and the 200-day average, selling at a profit again, and miners recovered. It stays low until the value score has reached 75 at least once in this bear market, because no past low came before that. Money flows are shown but not scored. The price checks under it (depth, higher low, trend) are not scored either: they show what has improved and the price that would undo it.</p>
+  <p><b>Read them together.</b> Value alone acts too early: cheap prices can get cheaper. Bottom in? alone acts too late: it confirms a low after price has already risen. Both are scores, not probabilities.</p>
   <p><b>Cycle clock</b> shows where this cycle is in time and depth, against the 2015, 2018 and 2022 lows.</p>
-  <p>Live: price-based signals are worked out again at the live price each time the price updates. The other signals change once a day.</p>
+  <p>Live: the page pulls the data from the sources each time it opens and works out the scores in your browser. The line under the price shows how fresh each source is.</p>
   <p><a href="thesis.html">Read the full method, with the backtest results.</a></p>
   <p>Information only. Not financial advice. Past lows do not promise future lows.</p>
 </details>
@@ -209,6 +226,6 @@
 </footer>
 
 </div>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
