@@ -8,8 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..700&family=Space+Grotesk:wght@500;600;700&display=swap">
-<link rel="stylesheet" href="skins.css?v=3">
+<link rel="stylesheet" href="skins.css?v=8">
 <script>try { var k = localStorage.getItem("bbm.skin") || "midnight"; if (k === "auto") k = matchMedia("(prefers-color-scheme: light)").matches ? "daylight" : "midnight"; document.documentElement.setAttribute("data-skin", k); document.documentElement.setAttribute("data-light", k === "daylight" || k === "paper" ? "1" : "0"); document.documentElement.setAttribute("data-cb", localStorage.getItem("bbm.cb") === "1" ? "1" : "0"); } catch (e) {}</script>
+<script src="prefs.js?v=8"></script>
 <style>
 .wrap { max-width: 980px; }
 .lede { font-size: 17px; line-height: 1.55; max-width: 70ch; margin: 0; }
@@ -54,6 +55,7 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
   <header style="display:flex;flex-direction:column;gap:8px">
     <h1>How the scores work</h1>
     <p class="lede">The monitor's main question is: is BTC cheap? It also asks whether the fall has stopped, and where we are in the cycle. Each has its own score, because the answers often differ. This page explains the method behind each one, with the backtest results and how far to trust them.</p>
+    <p class="lede">You can check every figure yourself: <a href="backtest.html">Check our homework</a> works the backtest out in your browser from the published data, with the monitor's own code.</p>
   </header>
 
   <section class="card" aria-labelledby="h-q">
@@ -176,6 +178,30 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
     <p class="note">Tops: 4 Dec 2013, 16 Dec 2017, 8 Nov 2021, 6 Oct 2025 (highest daily close, Coin Metrics). Lows: 14 Jan 2015 ($152), 15 Dec 2018 ($3,122), 21 Nov 2022 ($15,479): the lowest intraday price on Bitstamp. MVRV and days below realized price use daily closes. Halvings: Nov 2012, Jul 2016, May 2020, Apr 2024. The "Versus past cycles" tab on the monitor shows the full paths.</p>
   </section>
 
+  <section class="card" aria-labelledby="h-cw">
+    <h2 id="h-cw">The cheap window</h2>
+    <p>A cheap window runs from the first close with Value at 60 or more to the last one. A gap below 60 of up to 12 weeks does not end it. The card shows the week of this window next to how long each past window lasted, and how much further BTC fell after the first close in the window. It does not count down: past windows were very different.</p>
+    <div class="tscroll"><table class="t">
+      <thead><tr><th>Bear market</th><th>Window</th><th class="r">Weeks</th><th class="r">First close</th><th class="r">Fell after</th><th class="r">Low came</th></tr></thead>
+      <tbody>
+        <tr><td>2014–15</td><td>12 Jan – 21 Sep 2015</td><td class="r">37</td><td class="r">$269</td><td class="r">−43% to $152</td><td class="r">week 1</td></tr>
+        <tr><td>2017–18</td><td>26 Nov 2018 – 11 Mar 2019</td><td class="r">16</td><td class="r">$3,700</td><td class="r">−16% to $3,122</td><td class="r">week 3</td></tr>
+        <tr><td>2021–22</td><td>13 Jun 2022 – 9 Jan 2023</td><td class="r">31</td><td class="r">$22,316</td><td class="r">−31% to $15,479</td><td class="r">week 24</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Weekly readings, small-cycle levels, the default rule. The card rebuilds past cycles day by day (Coin Metrics daily data, with the weekly LookIntoBitcoin lines drawn straight between readings), so its weeks and prices can differ a little. Use Settings on the card to change the line (40 to 90), the gap (1 to 26 weeks), the past-cycle data (daily or weekly) and the levels. The score can stop saying Cheap before the low is in: in 2022 it was below 60 for three weeks in August, three months before the November low.</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-show">
+    <h2 id="h-show">How the monitor shows its working</h2>
+    <ol class="pts">
+      <li><b>How we got the score.</b> The Value and Bottom in? cards show each signal's points, which add up to the score. Each row's ? button gives the reading now and, for Bottom in?, the price that would raise it.</li>
+      <li><b>Since last week.</b> The summary line compares now with a past close (7 days ago, last Thursday or 4 weeks ago): both scores, the price, and any cheap window or new low in between.</li>
+      <li><b>Price cross-check.</b> The page compares the Coin Metrics daily close with the Bybit daily close for the last five days. A gap above 2% shows in the data line, because one feed may be wrong.</li>
+      <li><b>Your layout and colours.</b> Arrange moves and resizes cards. Colours changes the score colours: seven pairings, each checked for red-green colour blindness, or your own. Copy setup link carries your layout, colours and settings to another device. All of it stays in your browser.</li>
+    </ol>
+  </section>
+
   <section class="card" aria-labelledby="h-live">
     <h2 id="h-live">Live data: where each number comes from</h2>
     <p>Each time the monitor opens, it pulls the data from the sources below and works out every score in your browser. It does not wait for a daily file. Nine value signals use price directly: CVDD, MVRV, long-term holder cost, balanced price, short-term holder cost, the 200-week and 200-day averages, Puell and reserve risk. Their lines move slowly, so the page divides each line into the live price every 15 seconds. The history chart and heat map use the close of each UTC day, worked out the same way.</p>
@@ -191,6 +217,7 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
         <tr><td>Short- and long-term holder cost, CVDD, balanced price, addresses in loss, SOPR, reserve risk</td><td>LookIntoBitcoin</td><td>The site blocks direct access from a web page. The daily task reads it each morning (data.json); this cycle's history is in recent.json</td><td>One to two days behind</td></tr>
         <tr><td>ETF net flow, 10 days</td><td>CoinGlass</td><td>Daily task</td><td>Daily</td></tr>
         <tr><td>USDT dominance, 30 days</td><td>TradingView</td><td>Daily task</td><td>Daily</td></tr>
+        <tr><td>Price cross-check</td><td>Coin Metrics close against the Bybit daily close</td><td>Worked out in the page</td><td>Last five days</td></tr>
         <tr><td>Past cycles (backtests and comparisons)</td><td>Coin Metrics, LookIntoBitcoin, alternative.me; intraday lows from Bitstamp</td><td>history.json (weekly)</td><td>Fixed</td></tr>
       </tbody>
     </table></div>
@@ -201,6 +228,7 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
     <h2 id="h-trust">How far to trust the backtest</h2>
     <ol class="pts">
       <li><b>Three bottoms, not hundreds of tests.</b> The Bottom in? backtest covers the 2015, 2018 and 2022 bear markets. Its band figures count weekly readings, and neighbouring weeks are nearly the same reading. "93% of 30 weeks" rests on three bear markets, so the monitor also says what happened in each one.</li>
+      <li><b>Out-of-sample test.</b> The small-cycle levels are fitted on all three lows. Hiding one low at a time and fitting the line on the other two changes little: the score at the 2015 low goes from 62 to 64, and the 2018 and 2022 results do not change. The classic levels and the weights were set with all three lows in view, which no test here can undo. Details in <a href="backtest.html#s8">Check our homework</a>.</li>
       <li><b>Scores, not probabilities.</b> A Bottom in? reading of 70 does not mean a 70% chance that the low is in. Both scores are weighted checklists, set against past cycles.</li>
       <li><b>The live score is the tested model.</b> Money flows are shown but not scored, because they have no data before 2024.</li>
       <li><b>Price checks give false starts on their own.</b> The monitor also shows three plain price checks under Bottom in?: depth, a confirmed higher low, and trend (daily close above the 30-day average, 30-day above the 60-day). They are not scored. They show what has improved and the price that would undo it. Bitstamp daily data:</li>
