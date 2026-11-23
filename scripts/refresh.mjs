@@ -62,7 +62,7 @@ async function fetchText(url, tries = 3, extraHeaders = {}) {
   }
   throw last;
 }
-const fetchJSON = async (url) => JSON.parse(await fetchText(url));
+const fetchJSON = async (url, opts = {}) => JSON.parse(await fetchText(url, 3, opts.headers || {}));
 
 function asOfCbr() {
   try {
@@ -341,7 +341,7 @@ function nearestPrice(map, date) {
   return map[best];
 }
 
-async function fetchEtf(cmByDate) {
+async function fetchEtfFarside(cmByDate) {
   // Farside rejects requests without a browser UA/Referer from datacenter IPs.
   const html = await fetchText("https://farside.co.uk/bitcoin-etf-flow-all/", 3, {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -374,6 +374,31 @@ async function fetchEtf(cmByDate) {
     used.push(r.date);
   }
   return { etf10d: sum, days: used };
+}
+
+// CoinGlass v4 (exact, BTC-denominated): preferred when COINGLASS_API_KEY is set.
+// Response: { code:"0", data:[{ timestamp, flow_usd, price_usd, etf_flows:[...] }] }
+async function fetchEtfCoinGlass(key) {
+  const j = await fetchJSON("https://open-api-v4.coinglass.com/api/etf/bitcoin/flow-history", {
+    headers: { "CG-API-KEY": key, Accept: "application/json" },
+  });
+  if (String(j.code) !== "0") throw new Error(`CoinGlass: ${j.msg || "code " + j.code}`);
+  const rows = (j.data || []).slice().sort((a, b) => a.timestamp - b.timestamp).slice(-10);
+  if (rows.length < 10) throw new Error(`CoinGlass: only ${rows.length} rows`);
+  const sum = rows.reduce((a, r) => a + (+r.flow_usd / +r.price_usd), 0);
+  return { etf10d: sum, days: rows.map((r) => new Date(r.timestamp).toISOString().slice(0, 10)) };
+}
+
+async function fetchEtf(cmByDate) {
+  const key = process.env.COINGLASS_API_KEY;
+  if (key) {
+    try {
+      return await fetchEtfCoinGlass(key);
+    } catch (e) {
+      warn("CoinGlass ETF failed, falling back to Farside:", e.message);
+    }
+  }
+  return fetchEtfFarside(cmByDate);
 }
 
 // ---------------------------------------------------------------------------

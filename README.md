@@ -176,7 +176,7 @@ task's time), or manually via `workflow_dispatch`.
 | # | Source | Request | Frequency | Retrieved | Format |
 |---|---|---|---|---|---|
 | 1 | **LookIntoBitcoin** | `GET frontend.api.lookintobitcoin.com/api/v2/charts/<slug>/` × 7 | daily | CVDD, balanced price, STH cost, LTH cost, SOPR-1 (7d mean), reserve risk, addresses in loss | JSON (Plotly traces) |
-| 2 | **Farside** | `GET farside.co.uk/bitcoin-etf-flow-all/` | daily | US spot BTC ETF net flows, USD millions per fund/day | HTML table |
+| 2 | **CoinGlass** (if key) / **Farside** | `GET open-api-v4.coinglass.com/api/etf/bitcoin/flow-history` (header `CG-API-KEY`) / `GET farside.co.uk/bitcoin-etf-flow-all/` | daily | US spot BTC ETF net flows: USD flow + daily BTC price (CoinGlass), or USD millions per fund/day (Farside) | JSON / HTML |
 | 3 | **CoinMarketCap** | `GET api.coinmarketcap.com/data-api/v3/global-metrics/quotes/historical` + `…/cryptocurrency/detail/chart?id=825&range=1M` | daily | total crypto market cap + USDT market cap history | JSON |
 | 4 | **Coin Metrics** | as above | daily | daily closes, MVRV, issuance, hash rate (for `ref`/`raw`) | JSON |
 | 5 | **Bybit / Coinbase / Binance / DefiLlama / alternative.me** | as above | daily | funding/OI, OHLC, premium, stablecoins, F&G | JSON |
@@ -272,16 +272,30 @@ GET https://api.coinmarketcap.com/data-api/v3/cryptocurrency/detail/chart?id=825
 `dom = USDT market cap / total crypto market cap`. This matched the upstream stored
 value to ~0.2 points (25.72% vs 25.52%).
 
-**CoinGlass — optional exact ETF source** (needs an API key; not used by default):
+**CoinGlass — exact ETF source (preferred when configured)**:
 
 ```http
 GET https://open-api-v4.coinglass.com/api/etf/bitcoin/flow-history
 CG-API-KEY: <your key>
 ```
 
-Returns daily net flows in USD, the BTC price, and a per-ETF breakdown (updated once
-a day). If you add a free key as the `COINGLASS_API_KEY` secret, you can extend
-`scripts/refresh.mjs` to prefer it over Farside for exact BTC-denominated flows.
+```json
+{ "code": "0", "data": [
+  { "timestamp": 1704931200000, "flow_usd": 655300000, "price_usd": 46663,
+    "etf_flows": [{ "etf_ticker": "GBTC", "flow_usd": -95100000 }] }
+] }
+```
+
+The job uses this automatically when `COINGLASS_API_KEY` is set:
+`etf10d = Σ(flow_usd / price_usd)` over the last 10 days, which is exact BTC.
+Add the secret in **Settings → Secrets and variables → Actions**, or:
+
+```bash
+gh secret set COINGLASS_API_KEY --repo pipolarbear/btc-bottom-monitor
+```
+
+Without it, the job falls back to Farside and carries the previous value forward if
+Farside blocks the runner.
 
 > The CoinGlass **internal** endpoint used by its website
 > (`capi.coinglass.com/api/etf/flow`) is signature-gated with deliberate obfuscation
@@ -334,8 +348,10 @@ Failure behaviour:
     no public historical open interest, so `oiDrawdown` is left empty and the
     leverage signal uses funding alone. If both fail, the signal is skipped.
   - **Coinbase premium** falls back from Binance/Bybit to a **Kraken** reference price.
-  - **Farside ETF** and **CoinMarketCap USDT dominance** carry forward the previous
-    `etf10d` / `usdtd30d` on failure (both are display-only).
+  - **ETF flows**: CoinGlass is used when `COINGLASS_API_KEY` is set, otherwise
+    Farside. If both fail, the previous `etf10d` is carried forward (display-only).
+  - **USDT dominance** carries forward the previous `usdtd30d` on failure
+    (display-only).
 
 Live run:
 
@@ -352,12 +368,13 @@ Live run:
   uses fallbacks:
   - funding: Kraken Futures (no historical OI, so the leverage signal is funding-only);
   - premium: Coinbase vs Kraken instead of Coinbase vs an offshore venue.
-- **ETF flows** use Farside (USD → BTC) instead of the upstream CoinGlass feed.
-  For the same window this was ~30% lower in magnitude (≈ −40.1k BTC vs −30.8k BTC),
-  because CoinGlass reports BTC-denominated flows directly. ETF flows are
-  **display-only** — they are not part of the Value or Bottom-in scores. Farside also
-  blocks many datacenter IPs, including GitHub runners, so the job carries the
-  previous `etf10d` forward unless you add a CoinGlass key (see above).
+- **ETF flows**: when `COINGLASS_API_KEY` is set, the job uses CoinGlass's exact
+  BTC-denominated flows. Otherwise it uses Farside (USD → BTC). For the same window
+  Farside was ~30% lower in magnitude (≈ −40.1k BTC vs −30.8k BTC), because CoinGlass
+  reports BTC-denominated flows directly. ETF flows are **display-only** — they are
+  not part of the Value or Bottom-in scores. Farside also blocks many datacenter IPs,
+  including GitHub runners, so without a key the job carries the previous `etf10d`
+  forward (see above).
 - **USDT dominance** uses CoinMarketCap's public web data API; it matched the upstream
   stored value closely but is an undocumented endpoint and may change.
 - **`history.json`** stays static; only `data.json` and `recent.json` refresh.

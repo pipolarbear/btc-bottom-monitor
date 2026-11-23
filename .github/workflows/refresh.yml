@@ -26,6 +26,10 @@ jobs:
           node-version: "20"
 
       - name: Refresh data.json and recent.json
+        env:
+          # Optional: set this secret to use CoinGlass's exact BTC-denominated ETF
+          # flows. Without it the job uses Farside and carries forward on 403.
+          COINGLASS_API_KEY: ${{ secrets.COINGLASS_API_KEY }}
         run: node scripts/refresh.mjs
 
       - name: Commit and push
