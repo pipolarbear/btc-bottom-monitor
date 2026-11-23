@@ -325,10 +325,17 @@ What it does:
 
 Failure behaviour:
 
-- Required sources (Coin Metrics, LookIntoBitcoin, F&G, Bybit, DefiLlama, premium)
-  failing makes the job fail, and nothing is committed.
-- Farside ETF and CoinMarketCap USDT dominance are optional: on failure the previous
-  `etf10d` / `usdtd30d` is carried forward and a warning is logged.
+- **Coin Metrics** and **LookIntoBitcoin** are required. If either fails, the job
+  fails and nothing is committed.
+- Everything else is optional and degrades gracefully:
+  - Fear & Greed, stablecoins and daily candles (Coinbase fallback) are used when
+    available; missing readings are simply skipped by the weighted average.
+  - **Funding** falls back from Bybit to **Kraken Futures** (hourly rates). Kraken has
+    no public historical open interest, so `oiDrawdown` is left empty and the
+    leverage signal uses funding alone. If both fail, the signal is skipped.
+  - **Coinbase premium** falls back from Binance/Bybit to a **Kraken** reference price.
+  - **Farside ETF** and **CoinMarketCap USDT dominance** carry forward the previous
+    `etf10d` / `usdtd30d` on failure (both are display-only).
 
 Live run:
 
@@ -340,10 +347,17 @@ Live run:
 
 ## Known differences from upstream
 
+- **GitHub runners are in the US**, where Bybit and Binance block requests (403).
+  The browser app is unaffected (it runs on your own connection), but the daily job
+  uses fallbacks:
+  - funding: Kraken Futures (no historical OI, so the leverage signal is funding-only);
+  - premium: Coinbase vs Kraken instead of Coinbase vs an offshore venue.
 - **ETF flows** use Farside (USD → BTC) instead of the upstream CoinGlass feed.
   For the same window this was ~30% lower in magnitude (≈ −40.1k BTC vs −30.8k BTC),
   because CoinGlass reports BTC-denominated flows directly. ETF flows are
-  **display-only** — they are not part of the Value or Bottom-in scores.
+  **display-only** — they are not part of the Value or Bottom-in scores. Farside also
+  blocks many datacenter IPs, including GitHub runners, so the job carries the
+  previous `etf10d` forward unless you add a CoinGlass key (see above).
 - **USDT dominance** uses CoinMarketCap's public web data API; it matched the upstream
   stored value closely but is an undocumented endpoint and may change.
 - **`history.json`** stays static; only `data.json` and `recent.json` refresh.

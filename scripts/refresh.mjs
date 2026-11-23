@@ -127,7 +127,7 @@ async function fetchFng() {
 }
 
 // Bybit perpetual: funding history and daily open interest, back to 100 days before the top.
-async function fetchLev() {
+async function fetchLevBybit() {
   const since = dnum(addDays(NOWC.top, -100));
   const fund = [];
   const oi = [];
@@ -162,6 +162,36 @@ async function fetchLev() {
   };
   if (!fund.length && !oi.length) throw new Error("Bybit leverage: empty");
   return { fund: uniq(fund), oi: uniq(oi) };
+}
+
+// US-accessible fallback: Kraken Futures hourly funding (Kraken has no public
+// historical open interest). Hourly rates are scaled to 8-hour equivalents so the
+// existing annualisation (3 x 365) stays correct; oiDrawdown is left missing and
+// the site scores the leverage signal on funding alone.
+async function fetchLevKraken() {
+  const j = await fetchJSON("https://futures.kraken.com/derivatives/api/v3/historical-funding-rates?symbol=PF_XBTUSD");
+  const rates = j.rates || [];
+  if (!rates.length) throw new Error("Kraken funding: empty");
+  const fund = rates
+    .map((r) => [Date.parse(r.timestamp), +r.relativeFundingRate * 8])
+    .filter((x) => Number.isFinite(x[0]) && Number.isFinite(x[1]));
+  return { fund, oi: [] };
+}
+
+async function fetchLev() {
+  try {
+    return await fetchLevBybit();
+  } catch (e) {
+    warn("Bybit funding/OI failed:", e.message);
+  }
+  try {
+    const k = await fetchLevKraken();
+    warn("Using Kraken Futures funding (no open-interest history).");
+    return k;
+  } catch (e) {
+    warn("Kraken funding failed:", e.message);
+  }
+  return { fund: [], oi: [] };
 }
 
 // Daily candles (UTC): close and intraday low. Bybit spot, Coinbase as fallback.
@@ -201,7 +231,11 @@ async function fetchPremium() {
   const other = fetchJSON("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT")
     .then((j) => +j.price)
     .catch(() => fetchJSON("https://api.bybit.com/v5/market/tickers?category=spot&symbol=BTCUSDT")
-      .then((j) => +j.result.list[0].lastPrice));
+      .then((j) => +j.result.list[0].lastPrice))
+    .catch(() => fetchJSON("https://api.kraken.com/0/public/Ticker?pair=XBTUSD").then((j) => {
+      const t = j.result[Object.keys(j.result)[0]];
+      return +t.c[0];
+    }));
   const [cb, off] = await Promise.all([
     fetchJSON("https://api.exchange.coinbase.com/products/BTC-USD/ticker").then((j) => +j.price),
     other,
@@ -471,7 +505,7 @@ async function main() {
   // where the reading still needs one.
   const [fng, lev, ohlc, stable, cbPremium, lib, usdtRes, etfRes] = await Promise.all([
     opt("Fear & Greed", fetchFng),
-    opt("Bybit funding/OI", fetchLev, { fund: [], oi: [] }),
+    opt("Leverage (Bybit/Kraken)", fetchLev, { fund: [], oi: [] }),
     opt("Daily candles", fetchOhlc, {}),
     opt("DefiLlama stablecoins", fetchStable),
     opt("Coinbase premium", fetchPremium),
@@ -480,7 +514,7 @@ async function main() {
     opt("Farside ETF", () => fetchEtf(cmByDate)),
   ]);
   log(`Fear & Greed: ${fng ? Object.keys(fng).length + " days" : "unavailable"}`);
-  log(`Bybit: ${lev.fund.length} funding points, ${lev.oi.length} OI points`);
+  log(`Leverage: ${lev.fund.length} funding points, ${lev.oi.length} OI points`);
   log(`OHLC: ${Object.keys(ohlc).length} days`);
   log(`Stablecoins: ${stable ? Object.keys(stable).length + " days" : "unavailable"}`);
   log(`Coinbase premium: ${cbPremium == null ? "unavailable" : cbPremium.toFixed(2) + "%"}`);
