@@ -214,14 +214,14 @@ table.t td.r, table.t th.r { text-align: right; font-family: var(--mono); }
         <tr><td>Fear &amp; Greed</td><td>alternative.me</td><td>Pulled live</td><td>Daily</td></tr>
         <tr><td>Stablecoin supply</td><td>DefiLlama</td><td>Pulled live</td><td>Daily</td></tr>
         <tr><td>Coinbase premium</td><td>Coinbase BTC/USD against Binance BTC/USDT</td><td>Pulled live</td><td>Live</td></tr>
-        <tr><td>Short- and long-term holder cost, CVDD, balanced price, addresses in loss, SOPR, reserve risk</td><td>LookIntoBitcoin</td><td>The site blocks direct access from a web page. The daily task reads it each morning (data.json); this cycle's history is in recent.json</td><td>One to two days behind</td></tr>
-        <tr><td>ETF net flow, 10 days</td><td>CoinGlass</td><td>Daily task</td><td>Daily</td></tr>
-        <tr><td>USDT dominance, 30 days</td><td>TradingView</td><td>Daily task</td><td>Daily</td></tr>
+        <tr><td>Short- and long-term holder cost, CVDD, balanced price, addresses in loss, SOPR, reserve risk</td><td>LookIntoBitcoin</td><td>The site blocks browser access. The daily refresh reads LookIntoBitcoin's public chart API; this cycle's history is in recent.json</td><td>Daily (last complete UTC day)</td></tr>
+        <tr><td>ETF net flow, 10 days</td><td>Farside (US spot ETF flows)</td><td>Daily refresh; carries the last reading forward if the source blocks the runner</td><td>Daily</td></tr>
+        <tr><td>USDT dominance, 30 days</td><td>CoinMarketCap public data</td><td>Daily refresh</td><td>Daily</td></tr>
         <tr><td>Price cross-check</td><td>Coin Metrics close against the Bybit daily close</td><td>Worked out in the page</td><td>Last five days</td></tr>
         <tr><td>Past cycles (backtests and comparisons)</td><td>Coin Metrics, LookIntoBitcoin, alternative.me; intraday lows from Bitstamp</td><td>history.json (weekly)</td><td>Fixed</td></tr>
       </tbody>
     </table></div>
-    <p class="note">A line under the price shows when each source last updated. If the live sources cannot be reached, the page falls back to the daily task's readings and says so. Bottom in? uses the live price for the low, the bounce, recent buyers' cost and the 200-day average. The low is the lowest intraday price since the top, so a short drop below the old low counts as a new low.</p>
+    <p class="note">A line under the price shows when each source last updated. If the live sources cannot be reached, the page falls back to the daily refresh's readings and says so. Bottom in? uses the live price for the low, the bounce, recent buyers' cost and the 200-day average. The low is the lowest intraday price since the top, so a short drop below the old low counts as a new low.</p>
   </section>
 
   <section class="card" aria-labelledby="h-trust">
