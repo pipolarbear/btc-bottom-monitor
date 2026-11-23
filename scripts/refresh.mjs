@@ -53,7 +53,7 @@ async function fetchText(url, tries = 3, extraHeaders = {}) {
         headers: { "User-Agent": UA, Accept: "*/*", ...extraHeaders },
         signal: AbortSignal.timeout(45000),
       });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
       return await r.text();
     } catch (e) {
       last = e;
@@ -456,22 +456,34 @@ async function main() {
   const cmByDate = Object.fromEntries(cm.map((x) => [x.d, x.price]));
   log(`Coin Metrics: ${cm.length} rows, latest ${cm[cm.length - 1].d}`);
 
-  // Independent sources in parallel.
+  async function opt(name, fn, fallback = null) {
+    try {
+      return await fn();
+    } catch (e) {
+      warn(`${name} failed: ${e.message}`);
+      return fallback;
+    }
+  }
+
+  // Coin Metrics and LookIntoBitcoin are required. The rest are optional: US
+  // datacenter IPs (GitHub runners) are blocked by some venues, and a missing
+  // signal is handled by the site's weighted average. Values are carried forward
+  // where the reading still needs one.
   const [fng, lev, ohlc, stable, cbPremium, lib, usdtRes, etfRes] = await Promise.all([
-    fetchFng(),
-    fetchLev(),
-    fetchOhlc(),
-    fetchStable(),
-    fetchPremium(),
+    opt("Fear & Greed", fetchFng),
+    opt("Bybit funding/OI", fetchLev, { fund: [], oi: [] }),
+    opt("Daily candles", fetchOhlc, {}),
+    opt("DefiLlama stablecoins", fetchStable),
+    opt("Coinbase premium", fetchPremium),
     fetchLib(),
-    fetchUsdtDominance().catch((e) => { warn("USDT dominance failed:", e.message); return null; }),
-    fetchEtf(cmByDate).catch((e) => { warn("Farside ETF failed:", e.message); return null; }),
+    opt("USDT dominance", fetchUsdtDominance),
+    opt("Farside ETF", () => fetchEtf(cmByDate)),
   ]);
-  log(`Fear & Greed: ${Object.keys(fng).length} days`);
+  log(`Fear & Greed: ${fng ? Object.keys(fng).length + " days" : "unavailable"}`);
   log(`Bybit: ${lev.fund.length} funding points, ${lev.oi.length} OI points`);
   log(`OHLC: ${Object.keys(ohlc).length} days`);
-  log(`Stablecoins: ${Object.keys(stable).length} days`);
-  log(`Coinbase premium: ${cbPremium.toFixed(2)}%`);
+  log(`Stablecoins: ${stable ? Object.keys(stable).length + " days" : "unavailable"}`);
+  log(`Coinbase premium: ${cbPremium == null ? "unavailable" : cbPremium.toFixed(2) + "%"}`);
   log(`LookIntoBitcoin: chart date ${lib._chartDate}`);
   log(`Farside ETF: ${etfRes ? etfRes.etf10d.toFixed(0) + " BTC (10d)" : "carried forward"}`);
   log(`USDT dominance: ${usdtRes ? usdtRes.usdtd30d.toFixed(2) + "% (30d)" : "carried forward"}`);
@@ -542,7 +554,7 @@ async function main() {
     loss: addrLoss,
     puell: i365 ? iss[idx] / i365 : null,
     sth: sthP ? p / sthP : null,
-    fg: fg7(fng, rowDate),
+    fg: fg7(fng || {}, rowDate),
     hcap: hc[idx],
     dsr,
     rr: rr != null && pL ? rr * p / pL : rr,
@@ -571,15 +583,17 @@ async function main() {
   const recentPath = path.join(ROOT, "recent.json");
   const prev = JSON.parse(fs.readFileSync(dataPath, "utf8"));
   const prevConfirm = prev.days?.[prev.days.length - 1]?.confirm || {};
+  const stable30d = (() => {
+    if (!stable) return prevConfirm.stable30d ?? null;
+    const ks = Object.keys(stable).sort();
+    const last = ks[ks.length - 1];
+    const past = addDays(last, -30);
+    return stable[past] ? (stable[last] / stable[past] - 1) * 100 : (prevConfirm.stable30d ?? null);
+  })();
   const confirm = {
     etf10d: etfRes?.etf10d ?? prevConfirm.etf10d ?? null,
-    cbPremium,
-    stable30d: (() => {
-      const ks = Object.keys(stable).sort();
-      const last = ks[ks.length - 1];
-      const past = addDays(last, -30);
-      return stable[past] ? (stable[last] / stable[past] - 1) * 100 : null;
-    })(),
+    cbPremium: cbPremium ?? prevConfirm.cbPremium ?? null,
+    stable30d,
     usdtd30d: usdtRes?.usdtd30d ?? prevConfirm.usdtd30d ?? null,
   };
 
