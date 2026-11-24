@@ -8,8 +8,13 @@ from [pixelmango47/btc-bottom-monitor](https://github.com/pixelmango47/btc-botto
 This fork adds:
 
 - `scripts/refresh.mjs` — a daily job that rebuilds the data the upstream private
-  "daily task" used to produce (`data.json` + `recent.json`).
-- `.github/workflows/refresh.yml` — runs that job once a day on GitHub Actions.
+  "daily task" used to produce.
+- An orphan **`data` branch** holding append-only NDJSON snapshots
+  (`daily.ndjson`, `lib.ndjson`). `main` stays code-only.
+- `scripts/build.mjs` — derives `data.json` / `recent.json` from the snapshots into
+  `_site` at publish time.
+- `.github/workflows/publish.yml` — refreshes the snapshots, builds, and deploys
+  GitHub Pages once a day.
 - This README, listing every source, how often it is called, what it returns, and in
   what format, with request/response examples.
 
@@ -19,16 +24,23 @@ This fork adds:
 
 ## Run locally
 
-The app uses `fetch()`, so it must be served over HTTP (not opened as `file://`):
+`main` has no data files; fetch the `data` branch and build `_site`:
 
 ```bash
-cd btc-bottom-monitor
-python3 -m http.server 8000
+git worktree add ../bb-data data        # or: git clone -b data . ../bb-data
+node scripts/build.mjs --data-dir ../bb-data --out _site
+python3 -m http.server --directory _site 8000
 # open http://localhost:8000
 ```
 
-No build step and no dependencies are required for the site itself. The refresh
-script runs on Node 20+ (uses built-in `fetch`).
+To refresh the local snapshots first:
+
+```bash
+node scripts/refresh.mjs --data-dir ../bb-data
+node scripts/build.mjs --data-dir ../bb-data --out _site
+```
+
+No dependencies are required: the scripts use Node 20+ built-in `fetch`.
 
 ---
 
@@ -40,15 +52,41 @@ There are two layers:
    stablecoins and the Coinbase premium are fetched from public APIs each time the
    page opens, then on timers. The site recomputes the scores in your browser.
 
-2. **Daily job.** Nine series cannot be fetched from a browser (CORS/anti-bot) and
-   are written into the repo by the daily job:
+2. **Daily snapshots.** Nine series cannot be fetched from a browser (CORS/anti-bot):
    - 7 LookIntoBitcoin on-chain lines,
    - US spot Bitcoin ETF net flows (10-day),
    - USDT dominance (30-day change).
 
-   The job writes `recent.json` (the LookIntoBitcoin lines) and `data.json`
-   (daily readings + the two flow series), then commits them. GitHub Pages redeploys
-   automatically.
+   The daily job appends one date-tagged line per day to the orphan `data` branch:
+   - `daily.ndjson` — the daily reading (`date`, `asOf`, `price`, `score`, `raw`,
+     `ref`, `confirm`).
+   - `lib.ndjson` — the LookIntoBitcoin row
+     (`[date, sthP, lthP, cvddP, balP, loss, sopr, rr, pL]`).
+
+   At publish time, `scripts/build.mjs` reads the last 60 daily lines and the last
+   420 lib lines and writes derived `data.json` / `recent.json` into `_site`. The app
+   is unchanged: it fetches those two relative files.
+
+> **The `data` branch is orphan and append-only. Never merge it into `main`, and never
+> merge upstream's data commits. Cherry-pick upstream code changes only.**
+
+---
+
+## Repository layout
+
+```
+main                          data (orphan, never merged)
+├── index.html …              ├── daily.ndjson
+├── app.js, *.css             └── lib.ndjson
+├── scripts/refresh.mjs
+├── scripts/build.mjs
+├── scripts/migrate-ndjson.mjs (one-off)
+├── meta.json
+├── history.json
+└── .github/workflows/publish.yml
+```
+
+The published `_site/` contains the app plus derived `data.json` / `recent.json`.
 
 ---
 
@@ -170,8 +208,9 @@ GET https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&
 
 ### B. Daily refresh job
 
-Run by `.github/workflows/refresh.yml` at **20:00 UTC ≈ 07:00 AEDT** (the upstream
-task's time), or manually via `workflow_dispatch`.
+Run by `.github/workflows/publish.yml` at **20:00 UTC ≈ 07:00 AEDT** (the upstream
+task's time), or manually via `workflow_dispatch`. It appends to the orphan `data`
+branch, then builds and deploys.
 
 | # | Source | Request | Frequency | Retrieved | Format |
 |---|---|---|---|---|---|
@@ -305,37 +344,54 @@ Farside blocks the runner.
 
 ### C. Generated / static files
 
-| File | Producer | Contents | Format |
-|---|---|---|---|
-| `data.json` | `scripts/refresh.mjs` + upstream | `{v, updated, days:[{date, asOf, price, score, raw, ref, confirm}], weekly, weeklyNote}`; rolling 60 days | JSON |
-| `recent.json` | `scripts/refresh.mjs` + upstream | `{v, built, note, cols, rows}`; one row per UTC day: `[date, sthP, lthP, cvddP, balP, loss, sopr, rr, pL]` | JSON |
-| `history.json` | upstream | weekly backtest history since 2013 for the backtest page | JSON (static) |
+| File | Where | Producer | Contents | Format |
+|---|---|---|---|---|
+| `daily.ndjson` | `data` branch | `scripts/refresh.mjs` | one line per daily reading: `{date, asOf, price, score, raw, ref, confirm}` | NDJSON |
+| `lib.ndjson` | `data` branch | `scripts/refresh.mjs` | one line per UTC day: `[date, sthP, lthP, cvddP, balP, loss, sopr, rr, pL]` | NDJSON |
+| `meta.json` | `main` | static | `{v, weekly, weeklyNote, recent:{v, note, cols}}` | JSON |
+| `data.json` | `_site` | `scripts/build.mjs` | `{v, updated, days:[…last 60…], weekly, weeklyNote}` | JSON (derived) |
+| `recent.json` | `_site` | `scripts/build.mjs` | `{v, built, note, cols, rows:[…last 420…]}` | JSON (derived) |
+| `history.json` | `main` | upstream snapshot | weekly backtest history since 2013 | JSON (static) |
 
-`data.json` is labelled with the **Canberra date** of the run (like the upstream
-07:00 task), while `recent.json` uses the last complete UTC day (`chart date − 1`).
+`daily.ndjson` is labelled with the **Canberra date** of the run (like the upstream
+07:00 task), while `lib.ndjson` uses the last complete UTC day (`chart date − 1`).
 The app maps `data.json` back with `date − 2`, so the two line up.
 
 `history.json` is a historical backtest dataset and is **not** refreshed by this job.
 
 ---
 
-## The refresh job
+## The refresh + build jobs
 
 ```bash
-node scripts/refresh.mjs            # fetch and write data.json + recent.json
-node scripts/refresh.mjs --dry-run  # print the reading, write nothing
-node scripts/refresh.mjs --date=2026-11-22
+# Refresh: append one snapshot line to the data branch checkout
+node scripts/refresh.mjs --data-dir ../bb-data
+node scripts/refresh.mjs --dry-run --data-dir ../bb-data
+node scripts/refresh.mjs --date=2026-11-22 --data-dir ../bb-data
+
+# Build: derive data.json + recent.json into _site
+node scripts/build.mjs --data-dir ../bb-data --out _site
 ```
 
-What it does:
+Refresh:
 
 1. Fetches the sources above.
 2. Computes the latest daily reading with the site's **own** scoring model: it loads
    `app.js` with `window.BVM_EXPORT = true` and calls `BVM.parts(...)`, so the score
    matches the site exactly.
-3. Appends the day to `data.json` (rolling 60 days) and the LookIntoBitcoin row to
-   `recent.json`.
-4. The workflow commits `data.json` + `recent.json`; GitHub Pages redeploys.
+3. Upserts one date-tagged line in `daily.ndjson` and `lib.ndjson` (it never reads the
+   full history; only the last daily line for carry-forward).
+
+Build:
+
+1. Reads the last 60 daily lines and last 420 lib lines.
+2. Writes `data.json` + `recent.json` into `_site` and copies the app files.
+
+Publish (`publish.yml`):
+
+- Checks out `main` + the `data` branch.
+- Runs refresh (skipped on a `main` push), commits the new snapshots, builds `_site`,
+  and deploys via `actions/deploy-pages`.
 
 Failure behaviour:
 
@@ -355,9 +411,9 @@ Failure behaviour:
 
 Live run:
 
-- Workflow: `.github/workflows/refresh.yml`
+- Workflow: `.github/workflows/publish.yml`
 - Cron: `0 20 * * *` (20:00 UTC ≈ 07:00 AEDT)
-- Manual: Actions → **Refresh data** → **Run workflow**
+- Manual: Actions → **Publish** → **Run workflow**
 
 ---
 
@@ -377,7 +433,7 @@ Live run:
   forward (see above).
 - **USDT dominance** uses CoinMarketCap's public web data API; it matched the upstream
   stored value closely but is an undocumented endpoint and may change.
-- **`history.json`** stays static; only `data.json` and `recent.json` refresh.
+- **`history.json`** stays static; only the `data` branch snapshots refresh.
 - The daily reading is computed from the **last complete UTC day** (consistent
   timestamps), whereas the upstream task mixed a live 07:00 price with older
   on-chain lines.

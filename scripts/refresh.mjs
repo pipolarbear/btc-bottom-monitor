@@ -25,8 +25,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const arg = (name, fallback) => {
+  const flag = `--${name}=`;
+  const hit = process.argv.find((a) => a.startsWith(flag));
+  if (hit) return hit.slice(flag.length);
+  const i = process.argv.indexOf(`--${name}`);
+  return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : fallback;
+};
+const DATA_DIR = path.resolve(arg("data-dir", ROOT));
 const DRY = process.argv.includes("--dry-run");
-const DATE_ARG = (process.argv.find((a) => a.startsWith("--date=")) || "").split("=")[1] || null;
+const DATE_ARG = arg("date", null);
 
 // ---------------------------------------------------------------------------
 // The site's own scoring model (app.js) — loaded with BVM_EXPORT so it stops
@@ -637,11 +645,17 @@ async function main() {
     sma200: s200,
   };
 
-  // Carry forward the two display-only series when a source is flaky.
-  const dataPath = path.join(ROOT, "data.json");
-  const recentPath = path.join(ROOT, "recent.json");
-  const prev = JSON.parse(fs.readFileSync(dataPath, "utf8"));
-  const prevConfirm = prev.days?.[prev.days.length - 1]?.confirm || {};
+  // Carry forward the display-only series when a source is flaky. The data
+  // branch holds append-only NDJSON; only the last daily line is needed.
+  const dailyPath = path.join(DATA_DIR, "daily.ndjson");
+  const libPath = path.join(DATA_DIR, "lib.ndjson");
+  const readNdjson = (file) =>
+    fs.existsSync(file)
+      ? fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line))
+      : [];
+  const prevDaily = readNdjson(dailyPath);
+  const prevLib = readNdjson(libPath);
+  const prevConfirm = prevDaily.length ? prevDaily[prevDaily.length - 1].confirm || {} : {};
   const stable30d = (() => {
     if (!stable) return prevConfirm.stable30d ?? null;
     const ks = Object.keys(stable).sort();
@@ -667,7 +681,7 @@ async function main() {
   };
 
   log(`LookIntoBitcoin pL (reserve-risk price): ${pL}`);
-  log(`Dates: data.json=${dayDate}, recent.json=${rowDate}`);
+  log(`Dates: daily=${dayDate}, lib=${rowDate}`);
   log("\nNew reading:");
   log(JSON.stringify(day, null, 2));
 
@@ -676,26 +690,23 @@ async function main() {
     return;
   }
 
-  // data.json: upsert the day, keep a rolling window (60 days).
-  const days = (prev.days || []).filter((x) => x.date !== dayDate).concat([day])
-    .sort((a, b) => (a.date < b.date ? -1 : 1))
-    .slice(-60);
-  const dataOut = { ...prev, updated: new Date().toISOString(), days };
-  fs.writeFileSync(dataPath, JSON.stringify(dataOut));
+  // Upsert one date-tagged line in each NDJSON series, sorted ascending.
+  fs.mkdirSync(DATA_DIR, { recursive: true });
 
-  // recent.json: upsert the LookIntoBitcoin row.
-  const prevRecent = JSON.parse(fs.readFileSync(recentPath, "utf8"));
+  const dailyLines = prevDaily.filter((x) => x.date !== dayDate).concat([day])
+    .sort((a, b) => (a.date < b.date ? -1 : 1));
+  fs.writeFileSync(dailyPath, dailyLines.map((x) => JSON.stringify(x)).join("\n") + "\n");
+
   const row = [
     rowDate,
     round(sthP, 4), round(lthP, 4), round(cvddP, 4), round(balP, 4),
     round(addrLoss, 6), round(sopr7d, 6), round(rr, 9), round(pL, 2),
   ];
-  const rows = (prevRecent.rows || []).filter((x) => x[0] !== rowDate).concat([row])
+  const libLines = prevLib.filter((x) => x[0] !== rowDate).concat([row])
     .sort((a, b) => (a[0] < b[0] ? -1 : 1));
-  const recentOut = { ...prevRecent, built: new Date().toISOString(), rows };
-  fs.writeFileSync(recentPath, JSON.stringify(recentOut));
+  fs.writeFileSync(libPath, libLines.map((x) => JSON.stringify(x)).join("\n") + "\n");
 
-  log(`\nWrote data.json (${days.length} days) and recent.json (${rows.length} rows).`);
+  log(`\nWrote ${dailyLines.length} daily lines and ${libLines.length} lib lines to ${DATA_DIR}.`);
 }
 
 function round(v, d) {

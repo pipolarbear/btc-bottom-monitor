@@ -1,0 +1,12 @@
+# Derived data — built into _site from the orphan `data` branch
+data.json
+recent.json
+_site/
+
+# Data branch worktree / local NDJSON copies
+data-branch/
+daily.ndjson
+lib.ndjson
+
+# Local scratch
+tmp/
