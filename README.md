@@ -27,7 +27,8 @@ This fork adds:
 `main` has no data files; fetch the `data` branch and build `_site`:
 
 ```bash
-git worktree add ../bb-data data        # or: git clone -b data . ../bb-data
+git fetch origin data
+git worktree add -b data ../bb-data origin/data   # once; omit -b if data exists
 node scripts/build.mjs --data-dir ../bb-data --out _site
 python3 -m http.server --directory _site 8000
 # open http://localhost:8000
